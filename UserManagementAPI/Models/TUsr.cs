@@ -51,6 +51,7 @@ namespace UserManagementAPI.Models
         public int? ProfileId { get; set; }
 
         public virtual Tcompany? Company { get; set; }
+        public virtual TDepartment? Department { get; set; }
         public virtual TProfile? Profile { get; set; }
         public virtual ICollection<TUsrDetail> TUsrDetails { get; set; }
     }

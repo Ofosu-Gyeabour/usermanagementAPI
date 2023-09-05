@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+//using Swashbuckle.AspNetCore.SwaggerUI;
+
 using UserManagementAPI.utils;
 
 namespace UserManagementAPI.Data
@@ -32,6 +34,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TUsrDetail> TUsrDetails { get; set; } = null!;
         public virtual DbSet<Tcompany> Tcompanies { get; set; } = null!;
         public virtual DbSet<Tusr> Tusrs { get; set; } = null!;
+        public virtual DbSet<TEvent> TEvents { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -257,7 +260,6 @@ namespace UserManagementAPI.Data
                 entity.ToTable("tProfile");
 
                 entity.Property(e => e.ProfileId)
-                    .ValueGeneratedNever()
                     .HasColumnName("profileId")
                     .HasComment("Id of the profile");
 
@@ -460,10 +462,27 @@ namespace UserManagementAPI.Data
                     .HasForeignKey(d => d.CompanyId)
                     .HasConstraintName("FK_tusr_tcompany");
 
+                entity.HasOne(d => d.Department)
+                    .WithMany(p => p.Tusrs)
+                    .HasForeignKey(d => d.DepartmentId)
+                    .HasConstraintName("FK_tusr_tDepartment");
+
                 entity.HasOne(d => d.Profile)
                     .WithMany(p => p.Tusrs)
                     .HasForeignKey(d => d.ProfileId)
                     .HasConstraintName("FK_tusr_tProfile");
+            });
+
+            modelBuilder.Entity<TEvent>(entity =>
+            {
+                entity.ToTable("tEvent");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.EventDescription)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("eventDescription");
             });
 
             OnModelCreatingPartial(modelBuilder);

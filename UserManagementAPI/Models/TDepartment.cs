@@ -5,6 +5,11 @@ namespace UserManagementAPI.Models
 {
     public partial class TDepartment
     {
+        public TDepartment()
+        {
+            Tusrs = new HashSet<Tusr>();
+        }
+
         /// <summary>
         /// primary key
         /// </summary>
@@ -23,5 +28,6 @@ namespace UserManagementAPI.Models
         public string? Describ { get; set; }
 
         public virtual Tcompany? Company { get; set; }
+        public virtual ICollection<Tusr> Tusrs { get; set; }
     }
 }
