@@ -20,16 +20,14 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-//added
-//builder.Services.AddResponseCaching(x => x.MaximumBodySize = 1024);
-
 #region custom-repository
 
 builder.Services.AddSingleton<IDepartmentService, DepartmentService>();
 builder.Services.AddSingleton<IUserService, UserService>();
 builder.Services.AddSingleton<ILoggerService, LoggerService>();
 builder.Services.AddSingleton<IProfileService, ProfileService>();
-
+builder.Services.AddSingleton<ICityService, CityService>();
+builder.Services.AddSingleton<ICountryService, CountryService>();
 
 #endregion
 
@@ -52,20 +50,6 @@ app.UseCors(@"ApiCorsPolicy");
 
 #region added
 
-//app.UseResponseCaching();
-
-//app.Use(async (context, next) =>
-//{
-//    context.Response.GetTypedHeaders().CacheControl =
-//        new Microsoft.Net.Http.Headers.CacheControlHeaderValue()
-//        {
-//            Public = true,
-//            MaxAge = TimeSpan.FromSeconds(10)
-//        };
-
-//    context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Vary] = new string[] { "Accept-Encoding" };
-//    await next();
-//});
 
 #endregion
 
@@ -94,7 +78,12 @@ ConfigObject.TEST_CONN = settings.testConn;
 
 #region api - resources
 
+#region Department - routes
+
 app.MapGet("/Department/GetDepartments", async (IDepartmentService service) => await GetDepartmentsAsync(service)).WithTags("Department");
+app.MapPost("/Department/CreateDepartment", async (DepartmentLookup oDepartment, IDepartmentService service) => await CreateDepartmentAsync(oDepartment, service)).WithTags("Department");
+app.MapPut("/Department/UpdateDepartment", async(DepartmentLookup oDepartment, IDepartmentService service) => await UpdateDepartmentAsync(oDepartment,service)).WithTags("Department");
+#endregion
 
 app.MapGet("/User/GetUsers", async (IUserService usrservice) => await GetUsersAsync(usrservice));
 
@@ -114,10 +103,26 @@ app.MapPost("/Profile/AmendProfile", async (SystemProfile oProfile, IProfileServ
 app.MapPost("/Profile/GetProfiles", async(SingleParam companyIdentifier, IProfileService service) => await GetProfileListAsync(companyIdentifier, service)).WithTags("Profile");
 app.MapPost("/Profile/GetProfileModules", async(SingleParam oProfileObj, IProfileService  service) => await GetProfileModulesAsync(oProfileObj, service)).WithTags("Profile");
 
+#region city endpoints
+
+app.MapPost("/City/CreateCity", async (CityLookup oCity, ICityService service) => await CreateCityAsync(oCity, service)).WithTags("City");
+app.MapPut("/City/UpdateCity", async (CityLookup oCity, ICityService service) => await UpdateCityAsync(oCity, service)).WithTags("City");
+app.MapPut("/City/UpdateCountryOfCity", async(CityLookup oCity, ICityService service) => await UpdateCountryOfCityAsync(oCity, service)).WithTags("City");
+
+#endregion
+
+#region country - routes
+
+app.MapPost("/Country/CreateCountry", async(CountryLookup oCountry, ICountryService service) => await CreateCountryAsync(oCountry, service)).WithTags("Country");
+app.MapPut("/Country/UpdateCountry", async (CountryLookup oCountry, ICountryService service) => await UpdateCountryAsync(oCountry, service)).WithTags("Country");
+#endregion
+
+
 #endregion
 
 #region api - tasks
 
+#region Department - tasks
 async Task<IResult> GetDepartmentsAsync(IDepartmentService service)
 {
     try
@@ -130,6 +135,46 @@ async Task<IResult> GetDepartmentsAsync(IDepartmentService service)
         return Results.BadRequest($"Error: {x.Message}");
     }
 }
+
+async Task<IResult> CreateDepartmentAsync(DepartmentLookup oDepartment, IDepartmentService service)
+{
+    try
+    {
+        if (oDepartment.nameOfdepartment == string.Empty)
+            return Results.BadRequest(@"department name cannot be blank");
+
+        if (service == null)
+            return Results.BadRequest(@"service was not instantiated");
+
+        var dept_create_status = await service.CreateDepartmentAsync(oDepartment);
+        return Results.Ok(dept_create_status);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex);
+    }
+}
+
+async Task<IResult> UpdateDepartmentAsync(DepartmentLookup oDepartment, IDepartmentService service)
+{
+    try
+    {
+        if (oDepartment.nameOfdepartment == string.Empty)
+            return Results.BadRequest(@"department name cannot be blank");
+
+        if (service == null)
+            return Results.BadRequest(@"service was not instantiated");
+
+        var dept_update_status = await service.UpdateDepartmentAsync(oDepartment);
+        return Results.Ok(dept_update_status);
+    }
+    catch(Exception apiErr)
+    {
+        return Results.BadRequest(apiErr);
+    }
+}
+
+#endregion
 
 async Task<IResult> GetUsersAsync(IUserService usrservice)
 {
@@ -403,6 +448,118 @@ async Task<IResult> CreateUserAccountAsync(userRecord _userRecord, IUserService 
     catch(Exception ex)
     {
         return Results.BadRequest($"error: {ex.Message}");
+    }
+}
+
+#endregion
+
+
+#region City Implementation
+
+async Task<IResult> CreateCityAsync(CityLookup oCity, ICityService service)
+{
+    try
+    {
+        if (oCity.nameOfcity == string.Empty)
+            return Results.BadRequest(@"name of city cannot be blank");
+
+        if (service == null)
+            return Results.BadRequest(@"service not instantiated");
+
+        //consume service
+        var resp = await service.CreateCityAsync(oCity);
+        return Results.Ok(resp);
+    }
+    catch(Exception err)
+    {
+        return Results.BadRequest(err);
+    }
+}
+
+async Task<IResult> UpdateCityAsync(CityLookup oCity, ICityService service)
+{
+    //endpoint updates city record, specifically the city name
+    try
+    {
+        if (oCity.nameOfcity == string.Empty)
+            return Results.BadRequest(@"name of city cannot be blank");
+
+        if (service == null)
+            return Results.BadRequest(@"service not instantiated");
+
+        var update_status = await service.UpdateCityAsync(oCity);
+        return Results.Ok(update_status);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> UpdateCountryOfCityAsync(CityLookup oCity, ICityService service)
+{
+    //endpoint updates the country of the city
+    try
+    {
+        if (oCity.nameOfcity == string.Empty)
+            return Results.BadRequest(@"name of city cannot be blank");
+
+        if (oCity.oCountry.nameOfcountry == string.Empty)
+            return Results.BadRequest(@"name of country cannot be blank");
+
+        var country_update_status = await service.UpdateCountryOfCityAsync(oCity);
+        return Results.Ok(country_update_status);
+    }
+    catch(Exception err)
+    {
+        return Results.BadRequest(err);
+    }
+}
+
+#endregion
+
+#region Country - tasks
+
+async Task<IResult> CreateCountryAsync(CountryLookup oCountry, ICountryService service)
+{
+    try
+    {
+        swContext cfg = new swContext();
+        if (oCountry.nameOfcountry == string.Empty)
+            return Results.BadRequest(@"name of country cannot be blank");
+
+        if (service == null)
+            return Results.BadRequest(@"service was not instantiated");
+
+            var status = await service.CreateCountryAsync(oCountry);
+            return Results.Ok(status);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex);
+    }
+}
+
+async Task<IResult> UpdateCountryAsync(CountryLookup oCountry, ICountryService service)
+{
+    try
+    {
+        swContext config = new swContext();
+
+        var r = await config.TRegionLookups.Where(x => x.RegionName == oCountry.oRegion.nameOfregion.Trim()).FirstOrDefaultAsync();
+
+        if (r != null)
+        {
+            oCountry.oRegion.id = r.RegionId;
+
+            var update_status = await service.UpdateCountryAsync(oCountry);
+            return Results.Ok(update_status);
+        }
+        else { return Results.BadRequest(@"region Id cannot be zero (0)"); }
+    }
+    catch(Exception exc)
+    {
+        return Results.BadRequest(exc);
     }
 }
 
