@@ -5,6 +5,7 @@ using UserManagementAPI.Response;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.utils;
 using System.Xml.Linq;
+using System.Diagnostics;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -19,6 +20,108 @@ namespace UserManagementAPI.Resources.Implementations
 
         #region implementations
 
+        public async Task<DefaultAPIResponse> GetCitiesAsync()
+        {
+            DefaultAPIResponse response = null;
+            List<CityLookup> data = new List<CityLookup>();
+
+            try
+            {
+                var result =  (from c in config_.TCities
+                              join ct in config_.TCountryLookups
+                              on c.CountryId equals ct.CountryId
+
+                              select new
+                              {
+                                   Id = c.Id,
+                                  CityName = c.CityName,
+                                  CountryName = ct.CountryName
+                              }).ToList();
+
+                //iterate over linq object
+                if (result != null)
+                {
+                    foreach(var item in result)
+                    {
+                        var obj = new CityLookup()
+                        {
+                            id = item.Id,
+                            nameOfcity = item.CityName,
+                            oCountry = new CountryLookup()
+                            {
+                                nameOfcountry = item.CountryName
+                            }
+                        };
+
+                        data.Add(obj);
+                    }
+
+                    response = new DefaultAPIResponse()
+                    {
+                        status = true,
+                        message = @"success",
+                        data = data
+                    };
+                }
+                else { return response = new DefaultAPIResponse() { status = false, message = @"No data" }; }
+
+                return response;
+            }
+            catch(Exception ex)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {ex.Message}"
+                };
+            }
+            
+
+
+        }
+
+        public async Task<DefaultAPIResponse> GetAllCitiesAsync()
+        {
+            DefaultAPIResponse rsp = null;
+            List<CityLookup> results = null;
+
+            try
+            {
+                var cities = await config_.TCities.ToListAsync();
+                if(cities != null)
+                {
+                    results = new List<CityLookup>();
+                    foreach(var city in cities)
+                    {
+                        var obj = new CityLookup()
+                        {
+                            id = city.Id,
+                            nameOfcity = city.CityName,
+                            oCountry = await new Helper() { }.getCountry((int) city.CountryId)
+                        };
+
+                        results.Add(obj);
+                    }
+
+                    rsp = new DefaultAPIResponse()
+                    {
+                        status = true,
+                        message = @"success",
+                        data = results
+                    };
+                }
+                else { rsp = new DefaultAPIResponse() { status = false, message = @"No data" }; }
+                return rsp;
+            }
+            catch(Exception ex)
+            {
+                return rsp = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {ex.Message}"
+                };
+            }
+        }
         public async Task<DefaultAPIResponse> CreateCityAsync(CityLookup payLoad)
         {
             //endpoint create a city resource in the data store
@@ -130,9 +233,84 @@ namespace UserManagementAPI.Resources.Implementations
                 return response = new DefaultAPIResponse() { status = false, message = $"error: {ex.Message}" };
             }
         }
-        public async Task<DefaultAPIResponse> UploadCityDataAsync(IEnumerable<CityLookup> payLoad)
+        public async Task<UploadAPIResponse> UploadCityDataAsync(IEnumerable<CityLookup> payLoad)
         {
-            return new DefaultAPIResponse() { };
+            //saves uploaded data into the data store
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<CityLookup> successList = new List<CityLookup>();
+            List<CityLookup> errorList = new List<CityLookup>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                if (payLoad.Count() > 0)
+                {
+                    foreach(var city in payLoad)
+                    {
+                        try
+                        {
+                            var t = await config_.TCities.Where(t => t.CityName == city.nameOfcity).FirstOrDefaultAsync();
+                            if (t == null)
+                            {
+                                var objCountry = await config_.TCountryLookups.Where(c => c.CountryName == city.oCountry.nameOfcountry.Trim()).FirstOrDefaultAsync();
+                                if (objCountry != null)
+                                {
+                                    TCity objCity = new TCity()
+                                    {
+                                        CityName = city.nameOfcity,
+                                        CountryId = objCountry.CountryId
+                                    };
+
+                                    await config_.AddAsync(objCity);
+                                    await config_.SaveChangesAsync();
+
+                                    successList.Add(city);
+                                    success += 1;
+                                }
+                                else
+                                {
+                                    errorList.Add(city);
+                                    failed += 1;
+                                }
+                            }
+                            else { 
+                                failed += 1;
+                                errors.Add($"City with name {city.nameOfcity} already exist in the data store");
+                            }
+                        }
+                        catch(Exception innerExc)
+                        {
+                            Debug.Print($"error: {innerExc.Message}");
+                            errorList.Add(city);
+                            failed += 1;
+                        }
+                    }
+
+                    response = new UploadAPIResponse()
+                    {
+                        status = true,
+                        message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}",
+                        data = successList,
+                        successCount = success,
+                        errorList = errorList,
+                        errorMessageList = errors,
+                        errorCount = failed
+                    };
+                }
+
+                return response;
+            }
+            catch(Exception exc)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {exc.Message}",
+                    errorMessageList = errors
+                };
+            }
         }
 
         #endregion

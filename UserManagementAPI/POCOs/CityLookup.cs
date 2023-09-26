@@ -42,4 +42,16 @@ namespace UserManagementAPI.POCOs
         public DateTime dateOfIncorporation { get; set; }
     }
 
+    public class ReferralLookup
+    {
+        public int id { get; set; }
+        public string sourceOfReferral { get; set; } = string.Empty;
+    }
+
+    public class CompanyTypeLookup
+    {
+        public int id { get; set; }
+        public string typeOfCompany { get; set; }
+    }
+
 }

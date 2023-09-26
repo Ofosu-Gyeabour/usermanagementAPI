@@ -7,6 +7,7 @@ namespace UserManagementAPI.Resources.Interfaces
 {
     public interface ICountryService
     {
+        Task<DefaultAPIResponse> GetCountriesAsync();
         Task<DefaultAPIResponse> CreateCountryAsync(CountryLookup payLoad);
         Task<DefaultAPIResponse> UpdateCountryAsync(CountryLookup payLoad);
 

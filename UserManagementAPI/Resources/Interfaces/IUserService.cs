@@ -17,5 +17,7 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> AmendUserProfileAsync(UserProfile payLoad);
 
         Task<DefaultAPIResponse> CreateUserAsync(userRecord payLoad);
+
+        Task<DefaultAPIResponse> ChangeUserPasswordAsync(UserInfo payLoad);
     }
 }

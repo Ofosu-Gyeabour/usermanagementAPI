@@ -7,6 +7,19 @@
         public object data { get; set; }
     }
 
+    public class UploadAPIResponse
+    {
+        public bool status { get; set; } = false;
+        public string message { get; set; } = string.Empty;
+        public object data { get; set; } = null;
+        public int successCount { get; set; } = 0;
+        
+        public int errorCount { get; set; } = 0;
+        public List<string> errorMessageList { get; set; }
+
+        public IEnumerable<object> errorList { get; set; }
+    }
+
     public class UserAPIResponse
     {
         public bool status { get; set; }

@@ -206,24 +206,40 @@ namespace UserManagementAPI.Resources.Implementations
 
         public async Task<DefaultAPIResponse> GetUserProfileAsync(UserInfo _usr)
         {
-            //gets user profile given user name
-            DefaultAPIResponse response = null;
+            DefaultAPIResponse response = new DefaultAPIResponse();
+            SystemProfile sys = null;
 
             try
             {
-                var t = await config.Tusrs.Where(x => x.Usrname == _usr.username)
-                                .Include(p => p.Profile).FirstOrDefaultAsync();
+                //linq query and anonymous type
+                var t = from usr in config.Tusrs
+                        join profile in config.TProfiles
+                        on usr.ProfileId equals profile.ProfileId
+                        where usr.Usrname == _usr.username
 
+                        
+                        select new 
+                        {
+                            Id = profile.ProfileId,
+                            nameOfProfile = profile.ProfileName,
+                            profileModules = profile.ProfileString,
+                            inUse = (int) profile.InUse,
+                            dateAdded = (DateTime) profile.DteAdded
+                        };
+                
                 if (t != null)
                 {
-                    SystemProfile sys = new SystemProfile()
+                    foreach (var obj in t)
                     {
-                        Id =t.Profile.ProfileId,
-                        nameOfProfile = t.Profile.ProfileName,
-                        profileModules = t.Profile.ProfileString,
-                        inUse = (int) t.Profile.InUse,
-                        dateAdded = (DateTime) t.Profile.DteAdded
-                    };
+                        sys = new SystemProfile()
+                        {
+                            Id = obj.Id,
+                            nameOfProfile = obj.nameOfProfile,
+                            profileModules = obj.profileModules,
+                            inUse = obj.inUse,
+                            dateAdded = obj.dateAdded
+                        };
+                    }
 
                     response = new DefaultAPIResponse()
                     {
@@ -231,8 +247,8 @@ namespace UserManagementAPI.Resources.Implementations
                         message = @"success",
                         data = sys
                     };
-                    
                 }
+                else { response = new DefaultAPIResponse() { status = false, message = @"No data" }; }
 
                 return response;
             }
@@ -290,6 +306,44 @@ namespace UserManagementAPI.Resources.Implementations
             catch(Exception e)
             {
                 return response = new DefaultAPIResponse() { status = false, message = $"{e.Message} | inner exception: {e.InnerException.Message}" };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> ChangeUserPasswordAsync(UserInfo payLoad)
+        {
+            //amends a user password
+            DefaultAPIResponse rsp = null;
+            int count = 0;
+
+            try
+            {
+                var user_record = await config.Tusrs.Where(t => t.Usrname == payLoad.username).ToListAsync();
+                if (user_record != null)
+                {
+                    foreach(var item in user_record)
+                    {
+                        item.Usrpassword = payLoad.password;
+
+                        count += 1;
+                    }
+
+                    await config.SaveChangesAsync();
+                    rsp = new DefaultAPIResponse() { 
+                        status = true,
+                        message = $"{count.ToString()} our of {user_record.Count().ToString()} updated successfully!!!",
+                        data = payLoad
+                    };
+                }
+                else { rsp = new DefaultAPIResponse() { status = false, message = @"No data" }; }
+
+                return rsp;
+            }
+            catch(Exception err)
+            {
+                return rsp = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {err.Message}"
+                };
             }
         }
     }

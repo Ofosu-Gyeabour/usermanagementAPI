@@ -1,8 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
 
 namespace UserManagementAPI.Models
 {
@@ -27,8 +24,6 @@ namespace UserManagementAPI.Models
         /// <summary>
         /// the serialized data of the entity being persisted
         /// </summary>
-        [Column(TypeName = "varchar(MAX)")]
-        [MaxLength]
         public string? LogEntityValue { get; set; }
         /// <summary>
         /// the company the user belongs to
@@ -38,5 +33,7 @@ namespace UserManagementAPI.Models
         /// the date user&apos;s action is taken place
         /// </summary>
         public DateTime? LogDate { get; set; }
+
+        public virtual TEvent? LogEventNavigation { get; set; }
     }
 }

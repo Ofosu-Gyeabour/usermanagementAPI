@@ -28,6 +28,9 @@ builder.Services.AddSingleton<ILoggerService, LoggerService>();
 builder.Services.AddSingleton<IProfileService, ProfileService>();
 builder.Services.AddSingleton<ICityService, CityService>();
 builder.Services.AddSingleton<ICountryService, CountryService>();
+builder.Services.AddSingleton<IReferralService, ReferralService>();
+builder.Services.AddSingleton<ICompanyService, CompanyService>();
+builder.Services.AddSingleton<IModuleService, ModuleService>();
 
 #endregion
 
@@ -85,38 +88,80 @@ app.MapPost("/Department/CreateDepartment", async (DepartmentLookup oDepartment,
 app.MapPut("/Department/UpdateDepartment", async(DepartmentLookup oDepartment, IDepartmentService service) => await UpdateDepartmentAsync(oDepartment,service)).WithTags("Department");
 #endregion
 
-app.MapGet("/User/GetUsers", async (IUserService usrservice) => await GetUsersAsync(usrservice));
+#region user - routes
 
+app.MapGet("/User/GetUsers", async (IUserService usrservice) => await GetUsersAsync(usrservice)).WithTags("Authentication");
 app.MapPost("/User/GetMD5Encryption", async (SingleParam userData, IUserService usrservice) => await GetMD5Encryption(userData, usrservice)).WithTags("Authentication");
-
 app.MapPost("/User/AuthenticateUser", async (UserInfo userCredential, IUserService usrservice) => await AuthenticateUserAsync(userCredential, usrservice)).WithTags("Authentication");
 app.MapPost("/User/SetLoginFlag", async(UserInfo user, IUserService service)=> await SetLoginFlagAsync(user,service)).WithTags("Authentication");
 app.MapPost("/User/SetLogoutFlag", async (UserInfo user, IUserService service) => await SetLogoutFlagAsync(user, service)).WithTags("Authentication");
 app.MapPost("/User/GetUserProfile", async (UserInfo _user, IUserService service) => await GetUserProfileAsync(_user, service)).WithTags("Authentication");
 app.MapPost("/User/AmendUserProfile", async (UserProfile userProfile, IUserService service)=> await AmendUserProfileAsync(userProfile, service)).WithTags("Authentication");
 app.MapPost("/User/CreateAccount", async(userRecord _userRecord, IUserService service)=>await CreateUserAccountAsync(_userRecord,service)).WithTags("Authentication");
+
+app.MapPut("/User/ChangePassword", async (UserInfo oUserInfo, IUserService service) => await ChangePasswordAsync(oUserInfo, service)).WithTags("Authentication");
+
+#endregion
+
+#region Log-routes
+
 app.MapPost("/Log/WriteLog",async(Log oLogger, ILoggerService service)=> await WriteLogAsync(oLogger,service)).WithTags("Logger");
 app.MapGet("/Log/GetLogs",async(ILoggerService service)=> await GetLogDataAsync(service)).WithTags("Logger");
 app.MapPost("/Log/GetUserLogs",async(SingleParam _param, ILoggerService service)=> await GetUserLogsAsync(_param, service)).WithTags("Logger");
+
+#endregion
+
+#region Profile-routes
+
 app.MapPost("/Profile/CreateProfile", async(SystemProfile oProfile, IProfileService service) => await CreateProfileAsync(oProfile,service)).WithTags("Profile");
 app.MapPost("/Profile/AmendProfile", async (SystemProfile oProfile, IProfileService service) => await AmendProfileAsync(oProfile, service)).WithTags("Profile");
 app.MapPost("/Profile/GetProfiles", async(SingleParam companyIdentifier, IProfileService service) => await GetProfileListAsync(companyIdentifier, service)).WithTags("Profile");
+app.MapGet("/Profile/GetAllProfiles", async (IProfileService service) => await GetAllProfilesAsync(service)).WithTags("Profile");
 app.MapPost("/Profile/GetProfileModules", async(SingleParam oProfileObj, IProfileService  service) => await GetProfileModulesAsync(oProfileObj, service)).WithTags("Profile");
+
+#endregion
 
 #region city endpoints
 
+app.MapGet("/City/GetCities", async (ICityService service) => await GetCitiesAsync(service)).WithTags("City");
+app.MapGet("/City/GetActiveCities", async (ICityService service) => await GetActiveCitiesAsync(service)).WithTags("City");
 app.MapPost("/City/CreateCity", async (CityLookup oCity, ICityService service) => await CreateCityAsync(oCity, service)).WithTags("City");
 app.MapPut("/City/UpdateCity", async (CityLookup oCity, ICityService service) => await UpdateCityAsync(oCity, service)).WithTags("City");
 app.MapPut("/City/UpdateCountryOfCity", async(CityLookup oCity, ICityService service) => await UpdateCountryOfCityAsync(oCity, service)).WithTags("City");
+app.MapPost("/City/Upload", async (List<CityLookup> cityList, ICityService service) => await UploadCitiesAsync(cityList, service)).WithTags("City");
 
 #endregion
 
 #region country - routes
 
+app.MapGet("/Country/GetCountries", async (ICountryService service) => await GetCountriesAsync(service)).WithTags("Country");
 app.MapPost("/Country/CreateCountry", async(CountryLookup oCountry, ICountryService service) => await CreateCountryAsync(oCountry, service)).WithTags("Country");
 app.MapPut("/Country/UpdateCountry", async (CountryLookup oCountry, ICountryService service) => await UpdateCountryAsync(oCountry, service)).WithTags("Country");
+
 #endregion
 
+#region Referral-routes
+
+app.MapGet("/Referral/GetReferrals", async (IReferralService service) => await GetReferralsAsync(service)).WithTags("Referral");
+app.MapPost("/Referral/CreateReferral", async (ReferralLookup oReferral, IReferralService service) => await CreateReferralAsync(oReferral, service)).WithTags("Referral");
+app.MapPut("/Referral/UpdateReferral", async (ReferralLookup oReferral, IReferralService service) => await UpdateReferralAsync(oReferral, service)).WithTags("Referral");
+
+#endregion
+
+#region companyType - routes
+
+app.MapGet("/CompanyType/GetCompanyTypes", async (ICompanyService service) => await GetCompanyTypesAsync(service)).WithTags("CompanyType");
+app.MapPost("/CompanyType/CreateCompanyType", async (CompanyTypeLookup oCompanyType, ICompanyService service) => await CreateCompanyTypeAsync(oCompanyType, service)).WithTags("CompanyType");
+app.MapPut("/CompanyType/UpdateCompanyType", async (CompanyTypeLookup oCompanyType, ICompanyService service) => await UpdateCompanyTypeAsync(oCompanyType, service)).WithTags("CompanyType");
+
+#endregion
+
+#region Modules - routes
+
+app.MapGet("/Module/GetModulesInUse", async (IModuleService service) => await GetModulesInUseAsync(service)).WithTags("User Module");
+app.MapGet("/Module/GetAllModules", async (IModuleService service) => await GetAllModulesAsync(service)).WithTags("User Module");
+
+#endregion
 
 #endregion
 
@@ -220,6 +265,27 @@ async Task<IResult> AuthenticateUserAsync(UserInfo userCredential, IUserService 
     {
         return Results.BadRequest(e.Message);
     }  
+}
+
+async Task<IResult> ChangePasswordAsync(UserInfo oUserInfo, IUserService service)
+{
+    //amends the password of a user resource
+    try
+    {
+        if (oUserInfo.username == string.Empty)
+            return Results.BadRequest(@"username cannot be blank");
+
+        if (oUserInfo.password == string.Empty)
+            return Results.BadRequest(@"user password cannot be blank");
+
+        //implementation
+        var operationStatus = await service.ChangeUserPasswordAsync(oUserInfo);
+        return Results.Ok(operationStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest($"error: {x.Message}");
+    }
 }
 
 async Task<IResult> WriteLogAsync(Log oLogger, ILoggerService service)
@@ -376,7 +442,22 @@ async Task<IResult> GetProfileListAsync(SingleParam companyIdentifier, IProfileS
     
 }
 
-async Task<IResult> GetUserProfileAsync(UserInfo _user,IUserService service)
+async Task<IResult> GetAllProfilesAsync(IProfileService service)
+{
+    try
+    {
+        if (service == null)
+            return Results.BadRequest(@"service not instantiated");
+
+        var response = await service.GetProfilesAsync();
+        return Results.Ok(response);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex);
+    }
+}
+async Task<IResult> GetUserProfileAsync(UserInfo _user, IUserService service)
 {
     try
     {
@@ -456,6 +537,37 @@ async Task<IResult> CreateUserAccountAsync(userRecord _userRecord, IUserService 
 
 #region City Implementation
 
+async Task<IResult> GetCitiesAsync(ICityService service)
+{
+    try
+    {
+        if (service == null)
+            return Results.BadRequest(@"service could not be instantiated");
+
+        var dta = await service.GetAllCitiesAsync();
+        return Results.Ok(dta);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> GetActiveCitiesAsync(ICityService service)
+{
+    try
+    {
+        if (service == null)
+            return Results.BadRequest(@"service could not be instantiated");
+
+        var active_city_list = await service.GetCitiesAsync();
+        return Results.Ok(active_city_list);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex);
+    }
+}
 async Task<IResult> CreateCityAsync(CityLookup oCity, ICityService service)
 {
     try
@@ -516,10 +628,50 @@ async Task<IResult> UpdateCountryOfCityAsync(CityLookup oCity, ICityService serv
     }
 }
 
+async Task<IResult> UploadCitiesAsync(List<CityLookup> cityList, ICityService service)
+{
+    //endpoint updates city data store through uploads
+    //implements idompotency
+    try
+    {
+        if (cityList == null)
+            return Results.NoContent();
+
+        if (cityList.Count() < 1)
+            return Results.NoContent();
+
+        if (service == null)
+            return Results.BadRequest(@"service could not be instantiated");
+
+        var opStatus = await service.UploadCityDataAsync(cityList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception err)
+    {
+        return Results.BadRequest(err);
+    }
+}
+
 #endregion
 
 #region Country - tasks
 
+async Task<IResult> GetCountriesAsync(ICountryService service)
+{
+    //gets countries
+    try
+    {
+        if (service == null)
+            return Results.BadRequest(@"service has not been instantiated");
+
+        var dta = await service.GetCountriesAsync();
+        return Results.Ok(dta);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex);
+    }
+}
 async Task<IResult> CreateCountryAsync(CountryLookup oCountry, ICountryService service)
 {
     try
@@ -563,6 +715,155 @@ async Task<IResult> UpdateCountryAsync(CountryLookup oCountry, ICountryService s
     }
 }
 
+#endregion
+
+#region Referral-Tasks
+
+async Task<IResult> GetReferralsAsync(IReferralService service)
+{
+    //endpoint for getting list of referrals from the data store
+    try
+    {
+        if (service == null)
+            return Results.BadRequest(@"service was not instantiated");
+
+        var data_ = await service.getReferralsAsync();
+        return Results.Ok(data_);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest($"error: {ex.Message}");
+    }
+}
+async Task<IResult> CreateReferralAsync(ReferralLookup oReferral, IReferralService service)
+{
+    //creates a new referral resource in the data store
+    try
+    {
+        if (oReferral.sourceOfReferral == string.Empty)
+            return Results.BadRequest(@"source of referral cannot be blank");
+        if (service == null)
+            return Results.BadRequest(@"service was not instantiated");
+
+        var status = await service.CreateReferralAsync(oReferral);
+        return Results.Ok(status);
+    }
+    catch(Exception exc)
+    {
+        return Results.BadRequest($"error: {exc.Message}");
+    }
+}
+async Task<IResult> UpdateReferralAsync(ReferralLookup oReferral, IReferralService service)
+{
+    //endpoint updates a referral record in the data store
+    try
+    {
+        if (oReferral.id < 1)
+            return Results.BadRequest(@"Id of Referral cannot be zero (0)");
+
+        if (oReferral.sourceOfReferral == string.Empty)
+            return Results.BadRequest(@"source of referral cannot be blank");
+
+        if (service == null)
+            return Results.BadRequest(@"service was not instantiated");
+
+        var updateObj = await service.UpdateReferralAsync(oReferral);
+        return Results.Ok(updateObj);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest($"error: {x.Message}");
+    }
+}
+#endregion
+
+#region companyType -tasks
+
+async Task<IResult> GetCompanyTypesAsync(ICompanyService service)
+{
+    //retrieves resources in the data store
+    try
+    {
+        if (service == null)
+            return Results.BadRequest(@"service is not instantiated");
+
+        var companyTypeDta = await service.GetCompanyTypesAsync();
+        return Results.Ok(companyTypeDta);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest($"error: {x.Message}");
+    }
+}
+async Task<IResult> CreateCompanyTypeAsync(CompanyTypeLookup oCompanyType, ICompanyService service)
+{
+    //creates a company type resource
+    if (oCompanyType.typeOfCompany == string.Empty)
+        return Results.BadRequest(@"type of company cannot be blank");
+
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    var operationStatus = await service.CreateCompanyTypeAsync(oCompanyType);
+    return Results.Ok(operationStatus);
+}
+async Task<IResult> UpdateCompanyTypeAsync(CompanyTypeLookup oCompanyType, ICompanyService service)
+{
+    //modifies an already existing resource
+    try
+    {
+        if (oCompanyType.id < 1)
+            return Results.BadRequest(@"Id of company type cannot be zero (0)");
+
+        if (oCompanyType.typeOfCompany == string.Empty)
+            return Results.BadRequest(@"type of company cannot be blank");
+
+        if (service == null)
+            return Results.BadRequest(@"service could not be instantiated");
+
+        var opStatus = await service.UpdateCompanyTypeAsync(oCompanyType);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest($"error: {ex.Message}");
+    }
+}
+#endregion
+
+#region Modules - Tasks
+
+async Task<IResult> GetModulesInUseAsync(IModuleService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var moduleDta = await service.GetModulesInUseAsync();
+        return Results.Ok(moduleDta);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> GetAllModulesAsync(IModuleService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var all_moduleDta = await service.GetModulesAsync();
+        return Results.Ok(all_moduleDta);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
 #endregion
 
 #endregion

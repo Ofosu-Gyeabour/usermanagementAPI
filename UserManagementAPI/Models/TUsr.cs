@@ -14,8 +14,17 @@ namespace UserManagementAPI.Models
         /// primary key
         /// </summary>
         public int UsrId { get; set; }
+        /// <summary>
+        /// surname of the user
+        /// </summary>
         public string? Surname { get; set; }
+        /// <summary>
+        /// first name of the user
+        /// </summary>
         public string? Firstname { get; set; }
+        /// <summary>
+        /// other names of the user
+        /// </summary>
         public string? Othernames { get; set; }
         /// <summary>
         /// user name 

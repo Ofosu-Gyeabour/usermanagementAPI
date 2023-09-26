@@ -18,7 +18,6 @@ namespace UserManagementAPI.Models
         /// profile string
         /// </summary>
         public string? ProfileString { get; set; }
-
         public string? ProfileName { get; set; }
         /// <summary>
         /// the company using the profile

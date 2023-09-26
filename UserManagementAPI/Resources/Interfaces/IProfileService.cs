@@ -11,6 +11,7 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> SaveProfileAsync(SystemProfile ProfilePayLoad);
         Task<DefaultAPIResponse> AmendProfileAsync(SystemProfile ProfilePayLoad);
         Task<DefaultAPIResponse> GetProfilesAsync(int _companyId);
+        Task<DefaultAPIResponse> GetProfilesAsync();
         Task<DefaultAPIResponse> GetProfileModulesAsync(SingleParam payLoad);
         //Task<DefaultAPIResponse> DeleteProfileAsync();
     }

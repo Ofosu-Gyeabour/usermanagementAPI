@@ -115,6 +115,53 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<DefaultAPIResponse> GetProfilesAsync()
+        {
+            //gets all profiles from the data store
+            DefaultAPIResponse rsp = null;
+            List<SystemProfile> results = null;
+
+            try
+            {
+                var dta = await config.TProfiles.ToListAsync();
+                if (dta != null)
+                {
+                    results = new List<SystemProfile>();
+                    foreach(var d in dta)
+                    {
+                        var obj = new SystemProfile()
+                        {
+                            Id = d.ProfileId,
+                            nameOfProfile = d.ProfileName,
+                            profileModules = d.ProfileString,
+                            companyId = (int)d.CompanyId,
+                            inUse = (int)d.InUse
+                        };
+
+                        results.Add(obj);
+                    }
+
+                    rsp = new DefaultAPIResponse()
+                    {
+                        status = true,
+                        message = @"success",
+                        data = results
+                    };
+                }
+                else { rsp = new DefaultAPIResponse() { status = false, message = @"No data" }; }
+
+                return rsp;
+            }
+            catch(Exception e)
+            {
+                return rsp = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {e.Message}"
+                };
+            }
+        }
+
         public async Task<DefaultAPIResponse> GetProfileModulesAsync(SingleParam payLoad)
         {
             //gets a profile using the profile name

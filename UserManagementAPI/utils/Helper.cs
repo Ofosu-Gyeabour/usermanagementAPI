@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using UserManagementAPI.POCOs;
 
 namespace UserManagementAPI.utils
 {
@@ -70,6 +71,35 @@ namespace UserManagementAPI.utils
             catch(Exception x)
             {
                 return _country = new TCountryLookup() { CountryId = 0 };
+            }
+        }
+
+        public async Task<CountryLookup> getCountry(int Id)
+        {
+            CountryLookup obj = null;
+            try
+            {
+                var dt = await config.TCountryLookups.Where(x => x.CountryId == Id).Include(r => r.Region).FirstOrDefaultAsync();
+                if (dt != null)
+                {
+                    obj = new CountryLookup()
+                    {
+                        id = Id,
+                        nameOfcountry = dt.CountryName,
+                        codeOfcountry = dt.CountryCode,
+                        oRegion = new RegionLookup()
+                        {
+                            id = dt.Region.RegionId,
+                            nameOfregion = dt.Region.RegionName
+                        }
+                    };
+                }
+
+                return obj;
+            }
+            catch(Exception x)
+            {
+                return obj = new CountryLookup() { id = 0 };
             }
         }
         public async Task<TCountryLookup> getCountryAsync(string name)
