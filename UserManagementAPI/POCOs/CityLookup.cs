@@ -31,6 +31,13 @@ namespace UserManagementAPI.POCOs
         public CompanyLookup oCompany { get; set; }
     }
 
+    public class BranchLookup
+    {
+        public int id { get; set; } = 0;
+        public string nameOfbranch { get; set; } = string.Empty;
+        public CompanyLookup oCompany { get; set; }
+    }
+
     public class CompanyLookup
     {
         public int id { get; set; } = 0;
@@ -54,4 +61,19 @@ namespace UserManagementAPI.POCOs
         public string typeOfCompany { get; set; }
     }
 
+    public class TitleLookup
+    {
+        public int id { get; set; } = 0;
+        public string nameOftitle { get; set; } = string.Empty;
+    }
+
+    public class ShippingPortLookup
+    {
+        public int id { get; set; } = 0;
+        public string nameOfport { get; set; } = string.Empty;
+        public string codeOfport { get; set; } = string.Empty;
+        public int sailingTimeInDays { get; set; } = 0;
+        public CountryLookup oCountry { get; set; }
+
+    }
 }

@@ -33,6 +33,9 @@ builder.Services.AddSingleton<ICompanyService, CompanyService>();
 builder.Services.AddSingleton<IModuleService, ModuleService>();
 builder.Services.AddSingleton<IRegionService, RegionService>();
 
+builder.Services.AddSingleton<IBranchService, BranchService>();
+builder.Services.AddSingleton<ITitleService, TitleService>();
+builder.Services.AddSingleton<IShippingPortService, ShippingPortService>();
 #endregion
 
 #region CORS
@@ -75,6 +78,7 @@ var settings = builder.Configuration.GetSection("Settings").Get<Settings>();
 ConfigObject.SCAFFOLD = settings.scaffold;
 ConfigObject.DB_CONN = settings.dbConnectionString;
 ConfigObject.LOCAL_CONN = settings.localConnString;
+ConfigObject.MAC_LOCAL_CONN = settings.macConnString;
 ConfigObject.TEST_CONN = settings.testConn;
 
 #endregion
@@ -172,9 +176,145 @@ app.MapPost("/Region/Create", async (IRegionService service, RegionLookup oRegio
 
 #endregion
 
+#region Branch - routes
+
+app.MapGet("/Branch/Get", async (IBranchService service) => await GetBranchesAsync(service)).WithTags("Branch");
+app.MapPost("/Branch/Create", async (BranchLookup oBranch, IBranchService service) => await CreateBranchAsync(oBranch, service)).WithTags("Branch");
+
+#endregion
+
+#region Title - routes
+
+app.MapGet("/Title/Get", async (ITitleService service) => await GetTitlesAsync(service)).WithTags("Titles");
+app.MapPost("/Title/Create", async (TitleLookup oTitle, ITitleService service) => await CreateTitleAsync(oTitle, service)).WithTags("Titles");
+
+#endregion
+
+#region ShippingPorts - tasks
+
+app.MapGet("/ShippingPort/Get", async (IShippingPortService service) => await GetShippingPortsAsync(service)).WithTags("ShippingPort");
+app.MapPost("/ShippingPort/Create", async (ShippingPortLookup oShippingPort, IShippingPortService service) => await CreateShippingPortAsync(oShippingPort, service)).WithTags("ShippingPort");
+
+#endregion
+
 #endregion
 
 #region api - tasks
+
+#region ShippingPort - tasks
+
+async Task<IResult> CreateShippingPortAsync(ShippingPortLookup oShippingPort, IShippingPortService service)
+{
+    if (oShippingPort.nameOfport.Trim().Length < 1)
+        return Results.BadRequest(@"port name cannot be blank");
+
+    if (oShippingPort.codeOfport.Trim().Length < 1)
+        return Results.BadRequest(@"port code cannot be blank");
+
+
+    if (oShippingPort.oCountry.id < 1)
+        return Results.BadRequest(@"ID of country cannot be zero (0)");
+
+    try
+    {
+        var opStatus = await service.CreateShippingPortAsync(oShippingPort);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetShippingPortsAsync(IShippingPortService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var shipping_ports = await service.GetShippingPortsAsync();
+        return Results.Ok(shipping_ports);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+#endregion
+
+#region Title - tasks
+
+async Task<IResult> GetTitlesAsync(ITitleService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+    try
+    {
+        var title_List = await service.GetTitlesAsync();
+        return Results.Ok(title_List);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateTitleAsync(TitleLookup oTitle, ITitleService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    if (oTitle.nameOftitle.Trim().Length < 1)
+        return Results.BadRequest(@"Title cannot be blank");
+    
+    try
+    {
+        var opStatus = await service.CreateTitleAsync(oTitle);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+#endregion
+
+#region Branch - tasks
+
+async Task<IResult> GetBranchesAsync(IBranchService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service cannot be instantiated");
+
+    try
+    {
+        var branch_list = await service.GetBranchesAsync();
+        return Results.Ok(branch_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> CreateBranchAsync(BranchLookup oBranch, IBranchService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service cannot be instantiated");
+
+    if (oBranch == null)
+        return Results.BadRequest(@"payLoad cannot be null");
+
+    if (oBranch.nameOfbranch == string.Empty)
+        return Results.BadRequest(@"name of branch cannot be blank");
+
+    if (oBranch.oCompany.id < 1)
+        return Results.BadRequest(@"Id of company cannot be zero (0)");
+
+    var opStatus = await service.CreateBranchAsync(oBranch);
+    return Results.Ok(opStatus);
+}
+
+#endregion
 
 #region Department - tasks
 async Task<IResult> GetDepartmentsAsync(IDepartmentService service)
