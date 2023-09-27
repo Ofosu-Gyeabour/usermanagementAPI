@@ -8,6 +8,7 @@ namespace UserManagementAPI.Models
         public TCountryLookup()
         {
             Tcompanies = new HashSet<Tcompany>();
+            Tshippingports = new HashSet<Tshippingport>();
         }
 
         /// <summary>
@@ -29,5 +30,6 @@ namespace UserManagementAPI.Models
 
         public virtual TRegionLookup? Region { get; set; }
         public virtual ICollection<Tcompany> Tcompanies { get; set; }
+        public virtual ICollection<Tshippingport> Tshippingports { get; set; }
     }
 }

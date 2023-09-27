@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace UserManagementAPI.Resources.Implementations
 {
-   
+
     public class CountryService : ICountryService
     {
         swContext config;

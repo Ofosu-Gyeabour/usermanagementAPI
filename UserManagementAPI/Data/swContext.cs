@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-//using Swashbuckle.AspNetCore.SwaggerUI;
-
 using UserManagementAPI.utils;
 
 namespace UserManagementAPI.Data
@@ -27,13 +25,16 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TCompDigiOutlet> TCompDigiOutlets { get; set; } = null!;
         public virtual DbSet<TCountryLookup> TCountryLookups { get; set; } = null!;
         public virtual DbSet<TDepartment> TDepartments { get; set; } = null!;
+        public virtual DbSet<TDialCode> TDialCodes { get; set; } = null!;
         public virtual DbSet<TEvent> TEvents { get; set; } = null!;
         public virtual DbSet<TLogger> TLoggers { get; set; } = null!;
         public virtual DbSet<TModule> TModules { get; set; } = null!;
         public virtual DbSet<TProfile> TProfiles { get; set; } = null!;
         public virtual DbSet<TRegionLookup> TRegionLookups { get; set; } = null!;
         public virtual DbSet<TTemplate> TTemplates { get; set; } = null!;
+        public virtual DbSet<TTitle> TTitles { get; set; } = null!;
         public virtual DbSet<TUsrDetail> TUsrDetails { get; set; } = null!;
+        public virtual DbSet<Tbranch> Tbranches { get; set; } = null!;
         public virtual DbSet<Tclientreferralsource> Tclientreferralsources { get; set; } = null!;
         public virtual DbSet<Tcompany> Tcompanies { get; set; } = null!;
         public virtual DbSet<Tcompanytype> Tcompanytypes { get; set; } = null!;
@@ -46,7 +47,8 @@ namespace UserManagementAPI.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(ConfigObject.DB_CONN);
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+                optionsBuilder.UseSqlServer("Server=localhost;Database=sw;User Id=sa;Password=excalibur@33;");
             }
         }
 
@@ -72,6 +74,11 @@ namespace UserManagementAPI.Data
                     .HasColumnName("mnemonic")
                     .IsFixedLength()
                     .HasComment("mnemonic or short name of airport");
+
+                entity.HasOne(d => d.Country)
+                    .WithMany(p => p.TAirports)
+                    .HasForeignKey(d => d.CountryId)
+                    .HasConstraintName("FK_tAirport_tcompany");
             });
 
             modelBuilder.Entity<TChannelType>(entity =>
@@ -205,6 +212,28 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TDepartments)
                     .HasForeignKey(d => d.CompanyId)
                     .HasConstraintName("FK_tDepartment_tcompany");
+            });
+
+            modelBuilder.Entity<TDialCode>(entity =>
+            {
+                entity.ToTable("tDialCode");
+
+                entity.Property(e => e.Id).HasComment("primary key for the table");
+
+                entity.Property(e => e.Code)
+                    .HasMaxLength(15)
+                    .IsUnicode(false)
+                    .HasColumnName("code")
+                    .HasComment("the dialling code");
+
+                entity.Property(e => e.CountryId)
+                    .HasColumnName("countryId")
+                    .HasComment("the associated country for the dialling code");
+
+                entity.HasOne(d => d.Country)
+                    .WithMany(p => p.TDialCodes)
+                    .HasForeignKey(d => d.CountryId)
+                    .HasConstraintName("FK_tDialCode_tcompany");
             });
 
             modelBuilder.Entity<TEvent>(entity =>
@@ -371,6 +400,19 @@ namespace UserManagementAPI.Data
                     .HasComment("name of the template");
             });
 
+            modelBuilder.Entity<TTitle>(entity =>
+            {
+                entity.ToTable("tTitle");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Title)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("title")
+                    .HasComment("title name");
+            });
+
             modelBuilder.Entity<TUsrDetail>(entity =>
             {
                 entity.ToTable("tUsrDetail");
@@ -397,6 +439,26 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TUsrDetails)
                     .HasForeignKey(d => d.TuserId)
                     .HasConstraintName("FK_tUsrDetail_tusr");
+            });
+
+            modelBuilder.Entity<Tbranch>(entity =>
+            {
+                entity.ToTable("tbranch");
+
+                entity.Property(e => e.BranchName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("branchName")
+                    .HasComment("name of the branch");
+
+                entity.Property(e => e.CompanyId)
+                    .HasColumnName("companyId")
+                    .HasComment("Id of the company");
+
+                entity.HasOne(d => d.Company)
+                    .WithMany(p => p.Tbranches)
+                    .HasForeignKey(d => d.CompanyId)
+                    .HasConstraintName("FK_tbranch_tcompany");
             });
 
             modelBuilder.Entity<Tclientreferralsource>(entity =>
@@ -576,6 +638,11 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.TraveltimeInDays)
                     .HasColumnName("traveltimeInDays")
                     .HasComment("days it will take to travel");
+
+                entity.HasOne(d => d.Country)
+                    .WithMany(p => p.Tshippingports)
+                    .HasForeignKey(d => d.CountryId)
+                    .HasConstraintName("FK_tshippingport_tCountryLookup");
             });
 
             modelBuilder.Entity<Tusr>(entity =>

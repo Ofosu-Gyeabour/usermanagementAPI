@@ -25,5 +25,7 @@ namespace UserManagementAPI.Models
         /// days it will take to travel
         /// </summary>
         public int? TraveltimeInDays { get; set; }
+
+        public virtual TCountryLookup? Country { get; set; }
     }
 }

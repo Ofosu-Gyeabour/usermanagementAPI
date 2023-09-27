@@ -18,5 +18,7 @@ namespace UserManagementAPI.Models
         /// mnemonic or short name of airport
         /// </summary>
         public string? Mnemonic { get; set; }
+
+        public virtual Tcompany? Country { get; set; }
     }
 }

@@ -130,3 +130,4 @@ C:\Users\Blessings\Documents\WIF_Projects\userMgmtAPI\UserManagementAPI\obj\Rele
 \\vmware-host\Shared Folders\Documents\Projects\WIF_Projects\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\UserManagementAPI.pdb
 \\vmware-host\Shared Folders\Documents\Projects\WIF_Projects\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\UserManagementAPI.genruntimeconfig.cache
 \\vmware-host\Shared Folders\Documents\Projects\WIF_Projects\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\ref\UserManagementAPI.dll
+C:\Users\Blessings\Documents\WIF_Projects\userMgmtAPI\UserManagementAPI\bin\Release\net6.0\Microsoft.Extensions.DependencyInjection.dll
