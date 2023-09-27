@@ -18,6 +18,6 @@ namespace UserManagementAPI.Models
         /// </summary>
         public int? CountryId { get; set; }
 
-        public virtual Tcompany? Country { get; set; }
+        public virtual TCountryLookup? Country { get; set; }
     }
 }

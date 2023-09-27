@@ -19,6 +19,6 @@ namespace UserManagementAPI.Models
         /// </summary>
         public string? Mnemonic { get; set; }
 
-        public virtual Tcompany? Country { get; set; }
+        public virtual TCountryLookup? Country { get; set; }
     }
 }

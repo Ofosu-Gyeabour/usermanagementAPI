@@ -7,9 +7,7 @@ namespace UserManagementAPI.Models
     {
         public Tcompany()
         {
-            TAirports = new HashSet<TAirport>();
             TDepartments = new HashSet<TDepartment>();
-            TDialCodes = new HashSet<TDialCode>();
             Tbranches = new HashSet<Tbranch>();
             Tusrs = new HashSet<Tusr>();
         }
@@ -41,9 +39,7 @@ namespace UserManagementAPI.Models
         public DateTime? IncorporationDate { get; set; }
 
         public virtual TCountryLookup? CompanyCountry { get; set; }
-        public virtual ICollection<TAirport> TAirports { get; set; }
         public virtual ICollection<TDepartment> TDepartments { get; set; }
-        public virtual ICollection<TDialCode> TDialCodes { get; set; }
         public virtual ICollection<Tbranch> Tbranches { get; set; }
         public virtual ICollection<Tusr> Tusrs { get; set; }
     }

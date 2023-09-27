@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using UserManagementAPI.utils;
-
 namespace UserManagementAPI.Data
 {
     public partial class swContext : DbContext
@@ -48,7 +47,7 @@ namespace UserManagementAPI.Data
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=localhost;Database=sw;User Id=sa;Password=excalibur@33;");
+                optionsBuilder.UseSqlServer("Server=localhost;User Id=sa;Password=excalibur@33;Database=sw;");
             }
         }
 
@@ -78,7 +77,7 @@ namespace UserManagementAPI.Data
                 entity.HasOne(d => d.Country)
                     .WithMany(p => p.TAirports)
                     .HasForeignKey(d => d.CountryId)
-                    .HasConstraintName("FK_tAirport_tcompany");
+                    .HasConstraintName("FK_tAirport_tCountryLookup");
             });
 
             modelBuilder.Entity<TChannelType>(entity =>
@@ -233,7 +232,7 @@ namespace UserManagementAPI.Data
                 entity.HasOne(d => d.Country)
                     .WithMany(p => p.TDialCodes)
                     .HasForeignKey(d => d.CountryId)
-                    .HasConstraintName("FK_tDialCode_tcompany");
+                    .HasConstraintName("FK_tDialCode_tCountryLookup");
             });
 
             modelBuilder.Entity<TEvent>(entity =>
