@@ -31,6 +31,7 @@ builder.Services.AddSingleton<ICountryService, CountryService>();
 builder.Services.AddSingleton<IReferralService, ReferralService>();
 builder.Services.AddSingleton<ICompanyService, CompanyService>();
 builder.Services.AddSingleton<IModuleService, ModuleService>();
+builder.Services.AddSingleton<IRegionService, RegionService>();
 
 #endregion
 
@@ -154,12 +155,20 @@ app.MapGet("/CompanyType/GetCompanyTypes", async (ICompanyService service) => aw
 app.MapPost("/CompanyType/CreateCompanyType", async (CompanyTypeLookup oCompanyType, ICompanyService service) => await CreateCompanyTypeAsync(oCompanyType, service)).WithTags("CompanyType");
 app.MapPut("/CompanyType/UpdateCompanyType", async (CompanyTypeLookup oCompanyType, ICompanyService service) => await UpdateCompanyTypeAsync(oCompanyType, service)).WithTags("CompanyType");
 
+app.MapGet("/Company/Get", async (ICompanyService service) => await GetCompaniesAsync(service)).WithTags("Company");
 #endregion
 
 #region Modules - routes
 
 app.MapGet("/Module/GetModulesInUse", async (IModuleService service) => await GetModulesInUseAsync(service)).WithTags("User Module");
 app.MapGet("/Module/GetAllModules", async (IModuleService service) => await GetAllModulesAsync(service)).WithTags("User Module");
+
+#endregion
+
+#region Region-routes
+
+app.MapGet("/Region/Get", async (IRegionService service) => await GetRegionsAsync(service)).WithTags("Region");
+app.MapPost("/Region/Create", async (IRegionService service, RegionLookup oRegion) => await CreateRegionAsync(service, oRegion)).WithTags("Region");
 
 #endregion
 
@@ -831,6 +840,27 @@ async Task<IResult> UpdateCompanyTypeAsync(CompanyTypeLookup oCompanyType, IComp
 }
 #endregion
 
+#region Company - Tasks
+
+async Task<IResult> GetCompaniesAsync(ICompanyService service)
+{
+    //gets companies from the data store
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var company_list = await service.GetCompaniesAsync();
+        return Results.Ok(company_list);
+    }
+    catch(Exception exc)
+    {
+        return Results.BadRequest(exc);
+    }
+}
+
+#endregion
+
 #region Modules - Tasks
 
 async Task<IResult> GetModulesInUseAsync(IModuleService service)
@@ -864,6 +894,50 @@ async Task<IResult> GetAllModulesAsync(IModuleService service)
         return Results.BadRequest(x);
     }
 }
+#endregion
+
+#region Region - Tasks
+
+async Task<IResult> GetRegionsAsync(IRegionService service)
+{
+    //gets region
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var regionList = await service.GetRegionAsync();
+        return Results.Ok(regionList);
+    }
+    catch(Exception exc)
+    {
+        return Results.BadRequest(exc);
+    }
+}
+
+async Task<IResult> CreateRegionAsync(IRegionService service, RegionLookup oRegion)
+{
+    //creates region
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    if (oRegion == null)
+        return Results.BadRequest(@"region cannot be instantiated");
+
+    if (oRegion.nameOfregion == string.Empty)
+        return Results.NotFound(@"region name cannot be blank");
+
+    try
+    {
+        var opStatus = await service.CreateRegionAsync(oRegion);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception exc)
+    {
+        return Results.BadRequest(exc);
+    }
+}
+
 #endregion
 
 #endregion

@@ -9,5 +9,7 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> GetCompanyTypesAsync();
         Task<DefaultAPIResponse> CreateCompanyTypeAsync(CompanyTypeLookup payLoad);
         Task<DefaultAPIResponse> UpdateCompanyTypeAsync(CompanyTypeLookup payLoad);
+
+        Task<DefaultAPIResponse> GetCompaniesAsync();
     }
 }
