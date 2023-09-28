@@ -83,23 +83,33 @@ namespace UserManagementAPI.Resources.Implementations
 
             try
             {
-                Tshippingport objShippingPort = new Tshippingport()
+                var dt = await config.Tshippingports.Where(x => x.NameOfport == payLoad.nameOfport).FirstOrDefaultAsync();
+                if (dt == null)
                 {
-                    NameOfport = payLoad.nameOfport,
-                    CountryId = payLoad.oCountry.id,
-                    Portcode = payLoad.codeOfport,
-                    TraveltimeInDays = payLoad.sailingTimeInDays
-                };
+                    Tshippingport objShippingPort = new Tshippingport()
+                    {
+                        NameOfport = payLoad.nameOfport,
+                        CountryId = payLoad.oCountry.id,
+                        Portcode = payLoad.codeOfport,
+                        TraveltimeInDays = payLoad.sailingTimeInDays
+                    };
 
-                await config.AddAsync(objShippingPort);
-                await config.SaveChangesAsync();
+                    await config.AddAsync(objShippingPort);
+                    await config.SaveChangesAsync();
 
-                return response = new DefaultAPIResponse()
+                    response = new DefaultAPIResponse()
+                    {
+                        status = true,
+                        message = @"success",
+                        data = payLoad
+                    };
+                }
+                else
                 {
-                    status = true,
-                    message = @"success",
-                    data = payLoad
-                };
+                    response = new DefaultAPIResponse() { status = false, message = $"Port {payLoad.nameOfport} already exist in the data store" };
+                }
+
+                return response;
             }
             catch(Exception x)
             {

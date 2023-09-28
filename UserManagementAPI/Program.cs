@@ -36,6 +36,11 @@ builder.Services.AddSingleton<IRegionService, RegionService>();
 builder.Services.AddSingleton<IBranchService, BranchService>();
 builder.Services.AddSingleton<ITitleService, TitleService>();
 builder.Services.AddSingleton<IShippingPortService, ShippingPortService>();
+
+builder.Services.AddSingleton<IAirportService, AirportService>();
+builder.Services.AddSingleton<IDialCodeService, DialCodeService>();
+builder.Services.AddSingleton<IContainerTypeService, ContainerTypeService>();
+
 #endregion
 
 #region CORS
@@ -85,6 +90,25 @@ ConfigObject.TEST_CONN = settings.testConn;
 
 
 #region api - resources
+
+#region ContainerTypes - routes
+
+app.MapGet("/ContainerType/Get", async (IContainerTypeService service) => await GetContainerTypesAsync(service)).WithTags("Container Types");
+app.MapPost("/ContainerType/Create", async (IContainerTypeService service, ContainerTypeLookup oContainerType) => await CreateContainerTypeAsync(service, oContainerType)).WithTags("Container Types");
+
+#endregion
+
+#region DialCode - routes
+app.MapGet("/DialCode/GetDialCodes", async (IDialCodeService service) => await GetDialAllDialCodesAsync(service)).WithTags("Dial Codes");
+app.MapPost("/DialCode/Create", async (IDialCodeService service, DialCodeLookup oDialCode) => await CreateDialCodeAsync(service, oDialCode)).WithTags("Dial Codes");
+
+#endregion
+
+#region Airport - routes
+
+app.MapGet("/Airport/GetAirports", async (IAirportService service) => await GetAllAirportsAsync(service)).WithTags("Airport");
+app.MapPost("/Airport/Create", async (IAirportService service, AirportLookup oAirport) => await CreateAirportAsync(service, oAirport)).WithTags("Airport");
+#endregion
 
 #region Department - routes
 
@@ -200,6 +224,132 @@ app.MapPost("/ShippingPort/Create", async (ShippingPortLookup oShippingPort, ISh
 #endregion
 
 #region api - tasks
+
+#region Container-type - tasks
+
+async Task<IResult> CreateContainerTypeAsync(IContainerTypeService service, ContainerTypeLookup oContainerType)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    if (oContainerType.containerType.Length < 1)
+        return Results.BadRequest(@"container type cannot be blank");
+
+    if (oContainerType.containerVolume == 0m)
+        return Results.BadRequest(@"volume of container cannot be zero (0)");
+
+    try
+    {
+        var opStatus = await service.CreateContainerTypeAsync(oContainerType);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetContainerTypesAsync(IContainerTypeService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var containertypeList = await service.GetContainerTypesAsync();
+        return Results.Ok(containertypeList);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+#endregion
+
+#region DialCodes - tasks
+
+async Task<IResult> CreateDialCodeAsync(IDialCodeService service, DialCodeLookup oDialCode)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    if (oDialCode.dialCode.Length < 1)
+        return Results.BadRequest(@"dial code cannot be blank");
+
+    if (oDialCode.oCountry.id < 1)
+        return Results.BadRequest(@"country Id cannot be zero (0)");
+
+    try
+    {
+        var opStatus = await service.CreateDialCodeAsync(oDialCode);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetDialAllDialCodesAsync(IDialCodeService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var dialcode_list = await service.GetDialCodesAsync();
+        return Results.Ok(dialcode_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+#endregion
+
+#region Airport - tasks
+
+async Task<IResult> GetAllAirportsAsync(IAirportService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service cannot be instantiated");
+
+    try
+    {
+        var results = await service.GetAirportsAsync();
+        return Results.Ok(results);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> CreateAirportAsync(IAirportService service, AirportLookup oAirport)
+{
+    if (service == null)
+        return Results.BadRequest(@"service cannot be instantiated");
+
+    if (oAirport.nameOfairport.Length < 1)
+        return Results.BadRequest(@"airport name cannot be blank");
+
+    if (oAirport.airportMnemonic.Length < 1)
+        return Results.BadRequest(@"airport code cannot be blank");
+    
+    if (oAirport.oCountry.id < 1)
+        return Results.BadRequest(@"country Id cannot be zero (0)");
+
+    try
+    {
+        var opStatus = await service.CreateAirportAsync(oAirport);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+#endregion
 
 #region ShippingPort - tasks
 

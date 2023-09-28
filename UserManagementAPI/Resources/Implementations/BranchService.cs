@@ -90,21 +90,28 @@ namespace UserManagementAPI.Resources.Implementations
             try
             {
                 //gets both the company and the company Id from the client side for user createion
-                Tbranch objBranch = new Tbranch()
+                var dt = await config.Tbranches.Where(b => b.BranchName == payLoad.nameOfbranch).FirstOrDefaultAsync();
+                if (dt == null)
                 {
-                    BranchName = payLoad.nameOfbranch,
-                    CompanyId = payLoad.oCompany.id
-                };
+                    Tbranch objBranch = new Tbranch()
+                    {
+                        BranchName = payLoad.nameOfbranch,
+                        CompanyId = payLoad.oCompany.id
+                    };
 
-                await config.AddAsync(objBranch);
-                await config.SaveChangesAsync();
+                    await config.AddAsync(objBranch);
+                    await config.SaveChangesAsync();
 
-                return response = new DefaultAPIResponse()
-                {
-                    status = true,
-                    message = $"Branch with name {payLoad.nameOfbranch} added to data store",
-                    data = payLoad
-                };
+                    response = new DefaultAPIResponse()
+                    {
+                        status = true,
+                        message = $"Branch with name {payLoad.nameOfbranch} added to data store",
+                        data = payLoad
+                    };
+                }
+                else { response = new DefaultAPIResponse() { status = false, message = $"Branch with name '{payLoad.nameOfbranch}' already exist in the data store" }; }
+
+                return response;
             }
             catch(Exception x)
             {

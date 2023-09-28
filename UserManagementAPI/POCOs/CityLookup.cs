@@ -76,4 +76,27 @@ namespace UserManagementAPI.POCOs
         public CountryLookup oCountry { get; set; }
 
     }
+
+    public class AirportLookup
+    {
+        public int id { get; set; } = 0;
+        public string nameOfairport { get; set; } = string.Empty;
+        public string airportMnemonic { get; set; } = string.Empty;
+        public CountryLookup oCountry { get; set; }
+    }
+
+    public class DialCodeLookup
+    {
+        public int id { get; set; } = 0;
+        public string dialCode { get; set; } = string.Empty;
+        public CountryLookup oCountry { get; set; }
+    }
+
+    public class ContainerTypeLookup
+    {
+        public int id { get; set; } = 0;
+        public string containerType { get; set; } = string.Empty;
+        public decimal containerVolume { get; set; } = 0m;
+    }
+
 }

@@ -60,20 +60,27 @@ namespace UserManagementAPI.Resources.Implementations
 
             try
             {
-                TTitle objTitle = new TTitle()
+                var dt = await config.TTitles.Where(t => t.Title == payLoad.nameOftitle).FirstOrDefaultAsync();
+                if (dt == null)
                 {
-                    Title = payLoad.nameOftitle
-                };
+                    TTitle objTitle = new TTitle()
+                    {
+                        Title = payLoad.nameOftitle
+                    };
 
-                await config.AddAsync(objTitle);
-                await config.SaveChangesAsync();
+                    await config.AddAsync(objTitle);
+                    await config.SaveChangesAsync();
 
-                return response = new DefaultAPIResponse()
-                {
-                    status = true,
-                    message = $"Title {payLoad.nameOftitle} added to data store",
-                    data = payLoad
-                };
+                    response = new DefaultAPIResponse()
+                    {
+                        status = true,
+                        message = $"Title {payLoad.nameOftitle} added to data store",
+                        data = payLoad
+                    };
+                }
+                else { response = new DefaultAPIResponse() { status = false, message = $"Title '{payLoad.nameOftitle}' already exist in the data store"}; }
+
+                return response;
             }
             catch(Exception x)
             {
