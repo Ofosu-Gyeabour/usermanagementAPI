@@ -99,4 +99,41 @@ namespace UserManagementAPI.POCOs
         public decimal containerVolume { get; set; } = 0m;
     }
 
+    public class AdhocTypeLookup
+    {
+        public int id { get; set; } = 0;
+        public string name { get; set; } = string.Empty;
+        public string nomCode { get; set; } = string.Empty;
+    }
+
+    public class PackageItemLookup
+    {
+        public int id { get; set; } = 0;
+        public string name { get; set; } = string.Empty;
+        public string description { get; set; } = string.Empty;
+    }
+
+    public class PackagepriceLookup
+    {
+        public int id { get; set; } = 0;
+        public decimal unitPrice { get; set; } = 0m;
+        public decimal wholesalePrice { get; set; } = 0m;
+        public decimal retailPrice { get; set; } = 0m;
+        public PackageItemLookup oPackageItem { get; set; }
+        public CompanyLookup oCompany { get; set; }
+    }
+
+    public class SealTypeLookup
+    {
+        public int id { get; set; } = 0;
+        public string sealDescription { get; set; } = string.Empty;
+    }
+    public class SealPriceLookup
+    {
+        public int id { get; set; } = 0;
+        public decimal Price { get; set; } = 0m;
+        public decimal sellingPrice { get; set; } = 0m;
+        public SealTypeLookup oSealType { get; set; }
+        public CompanyLookup oCompany { get; set; }
+    }
 }

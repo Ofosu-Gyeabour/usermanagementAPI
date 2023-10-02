@@ -41,6 +41,10 @@ builder.Services.AddSingleton<IAirportService, AirportService>();
 builder.Services.AddSingleton<IDialCodeService, DialCodeService>();
 builder.Services.AddSingleton<IContainerTypeService, ContainerTypeService>();
 
+builder.Services.AddSingleton<IAdhocTypeService, AdhocTypeService>();
+builder.Services.AddSingleton<IPackagingService, PackagingService>();
+builder.Services.AddSingleton<ISealService, SealService>();
+
 #endregion
 
 #region CORS
@@ -90,6 +94,33 @@ ConfigObject.TEST_CONN = settings.testConn;
 
 
 #region api - resources
+
+#region Packaging - routes
+
+app.MapGet("/PackagingItem/Get", async (IPackagingService service) => await GetPackagingItemListAsync(service)).WithTags("PackagingItem");
+app.MapGet("/PackagingPrice/Get", async (IPackagingService service) => await GetPackagingPriceListAsync(service)).WithTags("PackagingPrice");
+
+app.MapPost("/PackagingItem/Create", async (PackageItemLookup oPackageItem, IPackagingService service) => await CreatePackagingItemAsync(oPackageItem, service)).WithTags("PackagingItem");
+app.MapPost("/PackagingPrice/Create", async (PackagepriceLookup oPackagePrice, IPackagingService service) => await CreatePackagingPriceAsync(oPackagePrice, service)).WithTags("PackagingPrice");
+
+#endregion
+
+#region Seal - routes
+
+app.MapGet("/SealType/List", async (ISealService service) => await GetSealTypeListAsync(service)).WithTags("SealType");
+app.MapGet("/SealPrice/list", async (ISealService service) => await GetSealPriceListAsync(service)).WithTags("SealPrice");
+
+app.MapPost("SealType/Create", async (SealTypeLookup oSealType, ISealService service) => await CreateSealTypeAsync(oSealType, service)).WithTags("SealType");
+app.MapPost("SealPrice/Create", async (SealPriceLookup oSealPrice, ISealService service) => await CreateSealPriceAsync(oSealPrice, service)).WithTags("SealPrice");
+
+#endregion
+
+#region AdhocType - routes
+
+app.MapGet("/Adhoc/List", async (IAdhocTypeService service) => await ListAdhocTypesAsync(service)).WithTags("AdhocType");
+app.MapPost("/Adhoc/Create", async (AdhocTypeLookup oAdhoc, IAdhocTypeService service) => await CreateAdhocTypeAsync(oAdhoc, service)).WithTags("AdhocType");
+
+#endregion
 
 #region ContainerTypes - routes
 
@@ -224,6 +255,197 @@ app.MapPost("/ShippingPort/Create", async (ShippingPortLookup oShippingPort, ISh
 #endregion
 
 #region api - tasks
+
+#region Seal - tasks
+
+async Task<IResult> CreateSealPriceAsync(SealPriceLookup oSealPrice, ISealService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    if (oSealPrice.oSealType.id == 0)
+        return Results.BadRequest(@"seal type ID cannot be zero (0)");
+    if (oSealPrice.sellingPrice <= 0)
+        return Results.BadRequest(@"selling price of seal must be greater than zero (0)");
+    if (oSealPrice.Price <= 0)
+        return Results.BadRequest(@"price of seal must be greater than zero (0)");
+
+    try
+    {
+        var opStatus = await service.CreateSealPriceAsync(oSealPrice);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateSealTypeAsync(SealTypeLookup oSealType, ISealService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    if (oSealType.sealDescription.Length < 1)
+        return Results.BadRequest(@"seal type name cannot be blank");
+
+    try
+    {
+        var opStatus = await service.CreateSealTypeAsync(oSealType);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetSealTypeListAsync(ISealService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var seal_type_list = await service.GetSealTypeListAsync();
+        return Results.Ok(seal_type_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetSealPriceListAsync(ISealService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var seal_price_list = await service.GetSealPriceListAsync();
+        return Results.Ok(seal_price_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+#endregion
+
+#region Packaging - tasks
+async Task<IResult> GetPackagingItemListAsync(IPackagingService service)
+{
+    //get packaging item list
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var packaging_item_list = await service.GetPackageItemListAsync();
+        return Results.Ok(packaging_item_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetPackagingPriceListAsync(IPackagingService service)
+{
+    //gets packaging price list
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var packaging_price_list = await service.GetPackagePriceListAsync();
+        return Results.Ok(packaging_price_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> CreatePackagingItemAsync(PackageItemLookup oPackageItem, IPackagingService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    if (oPackageItem.name.Length <= 0)
+        return Results.BadRequest(@"name of package item cannot be blank");
+
+    try
+    {
+        var opStatus = await service.CreatePackageItemAsync(oPackageItem);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> CreatePackagingPriceAsync(PackagepriceLookup oPackagePrice, IPackagingService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    if (oPackagePrice.unitPrice <= 0)
+        return Results.BadRequest(@"unit price cannot be zero (0)");
+
+    if (oPackagePrice.wholesalePrice <= 0)
+        return Results.BadRequest(@"wholesale price cannot be zero (0)");
+
+    if (oPackagePrice.retailPrice <= 0)
+        return Results.BadRequest(@"retail price cannot be zero (0)");
+
+    try
+    {
+        var opStatus = await service.CreatePackagingPriceAsync(oPackagePrice);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+#endregion
+
+#region Adhoc - tasks
+
+async Task<IResult> ListAdhocTypesAsync(IAdhocTypeService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var adhoc_type_list = await service.GetAdHocTypesAsync();
+        return Results.Ok(adhoc_type_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateAdhocTypeAsync(AdhocTypeLookup oAdhoc, IAdhocTypeService service)
+{
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    if ((oAdhoc.name.Length < 1) || (oAdhoc.nomCode.Length < 1))
+        return Results.BadRequest(@"Adhoc values cannot be blank");
+
+    try
+    {
+        var opStatus = await service.CreateAdhocTypeAsync(oAdhoc);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+#endregion
 
 #region Container-type - tasks
 
@@ -520,6 +742,8 @@ async Task<IResult> UpdateDepartmentAsync(DepartmentLookup oDepartment, IDepartm
 
 #endregion
 
+#region User - tasks
+
 async Task<IResult> GetUsersAsync(IUserService usrservice)
 {
     try
@@ -530,7 +754,7 @@ async Task<IResult> GetUsersAsync(IUserService usrservice)
     catch (Exception e)
     {
         return Results.BadRequest($"Error: {e.Message}");
-    } 
+    }
 }
 
 async Task<IResult> GetMD5Encryption(SingleParam userData, IUserService usrservice)
@@ -540,7 +764,7 @@ async Task<IResult> GetMD5Encryption(SingleParam userData, IUserService usrservi
         var returned = await usrservice.GetMD5EncryptedPasswordAsync(userData);
         return Results.Ok(returned);
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
         return Results.BadRequest($"error: {ex.Message}");
     }
@@ -560,10 +784,10 @@ async Task<IResult> AuthenticateUserAsync(UserInfo userCredential, IUserService 
             return Results.BadRequest();
         }
     }
-    catch(Exception e)
+    catch (Exception e)
     {
         return Results.BadRequest(e.Message);
-    }  
+    }
 }
 
 async Task<IResult> ChangePasswordAsync(UserInfo oUserInfo, IUserService service)
@@ -581,12 +805,15 @@ async Task<IResult> ChangePasswordAsync(UserInfo oUserInfo, IUserService service
         var operationStatus = await service.ChangeUserPasswordAsync(oUserInfo);
         return Results.Ok(operationStatus);
     }
-    catch(Exception x)
+    catch (Exception x)
     {
         return Results.BadRequest($"error: {x.Message}");
     }
 }
 
+#endregion
+
+#region Logger - tasks
 async Task<IResult> WriteLogAsync(Log oLogger, ILoggerService service)
 {
     try
@@ -601,10 +828,10 @@ async Task<IResult> WriteLogAsync(Log oLogger, ILoggerService service)
             return Results.Ok(logOperation);
         }
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
         return Results.BadRequest($"error: {ex.Message}");
-    } 
+    }
 }
 
 async Task<IResult> GetLogDataAsync(ILoggerService service)
@@ -621,11 +848,11 @@ async Task<IResult> GetLogDataAsync(ILoggerService service)
             return Results.Ok(_LogData);
         }
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
         return Results.BadRequest(ex);
     }
-    
+
 }
 
 async Task<IResult> GetUserLogsAsync(SingleParam _param, ILoggerService service)
@@ -642,7 +869,7 @@ async Task<IResult> GetUserLogsAsync(SingleParam _param, ILoggerService service)
             return Results.Ok(user_log_data);
         }
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
         return Results.BadRequest(ex);
     }
@@ -664,7 +891,7 @@ async Task<IResult> SetLoginFlagAsync(UserInfo user, IUserService service)
     {
         return Results.BadRequest($"error: {x.Message}");
     }
-    
+
 }
 
 async Task<IResult> SetLogoutFlagAsync(UserInfo user, IUserService service)
@@ -679,11 +906,15 @@ async Task<IResult> SetLogoutFlagAsync(UserInfo user, IUserService service)
         var statusObj = await service.SetLoggedOutFlagAsync(user);
         return Results.Ok(statusObj);
     }
-    catch(Exception x)
+    catch (Exception x)
     {
         return Results.BadRequest($"error: {x.Message}");
     }
 }
+
+#endregion
+
+#region Profile - tasks
 
 async Task<IResult> CreateProfileAsync(SystemProfile oProfile, IProfileService service)
 {
@@ -697,13 +928,13 @@ async Task<IResult> CreateProfileAsync(SystemProfile oProfile, IProfileService s
         var profileStatus = await service.SaveProfileAsync(oProfile);
         return Results.Ok(profileStatus);
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
         return Results.BadRequest($"error: {ex.Message}");
     }
 }
 
-async Task<IResult> AmendProfileAsync(SystemProfile oProfile,IProfileService service)
+async Task<IResult> AmendProfileAsync(SystemProfile oProfile, IProfileService service)
 {
     try
     {
@@ -715,10 +946,10 @@ async Task<IResult> AmendProfileAsync(SystemProfile oProfile,IProfileService ser
         var status = await service.AmendProfileAsync(oProfile);
         return Results.Ok(status);
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
         return Results.BadRequest($"error: {ex.Message}");
-    }   
+    }
 }
 
 async Task<IResult> GetProfileListAsync(SingleParam companyIdentifier, IProfileService service)
@@ -734,11 +965,11 @@ async Task<IResult> GetProfileListAsync(SingleParam companyIdentifier, IProfileS
         var profile_list = await service.GetProfilesAsync(int.Parse(companyIdentifier.stringValue));
         return Results.Ok(profile_list);
     }
-    catch(Exception x)
+    catch (Exception x)
     {
         return Results.BadRequest(x.Message);
     }
-    
+
 }
 
 async Task<IResult> GetAllProfilesAsync(IProfileService service)
@@ -751,7 +982,7 @@ async Task<IResult> GetAllProfilesAsync(IProfileService service)
         var response = await service.GetProfilesAsync();
         return Results.Ok(response);
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
         return Results.BadRequest(ex);
     }
@@ -768,7 +999,7 @@ async Task<IResult> GetUserProfileAsync(UserInfo _user, IUserService service)
         var responseData = await service.GetUserProfileAsync(_user);
         return Results.Ok(responseData);
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
         return Results.BadRequest($"error: {ex.Message}");
     }
@@ -787,11 +1018,13 @@ async Task<IResult> GetProfileModulesAsync(SingleParam oProfileObj, IProfileServ
         var profile = await service.GetProfileModulesAsync(oProfileObj);
         return Results.Ok(profile);
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
         return Results.BadRequest($"error: {ex.Message}");
     }
 }
+
+#endregion
 
 #region Authentication
 
@@ -832,7 +1065,6 @@ async Task<IResult> CreateUserAccountAsync(userRecord _userRecord, IUserService 
 }
 
 #endregion
-
 
 #region City Implementation
 

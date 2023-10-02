@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using UserManagementAPI.utils;
+
 namespace UserManagementAPI.Data
 {
     public partial class swContext : DbContext
@@ -18,6 +19,7 @@ namespace UserManagementAPI.Data
         {
         }
 
+        public virtual DbSet<TAdhocType> TAdhocTypes { get; set; } = null!;
         public virtual DbSet<TAirport> TAirports { get; set; } = null!;
         public virtual DbSet<TChannelType> TChannelTypes { get; set; } = null!;
         public virtual DbSet<TCity> TCities { get; set; } = null!;
@@ -28,16 +30,27 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TEvent> TEvents { get; set; } = null!;
         public virtual DbSet<TLogger> TLoggers { get; set; } = null!;
         public virtual DbSet<TModule> TModules { get; set; } = null!;
+        public virtual DbSet<TPackagingItem> TPackagingItems { get; set; } = null!;
+        public virtual DbSet<TPackagingPrice> TPackagingPrices { get; set; } = null!;
+        public virtual DbSet<TPackagingStock> TPackagingStocks { get; set; } = null!;
         public virtual DbSet<TProfile> TProfiles { get; set; } = null!;
         public virtual DbSet<TRegionLookup> TRegionLookups { get; set; } = null!;
+        public virtual DbSet<TSailingSchedule> TSailingSchedules { get; set; } = null!;
+        public virtual DbSet<TSealPrice> TSealPrices { get; set; } = null!;
+        public virtual DbSet<TSealType> TSealTypes { get; set; } = null!;
+        public virtual DbSet<TShippingLine> TShippingLines { get; set; } = null!;
+        public virtual DbSet<TSla> TSlas { get; set; } = null!;
+        public virtual DbSet<TTask> TTasks { get; set; } = null!;
         public virtual DbSet<TTemplate> TTemplates { get; set; } = null!;
         public virtual DbSet<TTitle> TTitles { get; set; } = null!;
         public virtual DbSet<TUsrDetail> TUsrDetails { get; set; } = null!;
+        public virtual DbSet<TVessel> TVessels { get; set; } = null!;
         public virtual DbSet<Tbranch> Tbranches { get; set; } = null!;
         public virtual DbSet<Tclientreferralsource> Tclientreferralsources { get; set; } = null!;
         public virtual DbSet<Tcompany> Tcompanies { get; set; } = null!;
         public virtual DbSet<Tcompanytype> Tcompanytypes { get; set; } = null!;
         public virtual DbSet<TcontainerType> TcontainerTypes { get; set; } = null!;
+        public virtual DbSet<TemailConfig> TemailConfigs { get; set; } = null!;
         public virtual DbSet<Tpackaging> Tpackagings { get; set; } = null!;
         public virtual DbSet<Tshippingport> Tshippingports { get; set; } = null!;
         public virtual DbSet<Tusr> Tusrs { get; set; } = null!;
@@ -52,6 +65,25 @@ namespace UserManagementAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<TAdhocType>(entity =>
+            {
+                entity.ToTable("tAdhocType");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.AdhocName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("adhocName")
+                    .HasComment("name of adhoc type");
+
+                entity.Property(e => e.Nomcode)
+                    .HasMaxLength(12)
+                    .HasColumnName("nomcode")
+                    .IsFixedLength()
+                    .HasComment("nom code of adhoc type");
+            });
+
             modelBuilder.Entity<TAirport>(entity =>
             {
                 entity.ToTable("tAirport");
@@ -323,6 +355,97 @@ namespace UserManagementAPI.Data
                     .HasComment("name of the module");
             });
 
+            modelBuilder.Entity<TPackagingItem>(entity =>
+            {
+                entity.ToTable("tPackagingItem");
+
+                entity.Property(e => e.Id).HasComment("primary key of the table");
+
+                entity.Property(e => e.PackagingDescription)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("packagingDescription")
+                    .HasComment("packaging description");
+
+                entity.Property(e => e.PackagingItem)
+                    .HasMaxLength(60)
+                    .IsUnicode(false)
+                    .HasColumnName("packagingItem")
+                    .HasComment("packaging Item");
+            });
+
+            modelBuilder.Entity<TPackagingPrice>(entity =>
+            {
+                entity.ToTable("tPackagingPrice");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.CompanyId)
+                    .HasColumnName("companyId")
+                    .HasComment("the company selling these packaging items");
+
+                entity.Property(e => e.PackagingItemId)
+                    .HasColumnName("packagingItemID")
+                    .HasComment("ID of the packaging item");
+
+                entity.Property(e => e.RetailPrice)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("retailPrice")
+                    .HasComment("recommended retail price for packaging item");
+
+                entity.Property(e => e.UnitPrice)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("unitPrice")
+                    .HasComment("unit price for packaging item");
+
+                entity.Property(e => e.WholesalePrice)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("wholesalePrice")
+                    .HasComment("wholesale price for packaging item");
+
+                entity.HasOne(d => d.Company)
+                    .WithMany(p => p.TPackagingPrices)
+                    .HasForeignKey(d => d.CompanyId)
+                    .HasConstraintName("FK_tPackagingPrice_tcompany");
+
+                entity.HasOne(d => d.PackagingItem)
+                    .WithMany(p => p.TPackagingPrices)
+                    .HasForeignKey(d => d.PackagingItemId)
+                    .HasConstraintName("FK_tPackagingPrice_tPackagingItem");
+            });
+
+            modelBuilder.Entity<TPackagingStock>(entity =>
+            {
+                entity.ToTable("tPackagingStock");
+
+                entity.Property(e => e.Id).HasComment("primary id of key");
+
+                entity.Property(e => e.CeilingThreshold)
+                    .HasColumnName("ceilingThreshold")
+                    .HasComment("maximum stock to be kept for item. alert responsible parties when breached");
+
+                entity.Property(e => e.CompanyId)
+                    .HasColumnName("companyId")
+                    .HasComment("reference to the company");
+
+                entity.Property(e => e.FloorThreshold)
+                    .HasColumnName("floorThreshold")
+                    .HasComment("floor threshold for packaging item. when breached, trigger a mail and alert responsible parties");
+
+                entity.Property(e => e.InStock)
+                    .HasColumnName("inStock")
+                    .HasComment("current stock level for packaging item");
+
+                entity.Property(e => e.TpackagingItemId)
+                    .HasColumnName("tpackagingItemID")
+                    .HasComment("ID of packaging item");
+
+                entity.HasOne(d => d.Company)
+                    .WithMany(p => p.TPackagingStocks)
+                    .HasForeignKey(d => d.CompanyId)
+                    .HasConstraintName("FK_tPackagingStock_tcompany");
+            });
+
             modelBuilder.Entity<TProfile>(entity =>
             {
                 entity.HasKey(e => e.ProfileId);
@@ -372,6 +495,138 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("regionName")
                     .HasComment("name of region");
+            });
+
+            modelBuilder.Entity<TSailingSchedule>(entity =>
+            {
+                entity.ToTable("tSailingSchedule");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ArrivalDate)
+                    .HasColumnType("date")
+                    .HasColumnName("arrivalDate")
+                    .HasComment("arrival date");
+
+                entity.Property(e => e.ClosingDate)
+                    .HasColumnType("date")
+                    .HasColumnName("closingDate")
+                    .HasComment("closing date");
+
+                entity.Property(e => e.DepartureDate)
+                    .HasColumnType("date")
+                    .HasColumnName("departureDate")
+                    .HasComment("departure date");
+
+                entity.Property(e => e.PortOfArrivalId)
+                    .HasColumnName("portOfArrivalID")
+                    .HasComment("reference to shipping port table. port of arrival");
+
+                entity.Property(e => e.PortOfDepartureId)
+                    .HasColumnName("portOfDepartureID")
+                    .HasComment("reference to shipping port table. port of departure");
+
+                entity.Property(e => e.VesselId)
+                    .HasColumnName("vesselID")
+                    .HasComment("reference to vessel table");
+
+                entity.HasOne(d => d.Vessel)
+                    .WithMany(p => p.TSailingSchedules)
+                    .HasForeignKey(d => d.VesselId)
+                    .HasConstraintName("FK_tSailingSchedule_tVessel");
+            });
+
+            modelBuilder.Entity<TSealPrice>(entity =>
+            {
+                entity.ToTable("tSealPrice");
+
+                entity.Property(e => e.CompanyId)
+                    .HasColumnName("companyId")
+                    .HasComment("The Id of the company");
+
+                entity.Property(e => e.Price)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("price")
+                    .HasComment("the price of the seal type");
+
+                entity.Property(e => e.SealtypeId)
+                    .HasColumnName("sealtypeId")
+                    .HasComment("the type of seal");
+
+                entity.Property(e => e.Sellingprice)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("sellingprice")
+                    .HasComment("the selling or trading price of the seal");
+
+                entity.HasOne(d => d.Company)
+                    .WithMany(p => p.TSealPrices)
+                    .HasForeignKey(d => d.CompanyId)
+                    .HasConstraintName("FK_tSealPrice_tcompany");
+
+                entity.HasOne(d => d.Sealtype)
+                    .WithMany(p => p.TSealPrices)
+                    .HasForeignKey(d => d.SealtypeId)
+                    .HasConstraintName("FK_tSealPrice_tSealType");
+            });
+
+            modelBuilder.Entity<TSealType>(entity =>
+            {
+                entity.ToTable("tSealType");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.SealTypeDescription)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("sealTypeDescription")
+                    .HasComment("description of seal");
+            });
+
+            modelBuilder.Entity<TShippingLine>(entity =>
+            {
+                entity.ToTable("tShippingLine");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ShippingLine)
+                    .HasMaxLength(60)
+                    .IsUnicode(false)
+                    .HasColumnName("shippingLine")
+                    .HasComment("name of shipping line");
+            });
+
+            modelBuilder.Entity<TSla>(entity =>
+            {
+                entity.ToTable("tSLA");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.TaskId)
+                    .HasColumnName("taskId")
+                    .HasComment("reference to task table");
+
+                entity.HasOne(d => d.Task)
+                    .WithMany(p => p.TSlas)
+                    .HasForeignKey(d => d.TaskId)
+                    .HasConstraintName("FK_tSLA_tTask");
+            });
+
+            modelBuilder.Entity<TTask>(entity =>
+            {
+                entity.ToTable("tTask");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.TaskDescription)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("taskDescription");
+
+                entity.Property(e => e.TaskName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("taskName")
+                    .HasComment("task");
             });
 
             modelBuilder.Entity<TTemplate>(entity =>
@@ -437,6 +692,34 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TUsrDetails)
                     .HasForeignKey(d => d.TuserId)
                     .HasConstraintName("FK_tUsrDetail_tusr");
+            });
+
+            modelBuilder.Entity<TVessel>(entity =>
+            {
+                entity.ToTable("tVessel");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ShippingLineId)
+                    .HasColumnName("shippingLineID")
+                    .HasComment("reference to shipping Line table");
+
+                entity.Property(e => e.VesselFlag)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("vesselFlag")
+                    .HasComment("the flag of the vessel");
+
+                entity.Property(e => e.VesselName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("vesselName")
+                    .HasComment("the name of the vessel");
+
+                entity.HasOne(d => d.ShippingLine)
+                    .WithMany(p => p.TVessels)
+                    .HasForeignKey(d => d.ShippingLineId)
+                    .HasConstraintName("FK_tVessel_tShippingLine");
             });
 
             modelBuilder.Entity<Tbranch>(entity =>
@@ -547,6 +830,88 @@ namespace UserManagementAPI.Data
                     .HasColumnType("decimal(9, 2)")
                     .HasColumnName("cvolume")
                     .HasComment("container volume");
+            });
+
+            modelBuilder.Entity<TemailConfig>(entity =>
+            {
+                entity.ToTable("temailConfig");
+
+                entity.Property(e => e.BifaSign)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("bifaSign")
+                    .HasComment("signature of BIFA");
+
+                entity.Property(e => e.BifaUrl)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("bifaURL")
+                    .HasComment("bifa URL");
+
+                entity.Property(e => e.CompanyId)
+                    .HasColumnName("companyId")
+                    .HasComment("the Id of the company");
+
+                entity.Property(e => e.Host)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("host")
+                    .HasComment("mail host");
+
+                entity.Property(e => e.IsActive)
+                    .HasColumnName("isActive")
+                    .HasComment("flag determining if mail account is active");
+
+                entity.Property(e => e.LogoUrl)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("logoURL")
+                    .HasComment("logo for the URL");
+
+                entity.Property(e => e.MBcc)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("mBCC")
+                    .HasComment("mail blind copied to");
+
+                entity.Property(e => e.MCc)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("mCC")
+                    .HasComment("mail copied to");
+
+                entity.Property(e => e.MTo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("mTo")
+                    .HasComment("receipient of mail");
+
+                entity.Property(e => e.Mfrom)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("mfrom")
+                    .HasComment("mail originator");
+
+                entity.Property(e => e.Port)
+                    .HasColumnName("port")
+                    .HasComment("mail port");
+
+                entity.Property(e => e.UsrCredential)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("usrCredential")
+                    .HasComment("user credentail for mail");
+
+                entity.Property(e => e.UsrPassword)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("usrPassword")
+                    .HasComment("user password for mail");
+
+                entity.HasOne(d => d.Company)
+                    .WithMany(p => p.TemailConfigs)
+                    .HasForeignKey(d => d.CompanyId)
+                    .HasConstraintName("FK_temailConfig_tcompany");
             });
 
             modelBuilder.Entity<Tpackaging>(entity =>

@@ -8,7 +8,11 @@ namespace UserManagementAPI.Models
         public Tcompany()
         {
             TDepartments = new HashSet<TDepartment>();
+            TPackagingPrices = new HashSet<TPackagingPrice>();
+            TPackagingStocks = new HashSet<TPackagingStock>();
+            TSealPrices = new HashSet<TSealPrice>();
             Tbranches = new HashSet<Tbranch>();
+            TemailConfigs = new HashSet<TemailConfig>();
             Tusrs = new HashSet<Tusr>();
         }
 
@@ -40,7 +44,11 @@ namespace UserManagementAPI.Models
 
         public virtual TCountryLookup? CompanyCountry { get; set; }
         public virtual ICollection<TDepartment> TDepartments { get; set; }
+        public virtual ICollection<TPackagingPrice> TPackagingPrices { get; set; }
+        public virtual ICollection<TPackagingStock> TPackagingStocks { get; set; }
+        public virtual ICollection<TSealPrice> TSealPrices { get; set; }
         public virtual ICollection<Tbranch> Tbranches { get; set; }
+        public virtual ICollection<TemailConfig> TemailConfigs { get; set; }
         public virtual ICollection<Tusr> Tusrs { get; set; }
     }
 }
