@@ -22,12 +22,18 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TAdhocType> TAdhocTypes { get; set; } = null!;
         public virtual DbSet<TAirport> TAirports { get; set; } = null!;
         public virtual DbSet<TChannelType> TChannelTypes { get; set; } = null!;
+        public virtual DbSet<TChargeLookup> TChargeLookups { get; set; } = null!;
         public virtual DbSet<TCity> TCities { get; set; } = null!;
         public virtual DbSet<TCompDigiOutlet> TCompDigiOutlets { get; set; } = null!;
         public virtual DbSet<TCountryLookup> TCountryLookups { get; set; } = null!;
+        public virtual DbSet<TDeliveryCharge> TDeliveryCharges { get; set; } = null!;
+        public virtual DbSet<TDeliveryMethod> TDeliveryMethods { get; set; } = null!;
+        public virtual DbSet<TDeliveryZone> TDeliveryZones { get; set; } = null!;
         public virtual DbSet<TDepartment> TDepartments { get; set; } = null!;
         public virtual DbSet<TDialCode> TDialCodes { get; set; } = null!;
         public virtual DbSet<TEvent> TEvents { get; set; } = null!;
+        public virtual DbSet<TInsurance> TInsurances { get; set; } = null!;
+        public virtual DbSet<TInsuranceType> TInsuranceTypes { get; set; } = null!;
         public virtual DbSet<TLogger> TLoggers { get; set; } = null!;
         public virtual DbSet<TModule> TModules { get; set; } = null!;
         public virtual DbSet<TPackagingItem> TPackagingItems { get; set; } = null!;
@@ -38,7 +44,9 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TSailingSchedule> TSailingSchedules { get; set; } = null!;
         public virtual DbSet<TSealPrice> TSealPrices { get; set; } = null!;
         public virtual DbSet<TSealType> TSealTypes { get; set; } = null!;
+        public virtual DbSet<TShipperCategory> TShipperCategories { get; set; } = null!;
         public virtual DbSet<TShippingLine> TShippingLines { get; set; } = null!;
+        public virtual DbSet<TShippingMethod> TShippingMethods { get; set; } = null!;
         public virtual DbSet<TSla> TSlas { get; set; } = null!;
         public virtual DbSet<TTask> TTasks { get; set; } = null!;
         public virtual DbSet<TTemplate> TTemplates { get; set; } = null!;
@@ -51,6 +59,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<Tcompanytype> Tcompanytypes { get; set; } = null!;
         public virtual DbSet<TcontainerType> TcontainerTypes { get; set; } = null!;
         public virtual DbSet<TemailConfig> TemailConfigs { get; set; } = null!;
+        public virtual DbSet<Thscode> Thscodes { get; set; } = null!;
         public virtual DbSet<Tpackaging> Tpackagings { get; set; } = null!;
         public virtual DbSet<Tshippingport> Tshippingports { get; set; } = null!;
         public virtual DbSet<Tusr> Tusrs { get; set; } = null!;
@@ -135,6 +144,38 @@ namespace UserManagementAPI.Data
                     .HasComment("brief description of channel type");
             });
 
+            modelBuilder.Entity<TChargeLookup>(entity =>
+            {
+                entity.ToTable("tChargeLookup");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Charge)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("charge")
+                    .HasComment("charge");
+
+                entity.Property(e => e.CountryId)
+                    .HasColumnName("countryId")
+                    .HasComment("the country in which the charges apply");
+
+                entity.Property(e => e.Cumchargerate)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("cumchargerate")
+                    .HasComment("rate of increase of charge for quantity of items > 1");
+
+                entity.Property(e => e.Unitcharge)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("unitcharge")
+                    .HasComment("charge per unit of item being transported");
+
+                entity.HasOne(d => d.Country)
+                    .WithMany(p => p.TChargeLookups)
+                    .HasForeignKey(d => d.CountryId)
+                    .HasConstraintName("FK_tChargeLookup_tCountryLookup");
+            });
+
             modelBuilder.Entity<TCity>(entity =>
             {
                 entity.ToTable("tCity");
@@ -217,6 +258,84 @@ namespace UserManagementAPI.Data
                     .HasConstraintName("FK_tcountry_tRegion");
             });
 
+            modelBuilder.Entity<TDeliveryCharge>(entity =>
+            {
+                entity.ToTable("tDeliveryCharge");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ChargeAmt)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("chargeAmt")
+                    .HasComment("the charge amount");
+
+                entity.Property(e => e.ChargeId)
+                    .HasColumnName("chargeId")
+                    .HasComment("the name of the charge");
+
+                entity.Property(e => e.CountryId)
+                    .HasColumnName("countryId")
+                    .HasComment("the country Id");
+
+                entity.Property(e => e.QtyCummulativeRate).HasColumnType("numeric(9, 2)");
+
+                entity.HasOne(d => d.Charge)
+                    .WithMany(p => p.TDeliveryCharges)
+                    .HasForeignKey(d => d.ChargeId)
+                    .HasConstraintName("FK_tDeliveryCharge_tChargeLookup");
+
+                entity.HasOne(d => d.Country)
+                    .WithMany(p => p.TDeliveryCharges)
+                    .HasForeignKey(d => d.CountryId)
+                    .HasConstraintName("FK_tCharge_tCountryLookup");
+            });
+
+            modelBuilder.Entity<TDeliveryMethod>(entity =>
+            {
+                entity.ToTable("tDeliveryMethod");
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("description")
+                    .HasComment("delivery method description");
+
+                entity.Property(e => e.Method)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("method")
+                    .HasComment("delivery method");
+            });
+
+            modelBuilder.Entity<TDeliveryZone>(entity =>
+            {
+                entity.ToTable("tDeliveryZone");
+
+                entity.Property(e => e.CountryId)
+                    .HasColumnName("countryId")
+                    .HasComment("reference to country");
+
+                entity.Property(e => e.DeliverymethodId)
+                    .HasColumnName("deliverymethodID")
+                    .HasComment("reference to delivery method");
+
+                entity.Property(e => e.Zone)
+                    .HasMaxLength(60)
+                    .IsUnicode(false)
+                    .HasColumnName("zone")
+                    .HasComment("name of zone");
+
+                entity.HasOne(d => d.Country)
+                    .WithMany(p => p.TDeliveryZones)
+                    .HasForeignKey(d => d.CountryId)
+                    .HasConstraintName("FK_tDeliveryZone_tCountryLookup");
+
+                entity.HasOne(d => d.Deliverymethod)
+                    .WithMany(p => p.TDeliveryZones)
+                    .HasForeignKey(d => d.DeliverymethodId)
+                    .HasConstraintName("FK_tDeliveryZone_tDeliveryMethod");
+            });
+
             modelBuilder.Entity<TDepartment>(entity =>
             {
                 entity.ToTable("tDepartment");
@@ -276,6 +395,44 @@ namespace UserManagementAPI.Data
                     .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasColumnName("eventDescription");
+            });
+
+            modelBuilder.Entity<TInsurance>(entity =>
+            {
+                entity.ToTable("tInsurance");
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(150)
+                    .IsUnicode(false)
+                    .HasColumnName("description")
+                    .HasComment("description of insurance");
+
+                entity.Property(e => e.InsuranceTypeId)
+                    .HasColumnName("insuranceTypeId")
+                    .HasComment("type of insurance");
+
+                entity.Property(e => e.UnitPrice)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("unitPrice")
+                    .HasComment("unit price of insurance");
+
+                entity.HasOne(d => d.InsuranceType)
+                    .WithMany(p => p.TInsurances)
+                    .HasForeignKey(d => d.InsuranceTypeId)
+                    .HasConstraintName("FK_tInsurance_tInsuranceType");
+            });
+
+            modelBuilder.Entity<TInsuranceType>(entity =>
+            {
+                entity.ToTable("tInsuranceType");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.InsuranceType)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("insuranceType")
+                    .HasComment("type of insurance");
             });
 
             modelBuilder.Entity<TLogger>(entity =>
@@ -582,6 +739,19 @@ namespace UserManagementAPI.Data
                     .HasComment("description of seal");
             });
 
+            modelBuilder.Entity<TShipperCategory>(entity =>
+            {
+                entity.ToTable("tShipperCategory");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("description")
+                    .HasComment("category of shipping");
+            });
+
             modelBuilder.Entity<TShippingLine>(entity =>
             {
                 entity.ToTable("tShippingLine");
@@ -593,6 +763,25 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("shippingLine")
                     .HasComment("name of shipping line");
+            });
+
+            modelBuilder.Entity<TShippingMethod>(entity =>
+            {
+                entity.ToTable("tShippingMethod");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Method)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("method")
+                    .HasComment("shipping method");
+
+                entity.Property(e => e.Route)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("route")
+                    .HasComment("route to use (Air, Land, Sea, etc)");
             });
 
             modelBuilder.Entity<TSla>(entity =>
@@ -912,6 +1101,25 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TemailConfigs)
                     .HasForeignKey(d => d.CompanyId)
                     .HasConstraintName("FK_temailConfig_tcompany");
+            });
+
+            modelBuilder.Entity<Thscode>(entity =>
+            {
+                entity.ToTable("thscode");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("description")
+                    .HasComment("description of code");
+
+                entity.Property(e => e.Hscode)
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasColumnName("hscode")
+                    .HasComment("hs code");
             });
 
             modelBuilder.Entity<Tpackaging>(entity =>

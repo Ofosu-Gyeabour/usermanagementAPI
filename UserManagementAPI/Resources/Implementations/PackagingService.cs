@@ -2,7 +2,6 @@
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
-using UserManagementAPI.Data;
 using System.Runtime.InteropServices;
 
 namespace UserManagementAPI.Resources.Implementations

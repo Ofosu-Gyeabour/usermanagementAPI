@@ -136,4 +136,88 @@ namespace UserManagementAPI.POCOs
         public SealTypeLookup oSealType { get; set; }
         public CompanyLookup oCompany { get; set; }
     }
+
+    public class ShippingLineLookup
+    {
+        public int id { get; set; } = 0;
+        public string shippingLine { get; set; } = string.Empty;
+    }
+
+    public class StockControlLookup
+    {
+        public int id { get; set; } = 0;
+        public int currentStock { get; set; } = 0;
+        public int minimumStockAllowed { get; set; } = 0; //floorThreshold
+        public int maximumStockAllowed { get; set; } = 0; //ceilingThreshold
+        public PackageItemLookup oPackageItem { get; set; }
+        public CompanyLookup oCompany { get; set; }
+    }
+
+    public class VesselLookup
+    {
+        public int id { get; set; } = 0;
+        public string nameOfvessel { get; set; } = string.Empty;
+        public string flagOfvessel { get; set; } = string.Empty;
+        public ShippingLineLookup oShippingLine { get; set; }
+    }
+
+    public class ShippingMethodLookup
+    {
+        public int id { get; set; } = 0;
+        public string shippingMethod { get; set; } = string.Empty;
+        public string shippingRoute { get; set; } = string.Empty;
+    }
+
+    public class ShipperCategoryLookup
+    {
+        public int id { get; set; } = 0;
+        public string description { get; set; } = string.Empty;
+    }
+
+    public class DeliveryMethodLookup
+    {
+        public int id { get; set; } = 0;
+        public string method { get; set; } = string.Empty;
+        public string methodDescription { get; set; } = string.Empty;
+    }
+
+    public class DeliveryZoneLookup
+    {
+        public int id { get; set; } = 0;
+        public string zoneName { get; set; } = string.Empty;
+        public DeliveryMethodLookup oDeliveryMethod { get; set; }
+        public CountryLookup oCountry { get; set; }
+    }
+
+    public class HSCodeLookup
+    {
+        public int id { get; set; } = 0;
+        public string code { get; set; } = string.Empty;
+        public string description { get; set; } = string.Empty;
+    }
+
+    public class InsuranceTypeLookup
+    {
+        public int id { get; set; } = 0;
+        public string insuranceType { get; set; } = string.Empty;
+    }
+
+    public class InsuranceLookup
+    {
+        public int id { get; set; } = 0;
+        public string insuranceDescription { get; set; } = string.Empty;
+        public decimal unitPrice { get; set; } = 0m;
+        public InsuranceTypeLookup oInsuranceType { get; set; }
+    }
+
+    public class SailingScheduleLookup
+    {
+        public int id { get; set; } = 0;
+        public VesselLookup oVessel { get; set; }
+        public ShippingPortLookup oDeparturePort { get; set; }
+        public ShippingPortLookup oArrivalPort { get; set; }
+        public DateTime closingDate { get; set; }
+        public DateTime dateOfdeparture { get; set; }
+        public DateTime dateOfarrival { get; set; }
+    }
 }
