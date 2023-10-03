@@ -96,7 +96,15 @@ namespace UserManagementAPI.Resources.Implementations
                                 sealDescription = q.sealtypeDescription
                             }
                         };
+                        sealprices.Add(sealprice);
                     }
+
+                    rs = new DefaultAPIResponse()
+                    {
+                        status = true, 
+                        message = @"success",
+                        data = sealprices
+                    };
                 }
                 else { rs = new DefaultAPIResponse() { status = false, message = @"No data" }; }
 
