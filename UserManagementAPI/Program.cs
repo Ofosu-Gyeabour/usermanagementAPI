@@ -99,47 +99,216 @@ ConfigObject.TEST_CONN = settings.testConn;
 #region api - resources
 
 #region shipping-line routes
+
 app.MapGet("/ShippingLine/List", async (IShippingService service) => await GetShippingLineListAsync(service)).WithTags("Shipping Line");
 app.MapPost("/ShippingLine/Create", async (ShippingLineLookup oShippingLine, IShippingService service) => await CreateShippingLineAsync(oShippingLine, service)).WithTags("Shipping Line");
+#endregion
+
+#region shipping vessel - routes
 app.MapGet("/ShippingVessel/List",  (IShippingService service) => GetShippingVesselListAsync(service)).WithTags("Shipping Vessel");
 app.MapPost("/ShippingVessel/Create", async (VesselLookup oVessel, IShippingService service) => await CreateShippingVesselAsync(oVessel, service)).WithTags("Shipping Vessel");
+#endregion
+
+#region shippingMethod - routes
 app.MapGet("/ShippingMethod/List", async (IShippingService service) => await GetShippingMethodListAsync(service)).WithTags("Shipping Method");
 app.MapPost("/ShippingMethod/Create", async (ShippingMethodLookup oMethod, IShippingService service) => await CreateShippingMethodAsync(oMethod, service)).WithTags("Shipping Method");
+#endregion
+
+#region shipper-category - routes
 app.MapGet("/ShipperCategory/List", async (IShippingService service) => await GetShipperCategoriesAsync(service)).WithTags("Shipper Category");
 app.MapPost("/ShipperCategory/Create", async (ShipperCategoryLookup oShipCategory, IShippingService service) => await CreateShipperCategoryAsync(oShipCategory, service)).WithTags("Shipper Category");
+#endregion
+
+#region DeliveryMethod - routes
 app.MapGet("/DeliveryMethod/List", async (IShippingService service) => await GetDeliveryMethodListAsync(service)).WithTags("Delivery Method");
 app.MapPost("/DeliveryMethod/Create", async (DeliveryMethodLookup deliveryMethod, IShippingService service) => await CreateDeliveryMethodAsync(deliveryMethod, service)).WithTags("Delivery Method");
+#endregion
+
+#region deliveryzone - routes
 app.MapGet("/DeliveryZone/List",  (IShippingService service) =>  GetDeliveryZoneListAsync(service)).WithTags("Delivery Zone");
 app.MapPost("/DeliveryZone/Create", async (DeliveryZoneLookup deliveryZone, IShippingService service) => await CreateDeliveryZoneAsync(deliveryZone, service)).WithTags("Delivery Zone");
+#endregion
+
+#region HScode - routes
 app.MapGet("/HSCode/List", async (IShippingService service) => await GetHSCodeListAsync(service)).WithTags("HS Code");
 app.MapPost("/HSCode/Create", async (HSCodeLookup hscode, IShippingService service) => await CreateHSCodeAsync(hscode, service)).WithTags("HS Code");
+#endregion
+
+#region insurance type routes 
 app.MapGet("/InsuranceType/List", async (IShippingService service) => await GetInsuranceTypeListAsync(service)).WithTags("Insurance Type");
 app.MapPost("/InsuranceType/Create", async (InsuranceTypeLookup insuranceType, IShippingService service) => await CreateInsuranceTypeAsync(insuranceType, service)).WithTags("Insurance Type");
+#endregion
+
+#region Insurance routes
 app.MapGet("/Insurance/List",  (IShippingService service) =>  GetInsuranceListAsync(service)).WithTags("Insurance");
 app.MapPost("/Insurance/Create", async (InsuranceLookup insurance, IShippingService service) => await CreateInsuranceAsync(insurance, service)).WithTags("Insurance");
+#endregion
+
+#region sailing schedule routes
 app.MapGet("/SailingSchedule/List",  (IShippingService service) =>  GetSailingScheduleListAsync(service)).WithTags("Sailing Schedule");
 app.MapPost("/SailingSchedule/Create", async (SailingScheduleLookup schedule, IShippingService service) => await CreateSailingScheduleAsync(schedule, service)).WithTags("Sailing Schedule");
-app.MapGet("/ShippingPort/List",  (IShippingPortService service) =>  GetShippingPortListAsync(service)).WithTags("Shipping Port");
-app.MapPost("/ShippingPort/Create", async (ShippingPortLookup model, IShippingPortService service) => await CreateShippingPortAsync(model, service)).WithTags("Shipping Port");
+#endregion
+
+#region Packaging - routes
+
+app.MapGet("/PackagingItem/Get", async (IPackagingService service) => await GetPackagingItemListAsync(service)).WithTags("PackagingItem");
+app.MapGet("/PackagingPrice/Get", async (IPackagingService service) => await GetPackagingPriceListAsync(service)).WithTags("PackagingPrice");
+
+app.MapPost("/PackagingItem/Create", async (PackageItemLookup oPackageItem, IPackagingService service) => await CreatePackagingItemAsync(oPackageItem, service)).WithTags("PackagingItem");
+app.MapPost("/PackagingPrice/Create", async (PackagepriceLookup oPackagePrice, IPackagingService service) => await CreatePackagingPriceAsync(oPackagePrice, service)).WithTags("PackagingPrice");
+
+#endregion
+
+#region Seal - routes
+
+app.MapGet("/SealType/List", async (ISealService service) => await GetSealTypeListAsync(service)).WithTags("SealType");
+app.MapGet("/SealPrice/list", async (ISealService service) => await GetSealPriceListAsync(service)).WithTags("SealPrice");
+
+app.MapPost("SealType/Create", async (SealTypeLookup oSealType, ISealService service) => await CreateSealTypeAsync(oSealType, service)).WithTags("SealType");
+app.MapPost("SealPrice/Create", async (SealPriceLookup oSealPrice, ISealService service) => await CreateSealPriceAsync(oSealPrice, service)).WithTags("SealPrice");
+
+#endregion
+
+#region AdhocType - routes
+
+app.MapGet("/Adhoc/List", async (IAdhocTypeService service) => await ListAdhocTypesAsync(service)).WithTags("AdhocType");
+app.MapPost("/Adhoc/Create", async (AdhocTypeLookup oAdhoc, IAdhocTypeService service) => await CreateAdhocTypeAsync(oAdhoc, service)).WithTags("AdhocType");
+
+#endregion
+
+#region ContainerTypes - routes
+
+app.MapGet("/ContainerType/Get", async (IContainerTypeService service) => await GetContainerTypesAsync(service)).WithTags("Container Types");
+app.MapPost("/ContainerType/Create", async (IContainerTypeService service, ContainerTypeLookup oContainerType) => await CreateContainerTypeAsync(service, oContainerType)).WithTags("Container Types");
+
+#endregion
+
+#region DialCode - routes
+app.MapGet("/DialCode/GetDialCodes", async (IDialCodeService service) => await GetDialAllDialCodesAsync(service)).WithTags("Dial Codes");
+app.MapPost("/DialCode/Create", async (IDialCodeService service, DialCodeLookup oDialCode) => await CreateDialCodeAsync(service, oDialCode)).WithTags("Dial Codes");
+
+#endregion
+
+#region Airport - routes
+
+app.MapGet("/Airport/GetAirports", async (IAirportService service) => await GetAllAirportsAsync(service)).WithTags("Airport");
+app.MapPost("/Airport/Create", async (IAirportService service, AirportLookup oAirport) => await CreateAirportAsync(service, oAirport)).WithTags("Airport");
+#endregion
+
+#region Department - routes
+
+app.MapGet("/Department/GetDepartments", async (IDepartmentService service) => await GetDepartmentsAsync(service)).WithTags("Department");
+app.MapPost("/Department/CreateDepartment", async (DepartmentLookup oDepartment, IDepartmentService service) => await CreateDepartmentAsync(oDepartment, service)).WithTags("Department");
+app.MapPut("/Department/UpdateDepartment", async (DepartmentLookup oDepartment, IDepartmentService service) => await UpdateDepartmentAsync(oDepartment, service)).WithTags("Department");
+#endregion
+
+#region user - routes
+
+app.MapGet("/User/GetUsers", async (IUserService usrservice) => await GetUsersAsync(usrservice)).WithTags("Authentication");
+app.MapPost("/User/GetMD5Encryption", async (SingleParam userData, IUserService usrservice) => await GetMD5Encryption(userData, usrservice)).WithTags("Authentication");
+app.MapPost("/User/AuthenticateUser", async (UserInfo userCredential, IUserService usrservice) => await AuthenticateUserAsync(userCredential, usrservice)).WithTags("Authentication");
+app.MapPost("/User/SetLoginFlag", async (UserInfo user, IUserService service) => await SetLoginFlagAsync(user, service)).WithTags("Authentication");
+app.MapPost("/User/SetLogoutFlag", async (UserInfo user, IUserService service) => await SetLogoutFlagAsync(user, service)).WithTags("Authentication");
+app.MapPost("/User/GetUserProfile", async (UserInfo _user, IUserService service) => await GetUserProfileAsync(_user, service)).WithTags("Authentication");
+app.MapPost("/User/AmendUserProfile", async (UserProfile userProfile, IUserService service) => await AmendUserProfileAsync(userProfile, service)).WithTags("Authentication");
+app.MapPost("/User/CreateAccount", async (userRecord _userRecord, IUserService service) => await CreateUserAccountAsync(_userRecord, service)).WithTags("Authentication");
+
+app.MapPut("/User/ChangePassword", async (UserInfo oUserInfo, IUserService service) => await ChangePasswordAsync(oUserInfo, service)).WithTags("Authentication");
+
+#endregion
+
+#region Log-routes
+
+app.MapPost("/Log/WriteLog", async (Log oLogger, ILoggerService service) => await WriteLogAsync(oLogger, service)).WithTags("Logger");
+app.MapGet("/Log/GetLogs", async (ILoggerService service) => await GetLogDataAsync(service)).WithTags("Logger");
+app.MapPost("/Log/GetUserLogs", async (SingleParam _param, ILoggerService service) => await GetUserLogsAsync(_param, service)).WithTags("Logger");
+
+#endregion
+
+#region Profile-routes
+
+app.MapPost("/Profile/CreateProfile", async (SystemProfile oProfile, IProfileService service) => await CreateProfileAsync(oProfile, service)).WithTags("Profile");
+app.MapPost("/Profile/AmendProfile", async (SystemProfile oProfile, IProfileService service) => await AmendProfileAsync(oProfile, service)).WithTags("Profile");
+app.MapPost("/Profile/GetProfiles", async (SingleParam companyIdentifier, IProfileService service) => await GetProfileListAsync(companyIdentifier, service)).WithTags("Profile");
+app.MapGet("/Profile/GetAllProfiles", async (IProfileService service) => await GetAllProfilesAsync(service)).WithTags("Profile");
+app.MapPost("/Profile/GetProfileModules", async (SingleParam oProfileObj, IProfileService service) => await GetProfileModulesAsync(oProfileObj, service)).WithTags("Profile");
+
+#endregion
+
+#region city endpoints
+
+app.MapGet("/City/GetCities", async (ICityService service) => await GetCitiesAsync(service)).WithTags("City");
+app.MapGet("/City/GetActiveCities", async (ICityService service) => await GetActiveCitiesAsync(service)).WithTags("City");
+app.MapPost("/City/CreateCity", async (CityLookup oCity, ICityService service) => await CreateCityAsync(oCity, service)).WithTags("City");
+app.MapPut("/City/UpdateCity", async (CityLookup oCity, ICityService service) => await UpdateCityAsync(oCity, service)).WithTags("City");
+app.MapPut("/City/UpdateCountryOfCity", async (CityLookup oCity, ICityService service) => await UpdateCountryOfCityAsync(oCity, service)).WithTags("City");
+app.MapPost("/City/Upload", async (List<CityLookup> cityList, ICityService service) => await UploadCitiesAsync(cityList, service)).WithTags("City");
+
+#endregion
+
+#region country - routes
+
+app.MapGet("/Country/GetCountries", async (ICountryService service) => await GetCountriesAsync(service)).WithTags("Country");
+app.MapPost("/Country/CreateCountry", async (CountryLookup oCountry, ICountryService service) => await CreateCountryAsync(oCountry, service)).WithTags("Country");
+app.MapPut("/Country/UpdateCountry", async (CountryLookup oCountry, ICountryService service) => await UpdateCountryAsync(oCountry, service)).WithTags("Country");
+
+#endregion
+
+#region Referral-routes
+
+app.MapGet("/Referral/GetReferrals", async (IReferralService service) => await GetReferralsAsync(service)).WithTags("Referral");
+app.MapPost("/Referral/CreateReferral", async (ReferralLookup oReferral, IReferralService service) => await CreateReferralAsync(oReferral, service)).WithTags("Referral");
+app.MapPut("/Referral/UpdateReferral", async (ReferralLookup oReferral, IReferralService service) => await UpdateReferralAsync(oReferral, service)).WithTags("Referral");
+
+#endregion
+
+#region companyType - routes
+
+app.MapGet("/CompanyType/GetCompanyTypes", async (ICompanyService service) => await GetCompanyTypesAsync(service)).WithTags("CompanyType");
+app.MapPost("/CompanyType/CreateCompanyType", async (CompanyTypeLookup oCompanyType, ICompanyService service) => await CreateCompanyTypeAsync(oCompanyType, service)).WithTags("CompanyType");
+app.MapPut("/CompanyType/UpdateCompanyType", async (CompanyTypeLookup oCompanyType, ICompanyService service) => await UpdateCompanyTypeAsync(oCompanyType, service)).WithTags("CompanyType");
+
+app.MapGet("/Company/Get", async (ICompanyService service) => await GetCompaniesAsync(service)).WithTags("Company");
+#endregion
+
+#region Modules - routes
+
+app.MapGet("/Module/GetModulesInUse", async (IModuleService service) => await GetModulesInUseAsync(service)).WithTags("User Module");
+app.MapGet("/Module/GetAllModules", async (IModuleService service) => await GetAllModulesAsync(service)).WithTags("User Module");
+
+#endregion
+
+#region Region-routes
+
+app.MapGet("/Region/Get", async (IRegionService service) => await GetRegionsAsync(service)).WithTags("Region");
+app.MapPost("/Region/Create", async (IRegionService service, RegionLookup oRegion) => await CreateRegionAsync(service, oRegion)).WithTags("Region");
+
+#endregion
+
+#region Branch - routes
+
+app.MapGet("/Branch/Get", async (IBranchService service) => await GetBranchesAsync(service)).WithTags("Branch");
+app.MapPost("/Branch/Create", async (BranchLookup oBranch, IBranchService service) => await CreateBranchAsync(oBranch, service)).WithTags("Branch");
+
+#endregion
+
+#region Title - routes
+
+app.MapGet("/Title/Get", async (ITitleService service) => await GetTitlesAsync(service)).WithTags("Titles");
+app.MapPost("/Title/Create", async (TitleLookup oTitle, ITitleService service) => await CreateTitleAsync(oTitle, service)).WithTags("Titles");
+
+#endregion
+
+#region ShippingPorts - routes
+
+app.MapPost("/ShippingPort/Create", async (ShippingPortLookup oShippingPort, IShippingPortService service) => await CreateShippingPortAsync(oShippingPort, service)).WithTags("Shipping Port");
+app.MapGet("/ShippingPort/List", (IShippingPortService service) => GetShippingPortListAsync(service)).WithTags("Shipping Port");
+
+#endregion
+
+#region tasks
 
 
-/*
-async Task<IResult> CreateShippingPortAsync(ShippingPortLookup model, IShippingPortService service)
-{
-    if ((model.nameOfport.Length < 1) || (model.codeOfport.Length < 1) || (model.sailingTimeInDays < 1) || (model.oCountry.id == 0))
-        return Results.BadRequest(@"invalid data inputted.Please input correct data");
-
-    try
-    {
-        var opStatus = await service.CreateShippingPortAsync(model);
-        return Results.Ok(opStatus);
-    }
-    catch(Exception x)
-    {
-        return Results.BadRequest(x);
-    }
-}
-*/
 async Task<IResult> CreateSailingScheduleAsync(SailingScheduleLookup schedule, IShippingService service)
 {
     if ((schedule.oVessel.id == 0) || (schedule.oDeparturePort.id == 0) || (schedule.oArrivalPort.id == 0) || (schedule.dateOfarrival < schedule.dateOfdeparture))
@@ -425,166 +594,10 @@ async Task<IResult> GetShipperCategoriesAsync(IShippingService service)
         return Results.BadRequest(x);
     }
 }
-#endregion
-
-#region Packaging - routes
-
-app.MapGet("/PackagingItem/Get", async (IPackagingService service) => await GetPackagingItemListAsync(service)).WithTags("PackagingItem");
-app.MapGet("/PackagingPrice/Get", async (IPackagingService service) => await GetPackagingPriceListAsync(service)).WithTags("PackagingPrice");
-
-app.MapPost("/PackagingItem/Create", async (PackageItemLookup oPackageItem, IPackagingService service) => await CreatePackagingItemAsync(oPackageItem, service)).WithTags("PackagingItem");
-app.MapPost("/PackagingPrice/Create", async (PackagepriceLookup oPackagePrice, IPackagingService service) => await CreatePackagingPriceAsync(oPackagePrice, service)).WithTags("PackagingPrice");
 
 #endregion
 
-#region Seal - routes
 
-app.MapGet("/SealType/List", async (ISealService service) => await GetSealTypeListAsync(service)).WithTags("SealType");
-app.MapGet("/SealPrice/list", async (ISealService service) => await GetSealPriceListAsync(service)).WithTags("SealPrice");
-
-app.MapPost("SealType/Create", async (SealTypeLookup oSealType, ISealService service) => await CreateSealTypeAsync(oSealType, service)).WithTags("SealType");
-app.MapPost("SealPrice/Create", async (SealPriceLookup oSealPrice, ISealService service) => await CreateSealPriceAsync(oSealPrice, service)).WithTags("SealPrice");
-
-#endregion
-
-#region AdhocType - routes
-
-app.MapGet("/Adhoc/List", async (IAdhocTypeService service) => await ListAdhocTypesAsync(service)).WithTags("AdhocType");
-app.MapPost("/Adhoc/Create", async (AdhocTypeLookup oAdhoc, IAdhocTypeService service) => await CreateAdhocTypeAsync(oAdhoc, service)).WithTags("AdhocType");
-
-#endregion
-
-#region ContainerTypes - routes
-
-app.MapGet("/ContainerType/Get", async (IContainerTypeService service) => await GetContainerTypesAsync(service)).WithTags("Container Types");
-app.MapPost("/ContainerType/Create", async (IContainerTypeService service, ContainerTypeLookup oContainerType) => await CreateContainerTypeAsync(service, oContainerType)).WithTags("Container Types");
-
-#endregion
-
-#region DialCode - routes
-app.MapGet("/DialCode/GetDialCodes", async (IDialCodeService service) => await GetDialAllDialCodesAsync(service)).WithTags("Dial Codes");
-app.MapPost("/DialCode/Create", async (IDialCodeService service, DialCodeLookup oDialCode) => await CreateDialCodeAsync(service, oDialCode)).WithTags("Dial Codes");
-
-#endregion
-
-#region Airport - routes
-
-app.MapGet("/Airport/GetAirports", async (IAirportService service) => await GetAllAirportsAsync(service)).WithTags("Airport");
-app.MapPost("/Airport/Create", async (IAirportService service, AirportLookup oAirport) => await CreateAirportAsync(service, oAirport)).WithTags("Airport");
-#endregion
-
-#region Department - routes
-
-app.MapGet("/Department/GetDepartments", async (IDepartmentService service) => await GetDepartmentsAsync(service)).WithTags("Department");
-app.MapPost("/Department/CreateDepartment", async (DepartmentLookup oDepartment, IDepartmentService service) => await CreateDepartmentAsync(oDepartment, service)).WithTags("Department");
-app.MapPut("/Department/UpdateDepartment", async(DepartmentLookup oDepartment, IDepartmentService service) => await UpdateDepartmentAsync(oDepartment,service)).WithTags("Department");
-#endregion
-
-#region user - routes
-
-app.MapGet("/User/GetUsers", async (IUserService usrservice) => await GetUsersAsync(usrservice)).WithTags("Authentication");
-app.MapPost("/User/GetMD5Encryption", async (SingleParam userData, IUserService usrservice) => await GetMD5Encryption(userData, usrservice)).WithTags("Authentication");
-app.MapPost("/User/AuthenticateUser", async (UserInfo userCredential, IUserService usrservice) => await AuthenticateUserAsync(userCredential, usrservice)).WithTags("Authentication");
-app.MapPost("/User/SetLoginFlag", async(UserInfo user, IUserService service)=> await SetLoginFlagAsync(user,service)).WithTags("Authentication");
-app.MapPost("/User/SetLogoutFlag", async (UserInfo user, IUserService service) => await SetLogoutFlagAsync(user, service)).WithTags("Authentication");
-app.MapPost("/User/GetUserProfile", async (UserInfo _user, IUserService service) => await GetUserProfileAsync(_user, service)).WithTags("Authentication");
-app.MapPost("/User/AmendUserProfile", async (UserProfile userProfile, IUserService service)=> await AmendUserProfileAsync(userProfile, service)).WithTags("Authentication");
-app.MapPost("/User/CreateAccount", async(userRecord _userRecord, IUserService service)=>await CreateUserAccountAsync(_userRecord,service)).WithTags("Authentication");
-
-app.MapPut("/User/ChangePassword", async (UserInfo oUserInfo, IUserService service) => await ChangePasswordAsync(oUserInfo, service)).WithTags("Authentication");
-
-#endregion
-
-#region Log-routes
-
-app.MapPost("/Log/WriteLog",async(Log oLogger, ILoggerService service)=> await WriteLogAsync(oLogger,service)).WithTags("Logger");
-app.MapGet("/Log/GetLogs",async(ILoggerService service)=> await GetLogDataAsync(service)).WithTags("Logger");
-app.MapPost("/Log/GetUserLogs",async(SingleParam _param, ILoggerService service)=> await GetUserLogsAsync(_param, service)).WithTags("Logger");
-
-#endregion
-
-#region Profile-routes
-
-app.MapPost("/Profile/CreateProfile", async(SystemProfile oProfile, IProfileService service) => await CreateProfileAsync(oProfile,service)).WithTags("Profile");
-app.MapPost("/Profile/AmendProfile", async (SystemProfile oProfile, IProfileService service) => await AmendProfileAsync(oProfile, service)).WithTags("Profile");
-app.MapPost("/Profile/GetProfiles", async(SingleParam companyIdentifier, IProfileService service) => await GetProfileListAsync(companyIdentifier, service)).WithTags("Profile");
-app.MapGet("/Profile/GetAllProfiles", async (IProfileService service) => await GetAllProfilesAsync(service)).WithTags("Profile");
-app.MapPost("/Profile/GetProfileModules", async(SingleParam oProfileObj, IProfileService  service) => await GetProfileModulesAsync(oProfileObj, service)).WithTags("Profile");
-
-#endregion
-
-#region city endpoints
-
-app.MapGet("/City/GetCities", async (ICityService service) => await GetCitiesAsync(service)).WithTags("City");
-app.MapGet("/City/GetActiveCities", async (ICityService service) => await GetActiveCitiesAsync(service)).WithTags("City");
-app.MapPost("/City/CreateCity", async (CityLookup oCity, ICityService service) => await CreateCityAsync(oCity, service)).WithTags("City");
-app.MapPut("/City/UpdateCity", async (CityLookup oCity, ICityService service) => await UpdateCityAsync(oCity, service)).WithTags("City");
-app.MapPut("/City/UpdateCountryOfCity", async(CityLookup oCity, ICityService service) => await UpdateCountryOfCityAsync(oCity, service)).WithTags("City");
-app.MapPost("/City/Upload", async (List<CityLookup> cityList, ICityService service) => await UploadCitiesAsync(cityList, service)).WithTags("City");
-
-#endregion
-
-#region country - routes
-
-app.MapGet("/Country/GetCountries", async (ICountryService service) => await GetCountriesAsync(service)).WithTags("Country");
-app.MapPost("/Country/CreateCountry", async(CountryLookup oCountry, ICountryService service) => await CreateCountryAsync(oCountry, service)).WithTags("Country");
-app.MapPut("/Country/UpdateCountry", async (CountryLookup oCountry, ICountryService service) => await UpdateCountryAsync(oCountry, service)).WithTags("Country");
-
-#endregion
-
-#region Referral-routes
-
-app.MapGet("/Referral/GetReferrals", async (IReferralService service) => await GetReferralsAsync(service)).WithTags("Referral");
-app.MapPost("/Referral/CreateReferral", async (ReferralLookup oReferral, IReferralService service) => await CreateReferralAsync(oReferral, service)).WithTags("Referral");
-app.MapPut("/Referral/UpdateReferral", async (ReferralLookup oReferral, IReferralService service) => await UpdateReferralAsync(oReferral, service)).WithTags("Referral");
-
-#endregion
-
-#region companyType - routes
-
-app.MapGet("/CompanyType/GetCompanyTypes", async (ICompanyService service) => await GetCompanyTypesAsync(service)).WithTags("CompanyType");
-app.MapPost("/CompanyType/CreateCompanyType", async (CompanyTypeLookup oCompanyType, ICompanyService service) => await CreateCompanyTypeAsync(oCompanyType, service)).WithTags("CompanyType");
-app.MapPut("/CompanyType/UpdateCompanyType", async (CompanyTypeLookup oCompanyType, ICompanyService service) => await UpdateCompanyTypeAsync(oCompanyType, service)).WithTags("CompanyType");
-
-app.MapGet("/Company/Get", async (ICompanyService service) => await GetCompaniesAsync(service)).WithTags("Company");
-#endregion
-
-#region Modules - routes
-
-app.MapGet("/Module/GetModulesInUse", async (IModuleService service) => await GetModulesInUseAsync(service)).WithTags("User Module");
-app.MapGet("/Module/GetAllModules", async (IModuleService service) => await GetAllModulesAsync(service)).WithTags("User Module");
-
-#endregion
-
-#region Region-routes
-
-app.MapGet("/Region/Get", async (IRegionService service) => await GetRegionsAsync(service)).WithTags("Region");
-app.MapPost("/Region/Create", async (IRegionService service, RegionLookup oRegion) => await CreateRegionAsync(service, oRegion)).WithTags("Region");
-
-#endregion
-
-#region Branch - routes
-
-app.MapGet("/Branch/Get", async (IBranchService service) => await GetBranchesAsync(service)).WithTags("Branch");
-app.MapPost("/Branch/Create", async (BranchLookup oBranch, IBranchService service) => await CreateBranchAsync(oBranch, service)).WithTags("Branch");
-
-#endregion
-
-#region Title - routes
-
-app.MapGet("/Title/Get", async (ITitleService service) => await GetTitlesAsync(service)).WithTags("Titles");
-app.MapPost("/Title/Create", async (TitleLookup oTitle, ITitleService service) => await CreateTitleAsync(oTitle, service)).WithTags("Titles");
-
-#endregion
-
-#region ShippingPorts - tasks
-
-app.MapGet("/ShippingPort/Get",  (IShippingPortService service) =>  GetShippingPortsAsync(service)).WithTags("ShippingPort");
-app.MapPost("/ShippingPort/Create", async (ShippingPortLookup oShippingPort, IShippingPortService service) => await CreateShippingPortAsync(oShippingPort, service)).WithTags("ShippingPort");
-
-#endregion
-
-#endregion
 
 #region api - tasks
 
@@ -929,21 +942,7 @@ async Task<IResult> CreateShippingPortAsync(ShippingPortLookup oShippingPort, IS
         return Results.BadRequest(x);
     }
 }
-IResult GetShippingPortsAsync(IShippingPortService service)
-{
-    if (service == null)
-        return Results.BadRequest(@"service could not be instantiated");
 
-    try
-    {
-        var shipping_ports = service.GetShippingPortsAsync();
-        return Results.Ok(shipping_ports);
-    }
-    catch(Exception x)
-    {
-        return Results.BadRequest(x);
-    }
-}
 #endregion
 
 #region Title - tasks
@@ -1791,6 +1790,8 @@ async Task<IResult> CreateRegionAsync(IRegionService service, RegionLookup oRegi
         return Results.BadRequest(exc);
     }
 }
+
+#endregion
 
 #endregion
 
