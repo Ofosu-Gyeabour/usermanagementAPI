@@ -15,7 +15,7 @@ namespace UserManagementAPI.Resources.Implementations
             config = new swContext();
         }
 
-        public async Task<DefaultAPIResponse> GetShippingPortsAsync()
+        public DefaultAPIResponse GetShippingPortsAsync()
         {
             //gets all shipping ports in the data store
             DefaultAPIResponse response = null;

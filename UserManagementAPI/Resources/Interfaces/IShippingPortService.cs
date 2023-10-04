@@ -7,7 +7,7 @@ namespace UserManagementAPI.Resources.Interfaces
 {
     public interface IShippingPortService
     {
-        Task<DefaultAPIResponse> GetShippingPortsAsync();
+        DefaultAPIResponse GetShippingPortsAsync();
         Task<DefaultAPIResponse> CreateShippingPortAsync(ShippingPortLookup payLoad);
     }
 }

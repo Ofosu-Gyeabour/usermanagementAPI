@@ -45,6 +45,9 @@ builder.Services.AddSingleton<IAdhocTypeService, AdhocTypeService>();
 builder.Services.AddSingleton<IPackagingService, PackagingService>();
 builder.Services.AddSingleton<ISealService, SealService>();
 
+builder.Services.AddSingleton<IShippingPortService, ShippingPortService>();
+builder.Services.AddSingleton<IShippingService, ShippingService>();
+
 #endregion
 
 #region CORS
@@ -94,6 +97,335 @@ ConfigObject.TEST_CONN = settings.testConn;
 
 
 #region api - resources
+
+#region shipping-line routes
+app.MapGet("/ShippingLine/List", async (IShippingService service) => await GetShippingLineListAsync(service)).WithTags("Shipping Line");
+app.MapPost("/ShippingLine/Create", async (ShippingLineLookup oShippingLine, IShippingService service) => await CreateShippingLineAsync(oShippingLine, service)).WithTags("Shipping Line");
+app.MapGet("/ShippingVessel/List",  (IShippingService service) => GetShippingVesselListAsync(service)).WithTags("Shipping Vessel");
+app.MapPost("/ShippingVessel/Create", async (VesselLookup oVessel, IShippingService service) => await CreateShippingVesselAsync(oVessel, service)).WithTags("Shipping Vessel");
+app.MapGet("/ShippingMethod/List", async (IShippingService service) => await GetShippingMethodListAsync(service)).WithTags("Shipping Method");
+app.MapPost("/ShippingMethod/Create", async (ShippingMethodLookup oMethod, IShippingService service) => await CreateShippingMethodAsync(oMethod, service)).WithTags("Shipping Method");
+app.MapGet("/ShipperCategory/List", async (IShippingService service) => await GetShipperCategoriesAsync(service)).WithTags("Shipper Category");
+app.MapPost("/ShipperCategory/Create", async (ShipperCategoryLookup oShipCategory, IShippingService service) => await CreateShipperCategoryAsync(oShipCategory, service)).WithTags("Shipper Category");
+app.MapGet("/DeliveryMethod/List", async (IShippingService service) => await GetDeliveryMethodListAsync(service)).WithTags("Delivery Method");
+app.MapPost("/DeliveryMethod/Create", async (DeliveryMethodLookup deliveryMethod, IShippingService service) => await CreateDeliveryMethodAsync(deliveryMethod, service)).WithTags("Delivery Method");
+app.MapGet("/DeliveryZone/List",  (IShippingService service) =>  GetDeliveryZoneListAsync(service)).WithTags("Delivery Zone");
+app.MapPost("/DeliveryZone/Create", async (DeliveryZoneLookup deliveryZone, IShippingService service) => await CreateDeliveryZoneAsync(deliveryZone, service)).WithTags("Delivery Zone");
+app.MapGet("/HSCode/List", async (IShippingService service) => await GetHSCodeListAsync(service)).WithTags("HS Code");
+app.MapPost("/HSCode/Create", async (HSCodeLookup hscode, IShippingService service) => await CreateHSCodeAsync(hscode, service)).WithTags("HS Code");
+app.MapGet("/InsuranceType/List", async (IShippingService service) => await GetInsuranceTypeListAsync(service)).WithTags("Insurance Type");
+app.MapPost("/InsuranceType/Create", async (InsuranceTypeLookup insuranceType, IShippingService service) => await CreateInsuranceTypeAsync(insuranceType, service)).WithTags("Insurance Type");
+app.MapGet("/Insurance/List",  (IShippingService service) =>  GetInsuranceListAsync(service)).WithTags("Insurance");
+app.MapPost("/Insurance/Create", async (InsuranceLookup insurance, IShippingService service) => await CreateInsuranceAsync(insurance, service)).WithTags("Insurance");
+app.MapGet("/SailingSchedule/List",  (IShippingService service) =>  GetSailingScheduleListAsync(service)).WithTags("Sailing Schedule");
+app.MapPost("/SailingSchedule/Create", async (SailingScheduleLookup schedule, IShippingService service) => await CreateSailingScheduleAsync(schedule, service)).WithTags("Sailing Schedule");
+app.MapGet("/ShippingPort/List",  (IShippingPortService service) =>  GetShippingPortListAsync(service)).WithTags("Shipping Port");
+app.MapPost("/ShippingPort/Create", async (ShippingPortLookup model, IShippingPortService service) => await CreateShippingPortAsync(model, service)).WithTags("Shipping Port");
+
+
+/*
+async Task<IResult> CreateShippingPortAsync(ShippingPortLookup model, IShippingPortService service)
+{
+    if ((model.nameOfport.Length < 1) || (model.codeOfport.Length < 1) || (model.sailingTimeInDays < 1) || (model.oCountry.id == 0))
+        return Results.BadRequest(@"invalid data inputted.Please input correct data");
+
+    try
+    {
+        var opStatus = await service.CreateShippingPortAsync(model);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+*/
+async Task<IResult> CreateSailingScheduleAsync(SailingScheduleLookup schedule, IShippingService service)
+{
+    if ((schedule.oVessel.id == 0) || (schedule.oDeparturePort.id == 0) || (schedule.oArrivalPort.id == 0) || (schedule.dateOfarrival < schedule.dateOfdeparture))
+        return Results.BadRequest(@"Unacceptable data");
+
+    try
+    {
+        var opStatus = await service.CreateSailingScheduleAsync(schedule);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateInsuranceAsync(InsuranceLookup insurance, IShippingService service)
+{
+    if ((insurance.oInsuranceType.id == 0) || (insurance.unitPrice == 0m) || (insurance.insuranceDescription.Length < 1))
+        return Results.BadRequest(@"insurance type, unit price and description cannot be blank");
+
+    try
+    {
+        var opStatus = await service.CreateInsuranceAsync(insurance);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateInsuranceTypeAsync(InsuranceTypeLookup insuranceType, IShippingService service)
+{
+    if (insuranceType.insuranceType.Length < 1)
+        return Results.BadRequest(@"insurance type cannot be blank");
+
+    try
+    {
+        var opStatus = await service.CreateInsuranceTypeAsync(insuranceType);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateHSCodeAsync(HSCodeLookup hscode, IShippingService service)
+{
+    if ((hscode.code.Length < 1) || (hscode.description.Length < 1))
+        return Results.BadRequest(@"hs code and description cannot be blank");
+
+    try
+    {
+        var opStatus = await service.CreateHSCodAsync(hscode);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateDeliveryZoneAsync(DeliveryZoneLookup deliveryZone, IShippingService service)
+{
+    if ((deliveryZone.oDeliveryMethod.id == 0) || (deliveryZone.zoneName.Length < 1) || (deliveryZone.oCountry.id == 0))
+        return Results.BadRequest(@"delivery method, zone name and country cannot be blank");
+
+    try
+    {
+        var opStatus = await service.CreateDeliveryZoneAsync(deliveryZone);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateDeliveryMethodAsync(DeliveryMethodLookup deliveryMethod, IShippingService service)
+{
+    if ((deliveryMethod.method.Length < 1) || (deliveryMethod.methodDescription.Length < 1))
+        return Results.BadRequest(@"deliver method and delivery description cannot be blank");
+
+    try
+    {
+        var opStatus = await service.CreateDeliveryMethodAsync(deliveryMethod);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateShipperCategoryAsync(ShipperCategoryLookup oShipCategory, IShippingService service)
+{
+    if (oShipCategory.description.Length < 1)
+        return Results.BadRequest(@"shipper category description cannot be blank");
+
+    try
+    {
+        var opStatus = await service.CreateShipperCategoryAsync(oShipCategory);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateShippingMethodAsync(ShippingMethodLookup oMethod,IShippingService service)
+{
+    if ((oMethod.shippingMethod.Length < 1) || (oMethod.shippingRoute.Length < 1))
+        return Results.BadRequest(@"shipping method and shipping routes cannot have blank values");
+
+    try
+    {
+        var opStatus = await service.CreateShippingMethodAsync(oMethod);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateShippingVesselAsync(VesselLookup oVessel,IShippingService service)
+{
+    if ((oVessel.nameOfvessel.Length < 1) || (oVessel.flagOfvessel.Length < 1))
+        return Results.BadRequest(@"name of vessel and flag of vessel cannot be blank");
+
+    if (oVessel.oShippingLine.id == 0)
+        return Results.BadRequest(@"Id of shipping line cannot be zero (0)");
+
+    try
+    {
+        var opStatus = await service.CreateShippingVesselAsync(oVessel);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateShippingLineAsync(ShippingLineLookup oShippingLine, IShippingService service)
+{
+    if (oShippingLine.shippingLine.Length < 1)
+        return Results.BadRequest(@"shipping line cannot be blank");
+
+    try
+    {
+        var opStatus = await service.CreateShippingLineAsync(oShippingLine);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+IResult GetShippingPortListAsync(IShippingPortService service)
+{
+    try
+    {
+        var shipping_port_list = service.GetShippingPortsAsync();
+        return Results.Ok(shipping_port_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+IResult GetSailingScheduleListAsync(IShippingService service)
+{
+    try
+    {
+        var sailing_schedule_list =  service.GetSailingScheduleListAsync();
+        return Results.Ok(sailing_schedule_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+IResult GetInsuranceListAsync(IShippingService service)
+{
+    try
+    {
+        var insurance_list = service.GetInsuranceListAsync();
+        return Results.Ok(insurance_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetInsuranceTypeListAsync(IShippingService service)
+{
+    try
+    {
+        var insurance_type_list = await service.GetInsuranceTypeListAsync();
+        return Results.Ok(insurance_type_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetHSCodeListAsync(IShippingService service)
+{
+    try
+    {
+        var code_list = await service.GetHSCodeListAsync();
+        return Results.Ok(code_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+IResult GetDeliveryZoneListAsync(IShippingService service)
+{
+    try
+    {
+        var delivery_zone_list = service.GetDeliveryZoneListAsync();
+        return Results.Ok(delivery_zone_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetDeliveryMethodListAsync(IShippingService service)
+{
+    try
+    {
+        var delivery_methods = await service.GetDeliveryMethodListAsync();
+        return Results.Ok(delivery_methods);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetShippingLineListAsync(IShippingService service)
+{
+    try
+    {
+        var shipping_line_list = await service.GetShippingLineListAsync();
+        return Results.Ok(shipping_line_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+IResult GetShippingVesselListAsync(IShippingService service)
+{
+    try
+    {
+        var vessel_list = service.GetShippingVesselListAsync();
+        return Results.Ok(vessel_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetShippingMethodListAsync(IShippingService service)
+{
+    try
+    {
+        var ship_method_list = await service.GetShippingMethodListAsync();
+        return Results.Ok(ship_method_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetShipperCategoriesAsync(IShippingService service)
+{
+    try
+    {
+        var ship_category_list = await service.GetShipperCategoryListAsync();
+        return Results.Ok(ship_category_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+#endregion
 
 #region Packaging - routes
 
@@ -247,7 +579,7 @@ app.MapPost("/Title/Create", async (TitleLookup oTitle, ITitleService service) =
 
 #region ShippingPorts - tasks
 
-app.MapGet("/ShippingPort/Get", async (IShippingPortService service) => await GetShippingPortsAsync(service)).WithTags("ShippingPort");
+app.MapGet("/ShippingPort/Get",  (IShippingPortService service) =>  GetShippingPortsAsync(service)).WithTags("ShippingPort");
 app.MapPost("/ShippingPort/Create", async (ShippingPortLookup oShippingPort, IShippingPortService service) => await CreateShippingPortAsync(oShippingPort, service)).WithTags("ShippingPort");
 
 #endregion
@@ -597,14 +929,14 @@ async Task<IResult> CreateShippingPortAsync(ShippingPortLookup oShippingPort, IS
         return Results.BadRequest(x);
     }
 }
-async Task<IResult> GetShippingPortsAsync(IShippingPortService service)
+IResult GetShippingPortsAsync(IShippingPortService service)
 {
     if (service == null)
         return Results.BadRequest(@"service could not be instantiated");
 
     try
     {
-        var shipping_ports = await service.GetShippingPortsAsync();
+        var shipping_ports = service.GetShippingPortsAsync();
         return Results.Ok(shipping_ports);
     }
     catch(Exception x)
