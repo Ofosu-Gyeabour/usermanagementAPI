@@ -336,6 +336,7 @@ namespace UserManagementAPI.Resources.Implementations
                     {
                         var obj = new ShippingMethodLookup()
                         {
+                            id = item.Id,
                             shippingMethod = item.Method,
                             shippingRoute = item.Route
                         };
@@ -541,7 +542,7 @@ namespace UserManagementAPI.Resources.Implementations
                     TDeliveryMethod obj = new TDeliveryMethod()
                     {
                         Method = payLoad.method,
-                        Description = payLoad.method
+                        Description = payLoad.methodDescription
                     };
 
                     await config.AddAsync(obj);
@@ -1070,14 +1071,33 @@ namespace UserManagementAPI.Resources.Implementations
             //create a sailing schedule resource
             try
             {
+                /*
                 var record = await config.TSailingSchedules.Where(x => x.VesselId == payLoad.oVessel.id)
                                                            .Where(a => a.PortOfDepartureId == payLoad.oDeparturePort.id)
                                                            .Where(b => b.PortOfArrivalId == payLoad.oArrivalPort.id)
                                                            .Where(c => c.ClosingDate == payLoad.closingDate)
                                                            .Where(d => d.DepartureDate == payLoad.dateOfdeparture)
                                                            .Where(e => e.ArrivalDate == payLoad.dateOfarrival).FirstOrDefaultAsync();
+                */
+                var record = (from x in config.TSailingSchedules
+                           where x.VesselId == payLoad.oVessel.id
+                           && x.PortOfDepartureId == payLoad.oDeparturePort.id
+                           && x.PortOfArrivalId == payLoad.oArrivalPort.id
+                           && x.ClosingDate == payLoad.closingDate
+                           && x.DepartureDate == payLoad.dateOfdeparture
+                           && x.ArrivalDate == payLoad.dateOfarrival
 
-                if (record == null)
+                           select new
+                           {
+                               vesselId = x.Id,
+                               portOfDepartureId = x.PortOfDepartureId,
+                               portOfArrivalId = x.PortOfArrivalId,
+                               closingDate = x.ClosingDate,
+                               departureDate = x.DepartureDate,
+                               arivalDate = x.ArrivalDate
+                           });
+
+                if (record.Count() < 1)
                 {
                     TSailingSchedule obj = new TSailingSchedule()
                     {

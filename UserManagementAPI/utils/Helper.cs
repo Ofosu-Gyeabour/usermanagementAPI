@@ -4,6 +4,7 @@ using System.Collections;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using UserManagementAPI.POCOs;
+using UserManagementAPI.Response;
 
 namespace UserManagementAPI.utils
 {
@@ -134,7 +135,53 @@ namespace UserManagementAPI.utils
             }
         }
 
-        
+
+        //writes log
+        public async Task<bool> WriteLogAsync(Log oLogger)
+        {          
+            try
+            {
+                var obj = new TLogger()
+                {
+                    LogId = oLogger.id,
+                    LogEvent = oLogger.eventId,
+                    LogActor = oLogger.actor,
+                    LogEntity = oLogger.entity,
+                    LogEntityValue = oLogger.entityValue,
+                    CompanyId = oLogger.companyId,
+                    LogDate = oLogger.logDate
+                };
+
+                await config.TLoggers.AddAsync(obj);
+                await config.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<TEvent> getEventLookupAsync(string _evtDescription)
+        {
+            //gets the event object using the Id
+            TEvent objEvent = null;
+            try
+            {
+                var obj = await config.TEvents.Where(x => x.EventDescription == _evtDescription).FirstOrDefaultAsync();
+                if (obj.Id > 0)
+                {
+                    objEvent = obj;
+                }
+
+                return objEvent;
+            }
+            catch(Exception x)
+            {
+                return objEvent;
+            }
+        }
 
     }
 }

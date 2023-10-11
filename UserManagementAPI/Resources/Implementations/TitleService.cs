@@ -4,6 +4,9 @@ using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
+
+using UserManagementAPI.utils;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -77,6 +80,22 @@ namespace UserManagementAPI.Resources.Implementations
                         message = $"Title {payLoad.nameOftitle} added to data store",
                         data = payLoad
                     };
+
+                    var helper = new Helper();
+                    var evObj = await helper.getEventLookupAsync(EventConfig.ADD_RECORD_OPERATION);
+
+                    //logger
+                    var objLogger = new Log()
+                    {
+                        eventId = evObj.Id,
+                        actor = @"nappiah",
+                        entity = @"TITLE",
+                        entityValue = JsonConvert.SerializeObject(objTitle),
+                        companyId = 1,
+                        logDate = DateTime.Now
+                    };
+
+                    await helper.WriteLogAsync(objLogger);
                 }
                 else { response = new DefaultAPIResponse() { status = false, message = $"Title '{payLoad.nameOftitle}' already exist in the data store"}; }
 

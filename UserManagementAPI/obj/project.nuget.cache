@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "0dZMe+zA1X+5iGlMdNarBxai45Bd/wO8xSDn3yQvkW2sH/Htabk2+ekpe4DxfFe0vjq9cNE+NA2bzvl5jodfxw==",
+  "dgSpecHash": "SbrD/CeSnyAstFLqFB5eQW0fypfxF8QGMIfIufGqlsOGh3W610WQUiCNMfQD+/+heDsXTc+Wbx69G+DRAUUswA==",
   "success": true,
   "projectFilePath": "C:\\Users\\ofosu\\Documents\\WIF\\userMgmtAPI\\UserManagementAPI\\UserManagementAPI.csproj",
   "expectedPackageFiles": [
@@ -36,6 +36,7 @@
     "C:\\Users\\ofosu\\.nuget\\packages\\microsoft.openapi\\1.2.3\\microsoft.openapi.1.2.3.nupkg.sha512",
     "C:\\Users\\ofosu\\.nuget\\packages\\microsoft.win32.registry\\4.7.0\\microsoft.win32.registry.4.7.0.nupkg.sha512",
     "C:\\Users\\ofosu\\.nuget\\packages\\microsoft.win32.systemevents\\4.7.0\\microsoft.win32.systemevents.4.7.0.nupkg.sha512",
+    "C:\\Users\\ofosu\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
     "C:\\Users\\ofosu\\.nuget\\packages\\runtime.debian.8-x64.runtime.native.system.security.cryptography.openssl\\4.3.2\\runtime.debian.8-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512",
     "C:\\Users\\ofosu\\.nuget\\packages\\runtime.fedora.23-x64.runtime.native.system.security.cryptography.openssl\\4.3.2\\runtime.fedora.23-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512",
     "C:\\Users\\ofosu\\.nuget\\packages\\runtime.fedora.24-x64.runtime.native.system.security.cryptography.openssl\\4.3.2\\runtime.fedora.24-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512",

@@ -93,6 +93,12 @@ ConfigObject.LOCAL_CONN = settings.localConnString;
 ConfigObject.MAC_LOCAL_CONN = settings.macConnString;
 ConfigObject.TEST_CONN = settings.testConn;
 
+
+var eventSettings = builder.Configuration.GetSection("Events").Get<Events>();
+EventConfig.AUTH_OPERATION = eventSettings.auth;
+EventConfig.EXIT_OPERATION = eventSettings.exit;
+EventConfig.ADD_RECORD_OPERATION = eventSettings.recordAdd;
+
 #endregion
 
 
@@ -307,7 +313,6 @@ app.MapGet("/ShippingPort/List", (IShippingPortService service) => GetShippingPo
 #endregion
 
 #region tasks
-
 
 async Task<IResult> CreateSailingScheduleAsync(SailingScheduleLookup schedule, IShippingService service)
 {

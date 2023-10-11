@@ -198,3 +198,4 @@ C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Debug\net6.0\refi
 C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Debug\net6.0\UserManagementAPI.pdb
 C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Debug\net6.0\UserManagementAPI.genruntimeconfig.cache
 C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Debug\net6.0\ref\UserManagementAPI.dll
+C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\bin\Debug\net6.0\Newtonsoft.Json.dll
