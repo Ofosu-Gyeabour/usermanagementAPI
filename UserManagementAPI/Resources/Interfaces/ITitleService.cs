@@ -9,6 +9,6 @@ namespace UserManagementAPI.Resources.Interfaces
     {
         Task<DefaultAPIResponse> GetTitlesAsync();
         Task<DefaultAPIResponse> CreateTitleAsync(TitleLookup payLoad);
-
+        Task<UploadAPIResponse> UploadTitleAsync(IEnumerable<TitleLookup> payLoad);
     }
 }

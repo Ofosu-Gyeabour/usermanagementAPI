@@ -206,6 +206,8 @@ app.MapPost("/Airport/Create", async (IAirportService service, AirportLookup oAi
 app.MapGet("/Department/GetDepartments", async (IDepartmentService service) => await GetDepartmentsAsync(service)).WithTags("Department");
 app.MapPost("/Department/CreateDepartment", async (DepartmentLookup oDepartment, IDepartmentService service) => await CreateDepartmentAsync(oDepartment, service)).WithTags("Department");
 app.MapPut("/Department/UpdateDepartment", async (DepartmentLookup oDepartment, IDepartmentService service) => await UpdateDepartmentAsync(oDepartment, service)).WithTags("Department");
+app.MapPost("/Department/Upload", async (List<DepartmentLookup> departmentList, IDepartmentService service) => await UploadDepartmentAsync(departmentList, service)).WithTags("Department");
+
 #endregion
 
 #region user - routes
@@ -257,7 +259,7 @@ app.MapPost("/City/Upload", async (List<CityLookup> cityList, ICityService servi
 app.MapGet("/Country/GetCountries", async (ICountryService service) => await GetCountriesAsync(service)).WithTags("Country");
 app.MapPost("/Country/CreateCountry", async (CountryLookup oCountry, ICountryService service) => await CreateCountryAsync(oCountry, service)).WithTags("Country");
 app.MapPut("/Country/UpdateCountry", async (CountryLookup oCountry, ICountryService service) => await UpdateCountryAsync(oCountry, service)).WithTags("Country");
-
+app.MapPost("/Country/Upload", async (List<CountryLookup> countryList, ICountryService service) => await UploadCountriesAsync(countryList, service)).WithTags("Country");
 #endregion
 
 #region Referral-routes
@@ -295,14 +297,14 @@ app.MapPost("/Region/Create", async (IRegionService service, RegionLookup oRegio
 
 app.MapGet("/Branch/Get", async (IBranchService service) => await GetBranchesAsync(service)).WithTags("Branch");
 app.MapPost("/Branch/Create", async (BranchLookup oBranch, IBranchService service) => await CreateBranchAsync(oBranch, service)).WithTags("Branch");
-
+app.MapPost("/Branch/Upload", async (List<BranchLookup> branchList, IBranchService service) => await UploadBranchAsync(branchList, service)).WithTags("Branch");
 #endregion
 
 #region Title - routes
 
 app.MapGet("/Title/Get", async (ITitleService service) => await GetTitlesAsync(service)).WithTags("Titles");
 app.MapPost("/Title/Create", async (TitleLookup oTitle, ITitleService service) => await CreateTitleAsync(oTitle, service)).WithTags("Titles");
-
+app.MapPost("/Title/Upload", async (List<TitleLookup> titleList, ITitleService service) => await UploadTitleDataAsync(titleList, service)).WithTags("Titles");
 #endregion
 
 #region ShippingPorts - routes
@@ -984,6 +986,25 @@ async Task<IResult> CreateTitleAsync(TitleLookup oTitle, ITitleService service)
         return Results.BadRequest(x);
     }
 }
+
+async Task<IResult> UploadTitleDataAsync(List<TitleLookup> titleList,ITitleService service)
+{
+    try
+    {
+        if ((titleList == null) || (titleList.Count() == 0))
+            return Results.NoContent();
+
+        if (service == null)
+            return Results.BadRequest(@"service could not be instantiated");
+
+        var opStatus = await service.UploadTitleAsync(titleList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
 #endregion
 
 #region Branch - tasks
@@ -1020,6 +1041,25 @@ async Task<IResult> CreateBranchAsync(BranchLookup oBranch, IBranchService servi
 
     var opStatus = await service.CreateBranchAsync(oBranch);
     return Results.Ok(opStatus);
+}
+
+async Task<IResult> UploadBranchAsync(List<BranchLookup> branchList, IBranchService service)
+{
+    try
+    {
+        if ((branchList == null) && (branchList.Count() < 1))
+            return Results.NoContent();
+
+        if (service == null)
+            return Results.BadRequest(@"service cannot be instantiated");
+
+        var opStatus = await service.UploadBranchAsync(branchList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
 }
 
 #endregion
@@ -1073,6 +1113,26 @@ async Task<IResult> UpdateDepartmentAsync(DepartmentLookup oDepartment, IDepartm
     catch(Exception apiErr)
     {
         return Results.BadRequest(apiErr);
+    }
+}
+
+async Task<IResult> UploadDepartmentAsync(List<DepartmentLookup> departmentList, IDepartmentService service)
+{
+    //uploads the department
+    try
+    {
+        if ((departmentList == null) && (departmentList.Count() < 1))
+            return Results.NotFound();
+
+        if (service == null)
+            return Results.BadRequest(@"service cannot be instantiated");
+
+        var opStatus = await service.UploadDepartmentAsync(departmentList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
     }
 }
 
@@ -1492,6 +1552,25 @@ async Task<IResult> UpdateCountryOfCityAsync(CityLookup oCity, ICityService serv
     catch(Exception err)
     {
         return Results.BadRequest(err);
+    }
+}
+
+async Task<IResult> UploadCountriesAsync(List<CountryLookup> countryList, ICountryService service)
+{
+    try
+    {
+        if ((countryList == null) || (countryList.Count() < 1))
+            return Results.NoContent();
+
+        if (service == null)
+            return Results.BadRequest(@"service could not be instantiated");
+
+        var opStatus = await service.UploadCountryAsync(countryList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
     }
 }
 

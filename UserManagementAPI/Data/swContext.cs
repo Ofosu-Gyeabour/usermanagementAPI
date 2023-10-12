@@ -69,6 +69,7 @@ namespace UserManagementAPI.Data
             if (!optionsBuilder.IsConfigured)
             {
                 optionsBuilder.UseSqlServer(ConfigObject.DB_CONN);
+                
             }
         }
 

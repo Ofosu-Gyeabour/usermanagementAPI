@@ -5,6 +5,7 @@ using UserManagementAPI.Resources.Interfaces;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using System.Runtime.InteropServices;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -119,6 +120,97 @@ namespace UserManagementAPI.Resources.Implementations
                 {
                     status = false,
                     message = $"error: {x.Message}"
+                };
+            }
+        }
+        public async Task<UploadAPIResponse> UploadBranchAsync(IEnumerable<BranchLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<BranchLookup> successList = new List<BranchLookup>();
+            List<BranchLookup> errorList = new List<BranchLookup>();
+            List<string> errors = new List<string>();
+
+            Tcompany oc = null;
+            //TODO: throwing error...use linq instead
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {                      
+                            using (var cf = new swContext())
+                            {
+                                oc = await cf.Tcompanies.Where(x => x.Company == record.oCompany.nameOfcompany.Trim()).FirstOrDefaultAsync();
+                            }
+
+                            if (oc != null)
+                            {
+                                var query = (from b in config.Tbranches
+                                             join c in config.Tcompanies on b.CompanyId equals c.CompanyId
+                                             where b.BranchName == record.nameOfbranch && c.Company == record.oCompany.nameOfcompany
+                                             select new
+                                             {
+                                                 Id = b.Id,
+                                                 branchName = b.BranchName,
+                                                 companyName = c.Company,
+                                                 companyId = c.CompanyId
+                                             });
+
+                                if (query.Count() == 0)
+                                {
+                                    //does not exist. create the branch resource
+                                    Tbranch obj = new Tbranch()
+                                    {
+                                        BranchName = record.nameOfbranch.Trim(),
+                                        CompanyId = oc.CompanyId
+                                    };
+
+                                    await config.AddAsync(obj);
+                                    await config.SaveChangesAsync();
+
+                                    success += 1;
+                                    successList.Add(record);
+                                }
+                                else
+                                {
+                                    failed += 1;
+                                    errorList.Add(record);
+                                    errors.Add($"Branch '{record.nameOfbranch}' already exist for company '{record.oCompany.nameOfcompany}' in the data store");
+                                }
+                            }
+                            else
+                            {
+                                failed += 1;
+                                errorList.Add(record);
+                            }
+                    }
+                    catch(Exception x)
+                    {
+                        errorList.Add(record);
+                        errors.Add($"Branch '{record.nameOfbranch}' already exist in the data store");
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}",
+                    data = successList,
+                    successCount = success,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    errorCount = failed
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}",
+                    errorList = errorList
                 };
             }
         }

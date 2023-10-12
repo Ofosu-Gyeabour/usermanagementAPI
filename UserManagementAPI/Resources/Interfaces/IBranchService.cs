@@ -11,5 +11,6 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> GetBranchesAsync();
         Task<DefaultAPIResponse> GetBranchAsync();
         Task<DefaultAPIResponse> CreateBranchAsync(BranchLookup payLoad);
+        Task<UploadAPIResponse> UploadBranchAsync(IEnumerable<BranchLookup> payLoad);
     }
 }

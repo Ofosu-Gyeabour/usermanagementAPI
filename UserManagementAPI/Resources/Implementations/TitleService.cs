@@ -7,6 +7,8 @@ using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 
 using UserManagementAPI.utils;
+using UserManagementAPI.Models;
+using System.Linq.Expressions;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -111,5 +113,75 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<UploadAPIResponse> UploadTitleAsync(IEnumerable<TitleLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<TitleLookup> successList = new List<TitleLookup>();
+            List<TitleLookup> errorList = new List<TitleLookup>();
+            List<string> errors = new List<string>();
+            TTitle dta = null;
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        using (var cf = new swContext())
+                        {
+                            dta = await config.TTitles.Where(rec => rec.Title == record.nameOftitle.Trim()).FirstOrDefaultAsync();
+                        }
+                            
+                        if (dta == null)
+                        {
+                            TTitle objTitle = new TTitle()
+                            {
+                                Title = record.nameOftitle.Trim()
+                            };
+
+                            await config.AddAsync(objTitle);
+                            await config.SaveChangesAsync();
+
+                            success += 1;
+                            successList.Add(record);
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Title '{record.nameOftitle}' already exist in the data store");
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        failed += 1;
+                        errorList.Add(record);
+                    }
+                }
+
+                response = new UploadAPIResponse()
+                {
+                    status = true,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}",
+                    data = successList,
+                    successCount = success,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    errorCount = failed
+                };
+
+                return response;
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
     }
 }

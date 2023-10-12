@@ -11,5 +11,6 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> CreateDepartmentAsync(DepartmentLookup payLoad);
         Task<DefaultAPIResponse> UpdateDepartmentAsync(DepartmentLookup payLoad);
 
+        Task<UploadAPIResponse> UploadDepartmentAsync(IEnumerable<DepartmentLookup> payLoad);
     }
 }

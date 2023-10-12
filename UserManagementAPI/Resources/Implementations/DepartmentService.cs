@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Resources.Interfaces;
@@ -141,6 +142,80 @@ namespace UserManagementAPI.Resources.Implementations
                 };
 
                 return response;
+            }
+        }
+
+        public async Task<UploadAPIResponse> UploadDepartmentAsync(IEnumerable<DepartmentLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<DepartmentLookup> successList = new List<DepartmentLookup>();
+            List<DepartmentLookup> errorList = new List<DepartmentLookup>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        var o = await _context.Tcompanies.Where(c => c.Company == record.oCompany.nameOfcompany).FirstOrDefaultAsync();
+                        if (o != null)
+                        {
+                            var dd = await _context.TDepartments.Where(d => d.CompanyId == o.CompanyId).Where(f => f.DepartmentName == record.nameOfdepartment.Trim()).FirstOrDefaultAsync();
+                            if (dd == null)
+                            {
+                                TDepartment obj = new TDepartment() {
+                                    DepartmentName = record.nameOfdepartment.Trim(),
+                                    CompanyId = o.CompanyId,
+                                    Describ = record.departmentDescription
+                                };
+
+                                await _context.AddAsync(obj);
+                                await _context.SaveChangesAsync();
+
+                                success += 1;
+                                successList.Add(record);
+                            }
+                            else
+                            {
+                                failed += 1;
+                                errors.Add($"Department '{record.nameOfdepartment}' already exist in the data store for company '{record.oCompany.nameOfcompany}'");
+                            }
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Company '{record.oCompany.nameOfcompany}' does not exist in the data store");
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        errorList.Add(record);
+                        failed += 1;
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status  = true,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}",
+                    data = successList,
+                    successCount = success,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    errorCount = failed
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}",
+                    errorList = errorList
+                };
             }
         }
 

@@ -11,5 +11,6 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> CreateCountryAsync(CountryLookup payLoad);
         Task<DefaultAPIResponse> UpdateCountryAsync(CountryLookup payLoad);
 
+        Task<UploadAPIResponse> UploadCountryAsync(IEnumerable<CountryLookup> payLoad);
     }
 }

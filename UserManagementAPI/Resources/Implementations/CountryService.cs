@@ -147,5 +147,99 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<UploadAPIResponse> UploadCountryAsync(IEnumerable<CountryLookup> payLoad)
+        {
+            //uploads the content of a file
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<CountryLookup> successList = new List<CountryLookup>();
+            List<CountryLookup> errorList = new List<CountryLookup>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        var cObj = await config.TCountryLookups.Where(c => c.CountryName == record.nameOfcountry.Trim()).FirstOrDefaultAsync();
+                        if (cObj == null)
+                        {
+                            //country record exist. check region
+                            var rr = await config.TRegionLookups.Where(x => x.RegionName == record.oRegion.nameOfregion.Trim()).FirstOrDefaultAsync();
+                            if (rr != null)
+                            {
+                                //insert record
+                                TCountryLookup countryRecord = new TCountryLookup()
+                                {
+                                    RegionId = rr.RegionId,
+                                    CountryName = record.nameOfcountry.Trim(),
+                                    CountryCode = record.codeOfcountry.Trim()
+                                };
+
+                                await config.AddAsync(countryRecord);
+                                await config.SaveChangesAsync();
+
+                                successList.Add(record);
+                                success += 1;
+                            }
+                            else
+                            {
+                                failed += 1;
+                                errorList.Add(record);
+                                errors.Add($"Region '{record.oRegion.nameOfregion}' does not exist in the data store for country '{record.nameOfcountry}'");
+                            }
+                        }
+                        else
+                        {
+                            //country exist...get region and modify it
+                            var r = await config.TRegionLookups.Where(o => o.RegionName == record.oRegion.nameOfregion.Trim()).FirstOrDefaultAsync();
+                            if (r != null)
+                            {
+                                cObj.CountryCode = record.codeOfcountry;
+                                cObj.RegionId = r.RegionId;
+
+                                await config.SaveChangesAsync();
+                            }
+                            else
+                            {
+                                //region does not exist. report as an error
+                                failed += 1;
+                                errors.Add($"Region '{record.oRegion.nameOfregion}' does not exist in the data store for country '{record.nameOfcountry}'");
+                            }
+                        }
+                    }
+                    catch (Exception innerE)
+                    {
+                        errorList.Add(record);
+                        failed += 1;
+                    }                   
+                }
+
+                response = new UploadAPIResponse()
+                {
+                    status = true,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}",
+                    data = successList,
+                    successCount = success,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    errorCount = failed
+                };
+
+                return response;
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}",
+                    errorList = errorList
+                };
+            }
+        }
+
     }
 }
