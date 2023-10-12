@@ -179,26 +179,27 @@ app.MapPost("SealPrice/Create", async (SealPriceLookup oSealPrice, ISealService 
 
 app.MapGet("/Adhoc/List", async (IAdhocTypeService service) => await ListAdhocTypesAsync(service)).WithTags("AdhocType");
 app.MapPost("/Adhoc/Create", async (AdhocTypeLookup oAdhoc, IAdhocTypeService service) => await CreateAdhocTypeAsync(oAdhoc, service)).WithTags("AdhocType");
-
+app.MapPost("/Adhoc/Upload", async (List<AdhocTypeLookup> adhoctypeList, IAdhocTypeService service) => await UploadAdhocTypeData(adhoctypeList, service)).WithTags("AdhocType");
 #endregion
 
 #region ContainerTypes - routes
 
 app.MapGet("/ContainerType/Get", async (IContainerTypeService service) => await GetContainerTypesAsync(service)).WithTags("Container Types");
 app.MapPost("/ContainerType/Create", async (IContainerTypeService service, ContainerTypeLookup oContainerType) => await CreateContainerTypeAsync(service, oContainerType)).WithTags("Container Types");
-
+app.MapPost("/ContainerType/Upload", async (List<ContainerTypeLookup> containertypeList, IContainerTypeService service) => await UploadContainerType(containertypeList, service)).WithTags("Container Types");
 #endregion
 
 #region DialCode - routes
 app.MapGet("/DialCode/GetDialCodes", async (IDialCodeService service) => await GetDialAllDialCodesAsync(service)).WithTags("Dial Codes");
 app.MapPost("/DialCode/Create", async (IDialCodeService service, DialCodeLookup oDialCode) => await CreateDialCodeAsync(service, oDialCode)).WithTags("Dial Codes");
-
+app.MapPost("/DialCode/Upload", async (List<DialCodeLookup> dialcodeList, IDialCodeService service) => await UploadDialCodeDataAsync(dialcodeList, service)).WithTags("Dial Codes");
 #endregion
 
 #region Airport - routes
 
 app.MapGet("/Airport/GetAirports", async (IAirportService service) => await GetAllAirportsAsync(service)).WithTags("Airport");
 app.MapPost("/Airport/Create", async (IAirportService service, AirportLookup oAirport) => await CreateAirportAsync(service, oAirport)).WithTags("Airport");
+app.MapPost("/Airport/Upload", async (List<AirportLookup> airportList, IAirportService service) => await UploadAirportDataAsync(airportList, service)).WithTags("Airport");
 #endregion
 
 #region Department - routes
@@ -267,7 +268,7 @@ app.MapPost("/Country/Upload", async (List<CountryLookup> countryList, ICountryS
 app.MapGet("/Referral/GetReferrals", async (IReferralService service) => await GetReferralsAsync(service)).WithTags("Referral");
 app.MapPost("/Referral/CreateReferral", async (ReferralLookup oReferral, IReferralService service) => await CreateReferralAsync(oReferral, service)).WithTags("Referral");
 app.MapPut("/Referral/UpdateReferral", async (ReferralLookup oReferral, IReferralService service) => await UpdateReferralAsync(oReferral, service)).WithTags("Referral");
-
+app.MapPost("/Referral/Upload", async (List<ReferralLookup> referralList, IReferralService service) => await UploadReferralAsync(referralList, service)).WithTags("Referral");
 #endregion
 
 #region companyType - routes
@@ -311,7 +312,7 @@ app.MapPost("/Title/Upload", async (List<TitleLookup> titleList, ITitleService s
 
 app.MapPost("/ShippingPort/Create", async (ShippingPortLookup oShippingPort, IShippingPortService service) => await CreateShippingPortAsync(oShippingPort, service)).WithTags("Shipping Port");
 app.MapGet("/ShippingPort/List", (IShippingPortService service) => GetShippingPortListAsync(service)).WithTags("Shipping Port");
-
+app.MapPost("/ShippingPort/Upload", async (List<ShippingPortLookup> shippingportList, IShippingPortService service) => await UploadShippingPortData(shippingportList, service)).WithTags("Shipping Port");
 #endregion
 
 #region tasks
@@ -475,6 +476,22 @@ IResult GetShippingPortListAsync(IShippingPortService service)
     {
         var shipping_port_list = service.GetShippingPortsAsync();
         return Results.Ok(shipping_port_list);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> UploadShippingPortData(List<ShippingPortLookup> shippingportList, IShippingPortService service)
+{
+    if ((shippingportList == null) || (shippingportList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var opStatus = await service.UploadShippingPortAsync(shippingportList);
+        return Results.Ok(opStatus);
     }
     catch(Exception x)
     {
@@ -797,6 +814,23 @@ async Task<IResult> CreateAdhocTypeAsync(AdhocTypeLookup oAdhoc, IAdhocTypeServi
         return Results.BadRequest(x);
     }
 }
+
+async Task<IResult> UploadAdhocTypeData(List<AdhocTypeLookup> adhoctypeList, IAdhocTypeService service)
+{
+    if ((adhoctypeList == null) || (adhoctypeList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var opStatus = await service.UploadAdhocTypeDataAsync(adhoctypeList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
 #endregion
 
 #region Container-type - tasks
@@ -815,6 +849,22 @@ async Task<IResult> CreateContainerTypeAsync(IContainerTypeService service, Cont
     try
     {
         var opStatus = await service.CreateContainerTypeAsync(oContainerType);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> UploadContainerType(List<ContainerTypeLookup> containertypeList, IContainerTypeService service)
+{
+    if ((containertypeList == null) || (containertypeList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var opStatus = await service.UploadContainerTypeDataAsync(containertypeList);
         return Results.Ok(opStatus);
     }
     catch(Exception x)
@@ -856,6 +906,25 @@ async Task<IResult> CreateDialCodeAsync(IDialCodeService service, DialCodeLookup
     try
     {
         var opStatus = await service.CreateDialCodeAsync(oDialCode);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> UploadDialCodeDataAsync(List<DialCodeLookup> dialcodeList, IDialCodeService service)
+{
+    if ((dialcodeList == null) || (dialcodeList.Count() == 0))
+        return Results.NoContent();
+
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var opStatus = await service.UploadDialCodesAsync(dialcodeList);
         return Results.Ok(opStatus);
     }
     catch(Exception x)
@@ -923,6 +992,26 @@ async Task<IResult> CreateAirportAsync(IAirportService service, AirportLookup oA
         return Results.BadRequest(x);
     }
 }
+
+async Task<IResult> UploadAirportDataAsync(List<AirportLookup> airportList, IAirportService service)
+{
+    if ((airportList == null) || (airportList.Count() == 0))
+        return Results.NoContent();
+
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var opStatus = await service.UploadAirportDataAsync(airportList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
 #endregion
 
 #region ShippingPort - tasks
@@ -1721,6 +1810,26 @@ async Task<IResult> UpdateReferralAsync(ReferralLookup oReferral, IReferralServi
         return Results.BadRequest($"error: {x.Message}");
     }
 }
+
+async Task<IResult> UploadReferralAsync(List<ReferralLookup> referralList, IReferralService service)
+{
+    if ((referralList == null) || (referralList.Count() == 0))
+        return Results.NoContent();
+
+    if (service == null)
+        return Results.BadRequest(@"service could not be instantiated");
+
+    try
+    {
+        var opStatus = await service.UploadRefferalDataAsync(referralList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
 #endregion
 
 #region companyType -tasks

@@ -125,6 +125,78 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
+        
+        public async Task<UploadAPIResponse> UploadRefferalDataAsync(IEnumerable<ReferralLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<ReferralLookup> successList = new List<ReferralLookup>();
+            List<ReferralLookup> errorList = new List<ReferralLookup>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                foreach(var record in payLoad)
+                {                   
+                    try
+                    {
+                        var query = (from rf in configure.Tclientreferralsources
+                                     where rf.ReferralSource == record.sourceOfReferral
+                                     select new
+                                     {
+                                         Id = rf.Id,
+                                         refSource = rf.ReferralSource
+                                     });
+
+                        if (query.Count() == 0)
+                        {
+                            //insert 
+                            Tclientreferralsource objRefferalSource = new Tclientreferralsource()
+                            {
+                                ReferralSource = record.sourceOfReferral.Trim()
+                            };
+
+                            await configure.AddAsync(objRefferalSource);
+                            await configure.SaveChangesAsync();
+
+                            success += 1;
+                            successList.Add(record);
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Referral by name '{record.sourceOfReferral}' already exist in the data store");
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        failed += 1;
+                        errors.Add($"inner Exception error: {innerExc.Message}");
+                    }
+                }
+
+                return response = new UploadAPIResponse() { 
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}",
+                    errorList = errorList
+                };
+            }
+        }
+
         #endregion
     }
 }

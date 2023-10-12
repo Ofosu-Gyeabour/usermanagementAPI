@@ -9,5 +9,7 @@ namespace UserManagementAPI.Resources.Interfaces
     {
         Task<DefaultAPIResponse> GetAirportsAsync();
         Task<DefaultAPIResponse> CreateAirportAsync(AirportLookup payLoad);
+
+        Task<UploadAPIResponse> UploadAirportDataAsync(IEnumerable<AirportLookup> payLoad);
     }
 }

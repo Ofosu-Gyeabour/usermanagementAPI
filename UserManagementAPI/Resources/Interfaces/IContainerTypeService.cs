@@ -8,6 +8,6 @@ namespace UserManagementAPI.Resources.Interfaces
     {
         Task<DefaultAPIResponse> GetContainerTypesAsync();
         Task<DefaultAPIResponse> CreateContainerTypeAsync(ContainerTypeLookup payLoad);
-
+        Task<UploadAPIResponse> UploadContainerTypeDataAsync(IEnumerable<ContainerTypeLookup> payLoad);
     }
 }

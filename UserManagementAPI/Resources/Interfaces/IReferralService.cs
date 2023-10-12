@@ -10,5 +10,7 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> getReferralsAsync();
         Task<DefaultAPIResponse> CreateReferralAsync(ReferralLookup payLoad);
         Task<DefaultAPIResponse> UpdateReferralAsync(ReferralLookup payLoad);
+
+        Task<UploadAPIResponse> UploadRefferalDataAsync(IEnumerable<ReferralLookup> payLoad);
     }
 }

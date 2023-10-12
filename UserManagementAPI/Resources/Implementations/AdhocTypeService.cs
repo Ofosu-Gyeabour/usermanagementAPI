@@ -94,5 +94,80 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<UploadAPIResponse> UploadAdhocTypeDataAsync(IEnumerable<AdhocTypeLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<AdhocTypeLookup> successList = new List<AdhocTypeLookup>();
+            List<AdhocTypeLookup> errorList = new List<AdhocTypeLookup>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        var adhocQuery = (from ad in config.TAdhocTypes
+                                          where ad.AdhocName == record.name &&
+                                          ad.Nomcode == record.nomCode
+                                          select new
+                                          {
+                                              id = ad.Id,
+                                              adhocName = ad.AdhocName,
+                                              adhocCode = ad.Nomcode
+                                          });
+
+                        if (adhocQuery.Count() == 0)
+                        {
+                            TAdhocType objAdHoc = new TAdhocType()
+                            {
+                                AdhocName = record.name.Trim(),
+                                Nomcode = record.nomCode.Trim()
+                            };
+
+                            await config.AddAsync(objAdHoc);
+                            await config.SaveChangesAsync();
+
+                            success += 1;
+                            successList.Add(record);
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Adhoc type '{record.name}' with code '{record.nomCode}' already exist in the data store");
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        failed += 1;
+                        errors.Add($"innerException error: {innerExc.Message}");
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}",
+                    errorList = errorList
+                };
+            }
+        }
+
     }
 }

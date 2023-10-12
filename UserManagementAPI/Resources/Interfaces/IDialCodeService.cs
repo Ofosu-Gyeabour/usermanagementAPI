@@ -9,5 +9,7 @@ namespace UserManagementAPI.Resources.Interfaces
     {
         Task<DefaultAPIResponse> GetDialCodesAsync();
         Task<DefaultAPIResponse> CreateDialCodeAsync(DialCodeLookup payLoad);
+
+        Task<UploadAPIResponse> UploadDialCodesAsync(IEnumerable<DialCodeLookup> payLoad);
     }
 }

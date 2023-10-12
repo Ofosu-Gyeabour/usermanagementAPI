@@ -121,5 +121,94 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<UploadAPIResponse> UploadShippingPortAsync(IEnumerable<ShippingPortLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<ShippingPortLookup> successList = new List<ShippingPortLookup>();
+            List<ShippingPortLookup> errorList = new List<ShippingPortLookup>();
+            List<string> errors = new List<string>();
+            TCountryLookup cc = null;
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        using (var cfg = new swContext())
+                        {
+                            cc = await cfg.TCountryLookups.Where(x => x.CountryName == record.oCountry.nameOfcountry.Trim()).FirstOrDefaultAsync();
+                        }
+
+                        if (cc != null)
+                        {
+                            var query = (from sp in config.Tshippingports
+                                         join c in config.TCountryLookups on sp.CountryId equals c.CountryId
+                                         where sp.NameOfport == record.nameOfport.Trim() &&
+                                         sp.Portcode == record.codeOfport &&
+                                         c.CountryId == cc.CountryId &&
+                                         sp.TraveltimeInDays == record.sailingTimeInDays
+                                         select new
+                                         {
+                                             id = sp.Id,
+                                             port = sp.NameOfport,
+                                             codeOfport = sp.Portcode,
+                                             countryName = c.CountryName,
+                                             countryId = c.CountryId,
+                                             sailingDays = sp.TraveltimeInDays
+                                         });
+
+                            if (query.Count() == 0)
+                            {
+                                Tshippingport obj = new Tshippingport() { 
+                                    NameOfport = record.nameOfport.Trim(),
+                                    CountryId = cc.CountryId,
+                                    Portcode = record.codeOfport.Trim(),
+                                    TraveltimeInDays = record.sailingTimeInDays
+                                };
+
+                                await config.AddAsync(obj);
+                                await config.SaveChangesAsync();
+
+                                success += 1;
+                                successList.Add(record);
+                            }
+                            else
+                            {
+                                failed += 1;
+                                errorList.Add(record);
+                                errors.Add($"Shipping port '{record.nameOfport}' with code '{record.codeOfport}' already exist in the data store");
+                            }
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        failed += 1;
+                        errors.Add($"error: {innerExc.Message}");
+                    }
+                }
+
+                return response = new UploadAPIResponse() { 
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}",
+                    errorList = errorList
+                };
+            }
+        }
     }
 }

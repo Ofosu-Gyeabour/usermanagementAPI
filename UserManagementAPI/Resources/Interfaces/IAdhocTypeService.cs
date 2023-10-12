@@ -9,5 +9,7 @@ namespace UserManagementAPI.Resources.Interfaces
     {
         Task<DefaultAPIResponse> GetAdHocTypesAsync();
         Task<DefaultAPIResponse> CreateAdhocTypeAsync(AdhocTypeLookup payLoad);
+
+        Task<UploadAPIResponse> UploadAdhocTypeDataAsync(IEnumerable<AdhocTypeLookup> payLoad);
     }
 }

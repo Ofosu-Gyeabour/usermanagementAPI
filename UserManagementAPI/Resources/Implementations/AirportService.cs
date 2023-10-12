@@ -115,5 +115,98 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<UploadAPIResponse> UploadAirportDataAsync(IEnumerable<AirportLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<AirportLookup> successList = new List<AirportLookup>();
+            List<AirportLookup> errorList = new List<AirportLookup>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        using (var cfg = new swContext())
+                        {
+                            var cc = await cfg.TCountryLookups.Where(c => c.CountryName == record.oCountry.nameOfcountry.Trim()).FirstOrDefaultAsync();
+                            if (cc != null)
+                            {
+                                var result = (from ap in config.TAirports
+                                              join c in config.TCountryLookups on ap.CountryId equals c.CountryId
+                                              where c.CountryName == record.oCountry.nameOfcountry.Trim()
+                                              select new
+                                              {
+                                                  Id = ap.Id,
+                                                  airport = ap.Airport,
+                                                  countryName = c.CountryName,
+                                                  countryId = c.CountryId,
+                                                  airportCode = ap.Mnemonic
+                                              });
+
+                                if (result.Count() == 0)
+                                {
+                                    //create airport resource
+                                    TAirport objAirport = new TAirport()
+                                    {
+                                        Airport = record.nameOfairport,
+                                        CountryId = cc.CountryId,
+                                        Mnemonic = record.airportMnemonic
+                                    };
+
+                                    await config.AddAsync(objAirport);
+                                    await config.SaveChangesAsync();
+
+                                    success += 1;
+                                    successList.Add(record);
+                                }
+                                else
+                                {
+                                    failed += 1;
+                                    errorList.Add(record);
+                                    errors.Add($"Airport with name '{record.nameOfairport}' already exist for country '{record.oCountry.nameOfcountry.Trim()}'");
+                                }
+                            }
+                            else
+                            {
+                                failed += 1;
+                                errorList.Add(record);
+                                errors.Add($"Country '{record.oCountry.nameOfcountry}' does not exist in the data store");
+                            }
+                        }
+                    }
+                    catch(Exception innerEx)
+                    {
+                        failed += 1;
+                        errorList.Add(record);
+                        errors.Add($"error:{innerEx.Message}");
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    errorList = errorList,
+                    errorCount = failed,
+                    successCount = success,
+                    data = successList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}",
+                    errorList = errorList
+                };
+            }
+        }
+
     }
 }

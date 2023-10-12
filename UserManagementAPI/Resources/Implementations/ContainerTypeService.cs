@@ -93,6 +93,76 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<UploadAPIResponse> UploadContainerTypeDataAsync(IEnumerable<ContainerTypeLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<ContainerTypeLookup> successList = new List<ContainerTypeLookup>();
+            List<ContainerTypeLookup> errorList = new List<ContainerTypeLookup>();
+            List<string> errors = new List<string>();
+            
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        var query = (from ct in config.TcontainerTypes
+                                     where ct.Ctype == record.containerType &&
+                                     ct.Cvolume == record.containerVolume
+                                     select new
+                                     {
+                                         id = ct.Id,
+                                         ctype = ct.Ctype,
+                                         volume = ct.Cvolume
+                                     });
 
+                        if (query.Count() == 0)
+                        {
+                            TcontainerType objContainerType = new TcontainerType() { 
+                                Ctype = record.containerType.Trim(),
+                                Cvolume = record.containerVolume
+                            };
+
+                            await config.AddAsync(objContainerType);
+                            await config.SaveChangesAsync();
+
+                            success += 1;
+                            successList.Add(record);
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Container type '{record.containerType}' with volume '{record.containerVolume}' already exist in the data store");
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        failed += 1;
+                        errors.Add($"innerException error: {innerExc.Message}");
+                    }
+                }
+
+                return response = new UploadAPIResponse() { 
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    errorList = errorList,
+                    data = successList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}",
+                    errorList = errorList
+                };
+            }
+        }
     }
 }
