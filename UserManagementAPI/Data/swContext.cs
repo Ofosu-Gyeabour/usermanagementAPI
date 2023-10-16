@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using UserManagementAPI.utils;
 
+
 namespace UserManagementAPI.Data
 {
     public partial class swContext : DbContext
@@ -19,12 +20,17 @@ namespace UserManagementAPI.Data
         {
         }
 
+        public virtual DbSet<TAdhoc> TAdhocs { get; set; } = null!;
         public virtual DbSet<TAdhocType> TAdhocTypes { get; set; } = null!;
         public virtual DbSet<TAirport> TAirports { get; set; } = null!;
         public virtual DbSet<TChannelType> TChannelTypes { get; set; } = null!;
         public virtual DbSet<TChargeLookup> TChargeLookups { get; set; } = null!;
         public virtual DbSet<TCity> TCities { get; set; } = null!;
+        public virtual DbSet<TClient> TClients { get; set; } = null!;
+        public virtual DbSet<TClientAddress> TClientAddresses { get; set; } = null!;
+        public virtual DbSet<TClientType> TClientTypes { get; set; } = null!;
         public virtual DbSet<TCompDigiOutlet> TCompDigiOutlets { get; set; } = null!;
+        public virtual DbSet<TCongestionCharge> TCongestionCharges { get; set; } = null!;
         public virtual DbSet<TCountryLookup> TCountryLookups { get; set; } = null!;
         public virtual DbSet<TDeliveryCharge> TDeliveryCharges { get; set; } = null!;
         public virtual DbSet<TDeliveryMethod> TDeliveryMethods { get; set; } = null!;
@@ -39,6 +45,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TPackagingItem> TPackagingItems { get; set; } = null!;
         public virtual DbSet<TPackagingPrice> TPackagingPrices { get; set; } = null!;
         public virtual DbSet<TPackagingStock> TPackagingStocks { get; set; } = null!;
+        public virtual DbSet<TPaymentTerm> TPaymentTerms { get; set; } = null!;
         public virtual DbSet<TProfile> TProfiles { get; set; } = null!;
         public virtual DbSet<TRegionLookup> TRegionLookups { get; set; } = null!;
         public virtual DbSet<TSailingSchedule> TSailingSchedules { get; set; } = null!;
@@ -67,14 +74,75 @@ namespace UserManagementAPI.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
-            {
+            {              
                 optionsBuilder.UseSqlServer(ConfigObject.DB_CONN);
-                
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<TAdhoc>(entity =>
+            {
+                entity.ToTable("tAdhoc");
+
+                entity.Property(e => e.AdhocDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("adhocDate")
+                    .HasComment("date for the adhoc txn");
+
+                entity.Property(e => e.AdhocDescrib)
+                    .IsUnicode(false)
+                    .HasColumnName("adhocDescrib")
+                    .HasComment("description of adhoc txn");
+
+                entity.Property(e => e.AdhocTypeId)
+                    .HasColumnName("adhocTypeId")
+                    .HasComment("reference to the adhoc type table");
+
+                entity.Property(e => e.ClientId)
+                    .HasColumnName("clientId")
+                    .HasComment("the Id of the client");
+
+                entity.Property(e => e.CompanyId)
+                    .HasColumnName("companyId")
+                    .HasComment("reference to the company table");
+
+                entity.Property(e => e.CreatedBy)
+                    .HasColumnName("createdBy")
+                    .HasComment("user creating transaction record");
+
+                entity.Property(e => e.InvoiceDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("invoiceDate")
+                    .HasComment("date of invoicing");
+
+                entity.Property(e => e.IsInvoiced)
+                    .HasColumnName("isInvoiced")
+                    .HasComment("flag determining if transaction has been invoiced");
+
+                entity.Property(e => e.IsuploadtoSage)
+                    .HasColumnName("isuploadtoSAGE")
+                    .HasComment("flag determining if invoice has been uploaded to SAGE. set to automate this with SAGE 200");
+
+                entity.Property(e => e.LastModifedBy)
+                    .HasColumnName("lastModifedBy")
+                    .HasComment("user who last modified record");
+
+                entity.Property(e => e.PaymentTermsId)
+                    .HasColumnName("paymentTermsId")
+                    .HasComment("reference to payment terms table");
+
+                entity.Property(e => e.Vat)
+                    .HasColumnType("decimal(9, 2)")
+                    .HasColumnName("vat")
+                    .HasComment("VAT component");
+
+                entity.HasOne(d => d.PaymentTerms)
+                    .WithMany(p => p.TAdhocs)
+                    .HasForeignKey(d => d.PaymentTermsId)
+                    .HasConstraintName("FK_tAdhoc_tPaymentTerm");
+            });
+
             modelBuilder.Entity<TAdhocType>(entity =>
             {
                 entity.ToTable("tAdhocType");
@@ -194,6 +262,192 @@ namespace UserManagementAPI.Data
                     .HasComment("Id of country");
             });
 
+            modelBuilder.Entity<TClient>(entity =>
+            {
+                entity.ToTable("tClient");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.AssociatedCompanyId).HasColumnName("associatedCompanyId");
+
+                entity.Property(e => e.CanLogin).HasColumnName("canLogin");
+
+                entity.Property(e => e.ChannelTypeId).HasColumnName("channelTypeId");
+
+                entity.Property(e => e.ClientAccNo)
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasColumnName("clientAccNo");
+
+                entity.Property(e => e.ClientBusinessName)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("clientBusinessName");
+
+                entity.Property(e => e.ClientCityId).HasColumnName("clientCityId");
+
+                entity.Property(e => e.ClientCountryId).HasColumnName("clientCountryId");
+
+                entity.Property(e => e.ClientEmailAddr)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("clientEmailAddr");
+
+                entity.Property(e => e.ClientEmailAddr2)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("clientEmailAddr2");
+
+                entity.Property(e => e.ClientPassword)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("clientPassword");
+
+                entity.Property(e => e.ClientPostCode)
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasColumnName("clientPostCode")
+                    .IsFixedLength();
+
+                entity.Property(e => e.ClientTypeId).HasColumnName("clientTypeId");
+
+                entity.Property(e => e.CollectionInstruction)
+                    .IsUnicode(false)
+                    .HasColumnName("collectionInstruction");
+
+                entity.Property(e => e.CreatedBy).HasColumnName("createdBy");
+
+                entity.Property(e => e.DialcodeId).HasColumnName("dialcodeId");
+
+                entity.Property(e => e.Firstname)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("firstname");
+
+                entity.Property(e => e.HomeTelephone)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("homeTelephone");
+
+                entity.Property(e => e.IsShipper).HasColumnName("isShipper");
+
+                entity.Property(e => e.LastModifiedBy).HasColumnName("lastModifiedBy");
+
+                entity.Property(e => e.Middlenames)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("middlenames");
+
+                entity.Property(e => e.MobileNo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("mobileNo");
+
+                entity.Property(e => e.ReferralId).HasColumnName("referralId");
+
+                entity.Property(e => e.Surname)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("surname");
+
+                entity.Property(e => e.WhatsappNo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("whatsappNo");
+
+                entity.Property(e => e.WorkTelephone)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("workTelephone");
+
+                entity.HasOne(d => d.AssociatedCompany)
+                    .WithMany(p => p.TClients)
+                    .HasForeignKey(d => d.AssociatedCompanyId)
+                    .HasConstraintName("FK_tClient_tcompany");
+
+                entity.HasOne(d => d.ChannelType)
+                    .WithMany(p => p.TClients)
+                    .HasForeignKey(d => d.ChannelTypeId)
+                    .HasConstraintName("FK_tClient_tChannelType");
+
+                entity.HasOne(d => d.ClientCity)
+                    .WithMany(p => p.TClients)
+                    .HasForeignKey(d => d.ClientCityId)
+                    .HasConstraintName("FK_tClient_tCity");
+
+                entity.HasOne(d => d.ClientCountry)
+                    .WithMany(p => p.TClients)
+                    .HasForeignKey(d => d.ClientCountryId)
+                    .HasConstraintName("FK_tClient_tCountryLookup");
+
+                entity.HasOne(d => d.ClientType)
+                    .WithMany(p => p.TClients)
+                    .HasForeignKey(d => d.ClientTypeId)
+                    .HasConstraintName("FK_tClient_tClientType");
+
+                entity.HasOne(d => d.Referral)
+                    .WithMany(p => p.TClients)
+                    .HasForeignKey(d => d.ReferralId)
+                    .HasConstraintName("FK_tClient_tclientreferralsource");
+            });
+
+            modelBuilder.Entity<TClientAddress>(entity =>
+            {
+                entity.ToTable("tClientAddress");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ClientAddr1)
+                    .HasMaxLength(500)
+                    .IsUnicode(false)
+                    .HasColumnName("clientAddr1")
+                    .HasComment("first address part");
+
+                entity.Property(e => e.ClientAddr2)
+                    .HasMaxLength(500)
+                    .IsUnicode(false)
+                    .HasColumnName("clientAddr2")
+                    .HasComment("second address part");
+
+                entity.Property(e => e.ClientAddr3)
+                    .HasMaxLength(500)
+                    .IsUnicode(false)
+                    .HasColumnName("clientAddr3")
+                    .HasComment("third address part");
+
+                entity.Property(e => e.ClientAddr4)
+                    .HasMaxLength(500)
+                    .IsUnicode(false)
+                    .HasColumnName("clientAddr4")
+                    .HasComment("fourth address part");
+
+                entity.Property(e => e.ClientId)
+                    .HasColumnName("clientId")
+                    .HasComment("the Id of the client...reference from tClient");
+
+                entity.Property(e => e.IsUk)
+                    .HasColumnName("isUK")
+                    .HasComment("bit signalling if the address is a UK address");
+
+                entity.HasOne(d => d.Client)
+                    .WithMany(p => p.TClientAddresses)
+                    .HasForeignKey(d => d.ClientId)
+                    .HasConstraintName("FK_tClientAddress_tClient");
+            });
+
+            modelBuilder.Entity<TClientType>(entity =>
+            {
+                entity.ToTable("tClientType");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Describ)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("describ")
+                    .HasComment("description of client type");
+            });
+
             modelBuilder.Entity<TCompDigiOutlet>(entity =>
             {
                 entity.HasKey(e => e.ChannelId)
@@ -223,6 +477,25 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TCompDigiOutlets)
                     .HasForeignKey(d => d.ChannelTypeId)
                     .HasConstraintName("FK_tcompDigiOutlet_tchannelType");
+            });
+
+            modelBuilder.Entity<TCongestionCharge>(entity =>
+            {
+                entity.ToTable("tCongestionCharge");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Charge)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("charge")
+                    .HasComment("charge associated with the congestion");
+
+                entity.Property(e => e.PostCode)
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasColumnName("postCode")
+                    .IsFixedLength()
+                    .HasComment("postal code");
             });
 
             modelBuilder.Entity<TCountryLookup>(entity =>
@@ -602,6 +875,19 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TPackagingStocks)
                     .HasForeignKey(d => d.CompanyId)
                     .HasConstraintName("FK_tPackagingStock_tcompany");
+            });
+
+            modelBuilder.Entity<TPaymentTerm>(entity =>
+            {
+                entity.ToTable("tPaymentTerm");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.PaymentTermDescrib)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("paymentTermDescrib")
+                    .HasComment("payment term description (WEEKLY, MONTHLY, QUARTERLY, SEMI-ANNUALLY)");
             });
 
             modelBuilder.Entity<TProfile>(entity =>

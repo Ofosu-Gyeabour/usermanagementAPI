@@ -7,6 +7,7 @@ namespace UserManagementAPI.Models
     {
         public TChannelType()
         {
+            TClients = new HashSet<TClient>();
             TCompDigiOutlets = new HashSet<TCompDigiOutlet>();
         }
 
@@ -23,6 +24,7 @@ namespace UserManagementAPI.Models
         /// </summary>
         public string? Describ { get; set; }
 
+        public virtual ICollection<TClient> TClients { get; set; }
         public virtual ICollection<TCompDigiOutlet> TCompDigiOutlets { get; set; }
     }
 }

@@ -5,6 +5,11 @@ namespace UserManagementAPI.Models
 {
     public partial class Tclientreferralsource
     {
+        public Tclientreferralsource()
+        {
+            TClients = new HashSet<TClient>();
+        }
+
         /// <summary>
         /// primary key
         /// </summary>
@@ -13,5 +18,7 @@ namespace UserManagementAPI.Models
         /// referral source (newspapers, radio, etc)
         /// </summary>
         public string? ReferralSource { get; set; }
+
+        public virtual ICollection<TClient> TClients { get; set; }
     }
 }

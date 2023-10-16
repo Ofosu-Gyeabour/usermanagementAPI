@@ -7,6 +7,7 @@ namespace UserManagementAPI.Models
     {
         public Tcompany()
         {
+            TClients = new HashSet<TClient>();
             TDepartments = new HashSet<TDepartment>();
             TPackagingPrices = new HashSet<TPackagingPrice>();
             TPackagingStocks = new HashSet<TPackagingStock>();
@@ -43,6 +44,7 @@ namespace UserManagementAPI.Models
         public DateTime? IncorporationDate { get; set; }
 
         public virtual TCountryLookup? CompanyCountry { get; set; }
+        public virtual ICollection<TClient> TClients { get; set; }
         public virtual ICollection<TDepartment> TDepartments { get; set; }
         public virtual ICollection<TPackagingPrice> TPackagingPrices { get; set; }
         public virtual ICollection<TPackagingStock> TPackagingStocks { get; set; }

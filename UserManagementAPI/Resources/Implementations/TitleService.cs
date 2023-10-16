@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 
 using UserManagementAPI.utils;
-using UserManagementAPI.Models;
 using System.Linq.Expressions;
 
 namespace UserManagementAPI.Resources.Implementations

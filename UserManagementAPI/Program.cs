@@ -108,26 +108,31 @@ EventConfig.ADD_RECORD_OPERATION = eventSettings.recordAdd;
 
 app.MapGet("/ShippingLine/List", async (IShippingService service) => await GetShippingLineListAsync(service)).WithTags("Shipping Line");
 app.MapPost("/ShippingLine/Create", async (ShippingLineLookup oShippingLine, IShippingService service) => await CreateShippingLineAsync(oShippingLine, service)).WithTags("Shipping Line");
+app.MapPost("/ShippingLine/Upload", async (List<ShippingLineLookup> shippinglineList, IShippingService service) => await UploadShippingLineDataAsync(shippinglineList, service)).WithTags("Shipping Line");
 #endregion
 
 #region shipping vessel - routes
 app.MapGet("/ShippingVessel/List",  (IShippingService service) => GetShippingVesselListAsync(service)).WithTags("Shipping Vessel");
 app.MapPost("/ShippingVessel/Create", async (VesselLookup oVessel, IShippingService service) => await CreateShippingVesselAsync(oVessel, service)).WithTags("Shipping Vessel");
+app.MapPost("/ShippingVessel/Upload", async (List<VesselLookup> vesselList, IShippingService service) => await UploadVesselDataAsync(vesselList, service)).WithTags("Shipping Vessel");
 #endregion
 
 #region shippingMethod - routes
 app.MapGet("/ShippingMethod/List", async (IShippingService service) => await GetShippingMethodListAsync(service)).WithTags("Shipping Method");
 app.MapPost("/ShippingMethod/Create", async (ShippingMethodLookup oMethod, IShippingService service) => await CreateShippingMethodAsync(oMethod, service)).WithTags("Shipping Method");
+app.MapPost("/ShippingMethod/Upload", async (List<ShippingMethodLookup> shippingmethodList, IShippingService service) => await UploadShippingMethods(shippingmethodList, service)).WithTags("Shipping Method");
 #endregion
 
 #region shipper-category - routes
 app.MapGet("/ShipperCategory/List", async (IShippingService service) => await GetShipperCategoriesAsync(service)).WithTags("Shipper Category");
 app.MapPost("/ShipperCategory/Create", async (ShipperCategoryLookup oShipCategory, IShippingService service) => await CreateShipperCategoryAsync(oShipCategory, service)).WithTags("Shipper Category");
+app.MapPost("/ShipperCategory/Upload", async (List<ShipperCategoryLookup> shippercategoryList, IShippingService service) => await UploadShipperCategoryDataAsync(shippercategoryList, service)).WithTags("Shipper Category");
 #endregion
 
 #region DeliveryMethod - routes
 app.MapGet("/DeliveryMethod/List", async (IShippingService service) => await GetDeliveryMethodListAsync(service)).WithTags("Delivery Method");
 app.MapPost("/DeliveryMethod/Create", async (DeliveryMethodLookup deliveryMethod, IShippingService service) => await CreateDeliveryMethodAsync(deliveryMethod, service)).WithTags("Delivery Method");
+app.MapPost("/DeliveryMethod/Upload", async (List<DeliveryMethodLookup> deliverymethodList, IShippingService service) => await UploadDeliveryMethodData(deliverymethodList, service)).WithTags("Delivery Method");
 #endregion
 
 #region deliveryzone - routes
@@ -407,6 +412,21 @@ async Task<IResult> CreateDeliveryMethodAsync(DeliveryMethodLookup deliveryMetho
         return Results.BadRequest(x);
     }
 }
+async Task<IResult> UploadDeliveryMethodData(List<DeliveryMethodLookup> deliverymethodList, IShippingService service)
+{
+    if ((deliverymethodList == null) || (deliverymethodList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var opStatus = await service.UploadDeliveryMethodAsync(deliverymethodList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
 async Task<IResult> CreateShipperCategoryAsync(ShipperCategoryLookup oShipCategory, IShippingService service)
 {
     if (oShipCategory.description.Length < 1)
@@ -422,7 +442,22 @@ async Task<IResult> CreateShipperCategoryAsync(ShipperCategoryLookup oShipCatego
         return Results.BadRequest(x);
     }
 }
-async Task<IResult> CreateShippingMethodAsync(ShippingMethodLookup oMethod,IShippingService service)
+async Task<IResult> UploadShipperCategoryDataAsync(List<ShipperCategoryLookup> shippercategoryList, IShippingService service)
+{
+    if ((shippercategoryList == null) || (shippercategoryList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var opStatus = await service.UploadShipperCategoryAsync(shippercategoryList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateShippingMethodAsync(ShippingMethodLookup oMethod, IShippingService service)
 {
     if ((oMethod.shippingMethod.Length < 1) || (oMethod.shippingRoute.Length < 1))
         return Results.BadRequest(@"shipping method and shipping routes cannot have blank values");
@@ -437,7 +472,23 @@ async Task<IResult> CreateShippingMethodAsync(ShippingMethodLookup oMethod,IShip
         return Results.BadRequest(x);
     }
 }
-async Task<IResult> CreateShippingVesselAsync(VesselLookup oVessel,IShippingService service)
+
+async Task<IResult> UploadShippingMethods(List<ShippingMethodLookup> shippingmethodList, IShippingService service)
+{
+    if ((shippingmethodList == null) || (shippingmethodList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var opStatus = await service.UploadShippingMethodDataAsync(shippingmethodList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> CreateShippingVesselAsync(VesselLookup oVessel, IShippingService service)
 {
     if ((oVessel.nameOfvessel.Length < 1) || (oVessel.flagOfvessel.Length < 1))
         return Results.BadRequest(@"name of vessel and flag of vessel cannot be blank");
@@ -455,6 +506,22 @@ async Task<IResult> CreateShippingVesselAsync(VesselLookup oVessel,IShippingServ
         return Results.BadRequest(x);
     }
 }
+
+async Task<IResult> UploadVesselDataAsync(List<VesselLookup> vesselList, IShippingService service)
+{
+    if ((vesselList == null) || (vesselList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var uploadStatus = await service.UploadShippingVesselAsync(vesselList);
+        return Results.Ok(uploadStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
 async Task<IResult> CreateShippingLineAsync(ShippingLineLookup oShippingLine, IShippingService service)
 {
     if (oShippingLine.shippingLine.Length < 1)
@@ -464,6 +531,22 @@ async Task<IResult> CreateShippingLineAsync(ShippingLineLookup oShippingLine, IS
     {
         var opStatus = await service.CreateShippingLineAsync(oShippingLine);
         return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> UploadShippingLineDataAsync(List<ShippingLineLookup> shippinglineList, IShippingService service)
+{
+    if ((shippinglineList == null) || (shippinglineList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var uploadStatus = await service.UploadShippingLineAsync(shippinglineList);
+        return Results.Ok(uploadStatus);
     }
     catch(Exception x)
     {

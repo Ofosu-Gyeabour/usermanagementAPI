@@ -4,7 +4,6 @@ using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Diagnostics;
-using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -83,6 +82,80 @@ namespace UserManagementAPI.Resources.Implementations
                 return response = new DefaultAPIResponse() { 
                     status = false,
                     message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<UploadAPIResponse> UploadShippingLineAsync(IEnumerable<ShippingLineLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<ShippingLineLookup> successList = new List<ShippingLineLookup>();
+            List<ShippingLineLookup> errorList = new List<ShippingLineLookup>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                foreach (var record in payLoad)
+                {
+                    try
+                    {
+                        var query = (from tsl in config.TShippingLines
+                                     where tsl.ShippingLine == record.shippingLine.Trim()
+                                     select new
+                                     {
+                                         id = tsl.Id,
+                                         shippingLine =tsl.ShippingLine
+                                     });
+
+                        if (query.Count() == 0)
+                        {
+                            TShippingLine obj = new TShippingLine()
+                            {
+                                ShippingLine = record.shippingLine.ToUpper().Trim()
+                            };
+
+                            await config.AddAsync(obj);
+                            await config.SaveChangesAsync();
+
+                            success += 1;
+                            successList.Add(record);
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Shipping Line '{record.shippingLine}' already exist in the data store");
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        failed += 1;
+                        errorList.Add(record);
+                        errors.Add($"error: {innerExc.Message}");
+                    }
+                }
+
+                response = new UploadAPIResponse()
+                {
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+
+                return response;
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse() { 
+                    status = false,
+                    message =$"error: {x.Message}",
+                    errorList = errorList
                 };
             }
         }
@@ -318,6 +391,93 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<UploadAPIResponse> UploadShippingVesselAsync(IEnumerable<VesselLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<VesselLookup> successList = new List<VesselLookup>();
+            List<VesselLookup> errorList = new List<VesselLookup>();
+            List<string> errors = new List<string>();
+            TShippingLine tt = null;
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        using (var cfg = new swContext())
+                        {
+                            tt = await cfg.TShippingLines.Where(x => x.ShippingLine == record.oShippingLine.shippingLine.Trim()).FirstOrDefaultAsync();
+                        }
+
+                        var query = (from tv in config.TVessels
+                                        join tsl in config.TShippingLines on tv.ShippingLineId equals tsl.Id
+                                        where tsl.ShippingLine == record.oShippingLine.shippingLine &&
+                                        tv.VesselName == record.nameOfvessel.Trim() &&
+                                        tv.VesselFlag == record.flagOfvessel
+
+                                        select new
+                                        {
+                                            id = tv.Id,
+                                            shippingLine = tsl.ShippingLine,
+                                            shippingLineId = tsl.Id,
+                                            vessel = tv.VesselName,
+                                            flag = tv.VesselFlag
+                                        });
+
+                        if (query.Count() == 0)
+                        {
+                            TVessel vesselObj = new TVessel() { 
+                                ShippingLineId = tt.Id,
+                                VesselName = record.nameOfvessel.ToUpper().Trim(),
+                                VesselFlag = record.flagOfvessel.ToUpper().Trim()
+                            };
+
+                            await config.AddAsync(vesselObj);
+                            await config.SaveChangesAsync();
+
+                            success += 1;
+                            successList.Add(record);
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Vessel with name '{record.nameOfvessel}' already exist for shipping line and flag");
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        failed += 1;
+                        errors.Add($"error: {innerExc.Message}");
+                        errorList.Add(record);
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message =$"error: {x.Message}",
+                    errorList = errorList
+                };
+            }
+        }
+
         #endregion
 
         #region shipping - methods
@@ -409,11 +569,156 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
+        public async Task<UploadAPIResponse> UploadShippingMethodDataAsync(IEnumerable<ShippingMethodLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<ShippingMethodLookup> successList = new List<ShippingMethodLookup>();
+            List<ShippingMethodLookup> errorList = new List<ShippingMethodLookup>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        var query = (from tsm in config.TShippingMethods
+                                     where tsm.Method == record.shippingMethod.Trim() &&
+                                     tsm.Route == record.shippingRoute.Trim()
+
+                                     select new
+                                     {
+                                         id = tsm.Id,
+                                         method = tsm.Method,
+                                         route = tsm.Route
+                                     });
+
+                        if (query.Count() == 0)
+                        {
+                            TShippingMethod shippingMethodObj = new TShippingMethod()
+                            {
+                                Method = record.shippingMethod.ToUpper().Trim(),
+                                Route = record.shippingRoute.ToUpper().Trim()
+                            };
+
+                            await config.AddAsync(shippingMethodObj);
+                            await config.SaveChangesAsync();
+
+                            success += 1;
+                            successList.Add(record);
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Shipping method '{record.shippingMethod}' already exist for the route '{record.shippingRoute}' in the data store");
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        failed += 1;
+                        errorList.Add(record);
+                        errors.Add($"error: '{innerExc.Message}'");
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error:{x.Message}",
+                    errorList = errorList
+                };
+            }
+        }
 
         #endregion
 
         #region shipper - categorization
 
+        public async Task<UploadAPIResponse> UploadShipperCategoryAsync(IEnumerable<ShipperCategoryLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<ShipperCategoryLookup> successList = new List<ShipperCategoryLookup>();
+            List<ShipperCategoryLookup> errorList = new List<ShipperCategoryLookup>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        var Q = (from sCat in config.TShipperCategories
+                                 where sCat.Description == record.description.Trim()
+
+                                 select new
+                                 {
+                                     id = sCat.Id,
+                                     describ = sCat.Description
+                                 });
+
+                        if (Q.Count() == 0)
+                        {
+                            TShipperCategory obj = new TShipperCategory() { Description = record.description.ToUpper().Trim() };
+                            await config.AddAsync(obj);
+                            await config.SaveChangesAsync();
+
+                            success += 1;
+                            successList.Add(record);
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Shipping category '{record.description}' already exist in the data store");
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        failed += 1;
+                        errorList.Add(record);
+                        errors.Add($"error: '{innerExc.Message}'");
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}",
+                    errorList = errorList
+                };
+            }
+        }
         public async Task<DefaultAPIResponse> GetShipperCategoryListAsync()
         {
             List<ShipperCategoryLookup> s_categories = null;
@@ -492,6 +797,81 @@ namespace UserManagementAPI.Resources.Implementations
 
         #region Delivery - methods
 
+        public async Task<UploadAPIResponse> UploadDeliveryMethodAsync(IEnumerable<DeliveryMethodLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<DeliveryMethodLookup> successList = new List<DeliveryMethodLookup>();
+            List<DeliveryMethodLookup> errorList = new List<DeliveryMethodLookup>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        var Q = (from dm in config.TDeliveryMethods
+                                 where dm.Method == record.method.Trim() 
+                                 //&& dm.Description == record.methodDescription.Trim()
+
+                                 select new
+                                 {
+                                     id = dm.Id,
+                                     method = dm.Method,
+                                     describ = dm.Description
+                                 });
+
+                        if (Q.Count() == 0)
+                        {
+                            TDeliveryMethod tdm = new TDeliveryMethod() { 
+                                Method = record.method.ToUpper().Trim(),
+                                Description = record.methodDescription.ToUpper().Trim()
+                            };
+
+                            await config.AddAsync(tdm);
+                            await config.SaveChangesAsync();
+
+                            success += 1;
+                            successList.Add(record);
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Delivery method '{record.method}' already exist in the data store");
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        failed += 1;
+                        errorList.Add(record);
+                        errors.Add($"error: '{innerExc.Message}'");
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: '{x.Message}'",
+                    errorList = errorList
+                };
+            }
+        }
         public async Task<DefaultAPIResponse> GetDeliveryMethodListAsync()
         {
             //get delivery method resources

@@ -5,6 +5,11 @@ namespace UserManagementAPI.Models
 {
     public partial class TCity
     {
+        public TCity()
+        {
+            TClients = new HashSet<TClient>();
+        }
+
         /// <summary>
         /// primary key
         /// </summary>
@@ -17,5 +22,7 @@ namespace UserManagementAPI.Models
         /// Id of country
         /// </summary>
         public int? CountryId { get; set; }
+
+        public virtual ICollection<TClient> TClients { get; set; }
     }
 }
