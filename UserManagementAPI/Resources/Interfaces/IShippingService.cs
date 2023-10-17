@@ -47,19 +47,30 @@ namespace UserManagementAPI.Resources.Interfaces
         DefaultAPIResponse GetDeliveryZoneListAsync();
         Task<DefaultAPIResponse> CreateDeliveryZoneAsync(DeliveryZoneLookup payLoad);
 
+        #region HS-Codes
         Task<DefaultAPIResponse> GetHSCodeListAsync();
         Task<DefaultAPIResponse> CreateHSCodAsync(HSCodeLookup payLoad);
+        Task<UploadAPIResponse> UploadHSCodesAsync(IEnumerable<HSCodeLookup> payLoad);
+        #endregion
 
+        #region Insurance-Type
         Task<DefaultAPIResponse> GetInsuranceTypeListAsync();
         Task<DefaultAPIResponse> CreateInsuranceTypeAsync(InsuranceTypeLookup payLoad);
-
+        Task<UploadAPIResponse> UploadInsuranceTypeAsync(IEnumerable<InsuranceTypeLookup> payLoad);
+        #endregion
+        #region Insurance
         DefaultAPIResponse GetInsuranceListAsync();
         Task<DefaultAPIResponse> CreateInsuranceAsync(InsuranceLookup payLoad);
+        Task<UploadAPIResponse> UploadInsuranceAsync(IEnumerable<InsuranceLookup> payLoad);
+        #endregion
 
+        #region Sailing-Schedule
         DefaultAPIResponse GetSailingScheduleListAsync();
         Task<DefaultAPIResponse> CreateSailingScheduleAsync(SailingScheduleLookup payLoad);
 
         Task<UploadAPIResponse> UploadSailingScheduleAsync(IEnumerable<SailingScheduleLookup> payLoad);
+
+        #endregion
 
     }
 }

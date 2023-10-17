@@ -13,5 +13,7 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> CreatePackageItemAsync(PackageItemLookup payLoad);
         Task<DefaultAPIResponse> CreatePackagingPriceAsync(PackagepriceLookup payLoad);
 
+        Task<UploadAPIResponse> UploadPackageItemAsync(IEnumerable<PackageItemLookup> payLoad);
+        Task<UploadAPIResponse> UploadPackagingPriceAsync(IEnumerable<PackagepriceLookup> payLoad);
     }
 }

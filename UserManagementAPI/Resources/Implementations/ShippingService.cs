@@ -959,7 +959,6 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
-
         #endregion
 
         #region Delivery-Zone
@@ -1069,6 +1068,81 @@ namespace UserManagementAPI.Resources.Implementations
 
         #region HS-Codes
 
+        public async Task<UploadAPIResponse> UploadHSCodesAsync(IEnumerable<HSCodeLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<HSCodeLookup> successList = new List<HSCodeLookup>();
+            List<HSCodeLookup> errorList = new List<HSCodeLookup>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        var Query = (from hs in config.Thscodes
+                                     where hs.Hscode == record.code.Trim()
+                                     && hs.Description == record.description.Trim()
+
+                                     select new
+                                     {
+                                         id = hs.Id,
+                                         code = hs.Hscode,
+                                         describ = hs.Description
+                                     });
+
+                        if (Query.Count() == 0)
+                        {
+                            Thscode obj = new Thscode() { 
+                                Hscode = record.code.ToUpper().Trim(),
+                                Description = record.description.ToUpper().Trim()
+                            };
+
+                            await config.AddAsync(obj);
+                            await config.SaveChangesAsync();
+
+                            success += 1;
+                            successList.Add(record);
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"HS Code '{record.code}' already exist in data store");
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        failed += 1;
+                        errorList.Add(record);
+                        errors.Add($"error: '{innerExc.Message}'");
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: '{x.Message}'",
+                    errorList = errorList
+                };
+            }
+        }
         public async Task<DefaultAPIResponse> GetHSCodeListAsync()
         {
             //get HS code resource 
@@ -1247,11 +1321,172 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
+        public async Task<UploadAPIResponse> UploadInsuranceTypeAsync(IEnumerable<InsuranceTypeLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<InsuranceTypeLookup> successList = new List<InsuranceTypeLookup>();
+            List<InsuranceTypeLookup> errorList = new List<InsuranceTypeLookup>();
+            List<string> errors = new List<string>();
 
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        var Q = (from instype in config.TInsuranceTypes
+                                 where instype.InsuranceType == record.insuranceType.Trim()
+
+                                 select new
+                                 {
+                                     id = instype.Id,
+                                     itype = instype.InsuranceType
+                                 });
+
+                        if (Q.Count() == 0)
+                        {
+                            TInsuranceType obj = new TInsuranceType() { InsuranceType = record.insuranceType.ToUpper().Trim() };
+                            await config.AddAsync(obj);
+                            await config.SaveChangesAsync();
+
+                            success += 1;
+                            successList.Add(record);
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Insurance type '{record.insuranceType}' already exist in the data store");
+                        }
+                    }
+                    catch(Exception exc)
+                    {
+                        failed += 1;
+                        errorList.Add(record);
+                        errors.Add($"errors: '{exc.Message}'");
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}",
+                    errorList = errorList
+                };
+            }
+        }
         #endregion
 
         #region Insurance
 
+        public async Task<UploadAPIResponse> UploadInsuranceAsync(IEnumerable<InsuranceLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<InsuranceLookup> successList = new List<InsuranceLookup>();
+            List<InsuranceLookup> errorList = new List<InsuranceLookup>();
+            List<string> errors = new List<string>();
+            TInsuranceType tt = null;
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        using (var cfg = new swContext())
+                        {
+                            tt = await cfg.TInsuranceTypes.Where(x => x.InsuranceType == record.oInsuranceType.insuranceType.Trim()).FirstOrDefaultAsync();
+                        }
+
+                        if (tt != null)
+                        {
+                            var query = (from ins in config.TInsurances
+                                         join instype in config.TInsuranceTypes on ins.InsuranceTypeId equals instype.Id
+                                         where ins.InsuranceTypeId == tt.Id &&
+                                         ins.Description == record.insuranceDescription.Trim() &&
+                                         ins.UnitPrice == record.unitPrice
+                                         select new
+                                         {
+                                             id =ins.Id,
+                                             instypeId = ins.InsuranceTypeId,
+                                             describ = ins.Description,
+                                             unitP = ins.UnitPrice
+                                         });
+
+                            if (query.Count() == 0)
+                            {
+                                TInsurance obj = new TInsurance() { 
+                                    InsuranceTypeId = tt.Id,
+                                    Description = record.insuranceDescription.ToUpper().Trim(),
+                                    UnitPrice = record.unitPrice
+                                };
+
+                                await config.AddAsync(obj);
+                                await config.SaveChangesAsync();
+
+                                success += 1;
+                                successList.Add(record);
+                            }
+                            else
+                            {
+                                failed += 1;
+                                errorList.Add(record);
+                                errors.Add($"Insurance '{record.insuranceDescription}' already added to the datastore");
+                            }
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errors.Add($"Insurance Type '{record.oInsuranceType.insuranceType}' does not exist in the data store");
+                            errorList.Add(record);
+                        }
+                    }
+                    catch(Exception exc)
+                    {
+                        failed += 1;
+                        errorList.Add(record);
+                        errors.Add($"error: '{exc.Message}'");
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}",
+                    errorList = errorList
+                };
+            }
+        }
         public DefaultAPIResponse GetInsuranceListAsync()
         {
             List<InsuranceLookup> insurance_list = null;

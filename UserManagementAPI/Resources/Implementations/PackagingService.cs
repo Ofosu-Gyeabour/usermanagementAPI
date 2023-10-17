@@ -3,6 +3,8 @@ using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
 using System.Runtime.InteropServices;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
+using System.Diagnostics;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -206,6 +208,183 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<UploadAPIResponse> UploadPackageItemAsync(IEnumerable<PackageItemLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<PackageItemLookup> successList = new List<PackageItemLookup>();
+            List<PackageItemLookup> errorList = new List<PackageItemLookup>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        var Query = (from pck in config.TPackagingItems
+                                     where pck.PackagingItem == record.name.Trim()
+                                     && pck.PackagingDescription == record.description.Trim()
+
+                                     select new
+                                     {
+                                         id = pck.Id,
+                                         pItem = pck.PackagingItem,
+                                         describ = pck.PackagingDescription
+                                     });
+
+                        if (Query.Count() == 0)
+                        {
+                            TPackagingItem obj = new TPackagingItem() { 
+                                PackagingItem = record.name.ToUpper().Trim(),
+                                PackagingDescription = record.description.ToUpper().Trim()
+                            };
+
+                            await config.AddAsync(obj);
+                            await config.SaveChangesAsync();
+
+                            success += 1;
+                            successList.Add(record);
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Packaging Item '{record.name.Trim()}' already exist in the data store");
+                        }
+                    }
+                    catch(Exception exc)
+                    {
+                        failed += 1;
+                        errorList.Add(record);
+                        errors.Add($"error: '{exc.Message}'");
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse() { 
+                    status = false,
+                    message = $"error: '{x.Message}'",
+                    errorList = errorList
+                };
+            }
+        }
+    
+        public async Task<UploadAPIResponse> UploadPackagingPriceAsync(IEnumerable<PackagepriceLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<PackagepriceLookup> successList = new List<PackagepriceLookup>();
+            List<PackagepriceLookup> errorList = new List<PackagepriceLookup>();
+            List<string> errors = new List<string>();
+
+            Tcompany comp = null;
+            TPackagingItem pck = null;
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        using (var cfg = new swContext())
+                        {
+                            comp = await cfg.Tcompanies.Where(c => c.Company == record.oCompany.nameOfcompany.Trim()).FirstOrDefaultAsync();
+                            pck = await cfg.TPackagingItems.Where(p => p.PackagingItem == record.oPackageItem.name.Trim()).FirstOrDefaultAsync();
+                        }
+
+                        if ((comp != null) && (pck != null))
+                        {
+                            //check if record exist
+                            var Query = (from pp in config.TPackagingPrices
+                                         join pitem in config.TPackagingItems on pp.PackagingItemId equals pitem.Id
+                                         join cmp in config.Tcompanies on pp.CompanyId equals cmp.CompanyId
+                                         where pp.PackagingItemId == pck.Id &&
+                                         pp.CompanyId == comp.CompanyId &&
+                                         pp.UnitPrice == record.unitPrice &&
+                                         pp.WholesalePrice == record.wholesalePrice &&
+                                         pp.RetailPrice == record.retailPrice
+
+                                         select new
+                                         {
+                                             id = pp.Id,
+                                             rPrice = pp.RetailPrice
+                                         });
+
+                            if (Query.Count() == 0)
+                            {
+                                TPackagingPrice obj = new TPackagingPrice()
+                                {
+                                    PackagingItemId = pck.Id,
+                                    UnitPrice = record.unitPrice,
+                                    WholesalePrice = record.wholesalePrice,
+                                    RetailPrice = record.retailPrice,
+                                    CompanyId = comp.CompanyId
+                                };
+
+                                await config.AddAsync(obj);
+                                await config.SaveChangesAsync();
+
+                                success += 1;
+                                successList.Add(record);
+                            }
+                            else
+                            {
+                                failed += 1;
+                                errorList.Add(record);
+                                errors.Add($"Packaging price record already exist with data points");
+                            }
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"error: either company '{record.oCompany.nameOfcompany}' or packaging item '{record.oPackageItem.name}' cannot be found in the data store");
+                        }
+                    }
+                    catch(Exception exc)
+                    {
+                        failed += 1;
+                        errorList.Add(record);
+                        errors.Add($"error: '{exc.Message}'");
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse()
+                {
+                    status = false,
+                    message = $"error: '{x.Message}'",
+                    errorList = errorList
+                };
+            }
+        }
 
     }
 }

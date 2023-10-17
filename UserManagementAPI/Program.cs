@@ -143,31 +143,36 @@ app.MapPost("/DeliveryZone/Create", async (DeliveryZoneLookup deliveryZone, IShi
 #region HScode - routes
 app.MapGet("/HSCode/List", async (IShippingService service) => await GetHSCodeListAsync(service)).WithTags("HS Code");
 app.MapPost("/HSCode/Create", async (HSCodeLookup hscode, IShippingService service) => await CreateHSCodeAsync(hscode, service)).WithTags("HS Code");
+app.MapPost("/HSCode/Upload", async (List<HSCodeLookup> hscodeList, IShippingService service) => await UploadHSCodeData(hscodeList, service)).WithTags("HS Code");
 #endregion
 
 #region insurance type routes 
 app.MapGet("/InsuranceType/List", async (IShippingService service) => await GetInsuranceTypeListAsync(service)).WithTags("Insurance Type");
 app.MapPost("/InsuranceType/Create", async (InsuranceTypeLookup insuranceType, IShippingService service) => await CreateInsuranceTypeAsync(insuranceType, service)).WithTags("Insurance Type");
+app.MapPost("/InsuranceType/Upload", async (List<InsuranceTypeLookup> insurancetypeList, IShippingService service) => await UploadInsuranceType(insurancetypeList, service)).WithTags("Insurance Type");
 #endregion
 
 #region Insurance routes
 app.MapGet("/Insurance/List",  (IShippingService service) =>  GetInsuranceListAsync(service)).WithTags("Insurance");
 app.MapPost("/Insurance/Create", async (InsuranceLookup insurance, IShippingService service) => await CreateInsuranceAsync(insurance, service)).WithTags("Insurance");
+app.MapPost("/Insurance/Upload", async (List<InsuranceLookup> insuranceList, IShippingService service) => await UploadInsurance(insuranceList, service)).WithTags("Insurance");
 #endregion
 
 #region sailing schedule routes
 app.MapGet("/SailingSchedule/List",  (IShippingService service) =>  GetSailingScheduleListAsync(service)).WithTags("Sailing Schedule");
 app.MapPost("/SailingSchedule/Create", async (SailingScheduleLookup schedule, IShippingService service) => await CreateSailingScheduleAsync(schedule, service)).WithTags("Sailing Schedule");
+app.MapPost("/SailingSchedule/Upload", async (List<SailingScheduleLookup> sailingscheduleList, IShippingService service) => await UploadSailingScheduleData(sailingscheduleList, service)).WithTags("Sailing Schedule");
 #endregion
 
 #region Packaging - routes
 
 app.MapGet("/PackagingItem/Get", async (IPackagingService service) => await GetPackagingItemListAsync(service)).WithTags("PackagingItem");
 app.MapGet("/PackagingPrice/Get", async (IPackagingService service) => await GetPackagingPriceListAsync(service)).WithTags("PackagingPrice");
+app.MapPost("/PackagingItem/Upload", async (List<PackageItemLookup> packageitemList, IPackagingService service) => await UploadPackageItemData(packageitemList, service)).WithTags("PackagingItem");
 
 app.MapPost("/PackagingItem/Create", async (PackageItemLookup oPackageItem, IPackagingService service) => await CreatePackagingItemAsync(oPackageItem, service)).WithTags("PackagingItem");
 app.MapPost("/PackagingPrice/Create", async (PackagepriceLookup oPackagePrice, IPackagingService service) => await CreatePackagingPriceAsync(oPackagePrice, service)).WithTags("PackagingPrice");
-
+app.MapPost("/PackagingPrice/Upload", async (List<PackagepriceLookup> packagepriceList, IPackagingService service) => await UploadPackagePriceData(packagepriceList, service)).WithTags("PackagingPrice");
 #endregion
 
 #region Seal - routes
@@ -337,6 +342,22 @@ async Task<IResult> CreateSailingScheduleAsync(SailingScheduleLookup schedule, I
         return Results.BadRequest(x);
     }
 }
+
+async Task<IResult> UploadSailingScheduleData(List<SailingScheduleLookup> sailingscheduleList, IShippingService service)
+{
+    if ((sailingscheduleList == null) || (sailingscheduleList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var opStatus = await service.UploadSailingScheduleAsync(sailingscheduleList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
 async Task<IResult> CreateInsuranceAsync(InsuranceLookup insurance, IShippingService service)
 {
     if ((insurance.oInsuranceType.id == 0) || (insurance.unitPrice == 0m) || (insurance.insuranceDescription.Length < 1))
@@ -346,6 +367,22 @@ async Task<IResult> CreateInsuranceAsync(InsuranceLookup insurance, IShippingSer
     {
         var opStatus = await service.CreateInsuranceAsync(insurance);
         return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> UploadInsurance(List<InsuranceLookup> insuranceList, IShippingService service)
+{
+    if ((insuranceList == null) || (insuranceList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var uploadStatus = await service.UploadInsuranceAsync(insuranceList);
+        return Results.Ok(uploadStatus);
     }
     catch(Exception x)
     {
@@ -367,6 +404,22 @@ async Task<IResult> CreateInsuranceTypeAsync(InsuranceTypeLookup insuranceType, 
         return Results.BadRequest(x);
     }
 }
+
+async Task<IResult> UploadInsuranceType(List<InsuranceTypeLookup> insurancetypeList, IShippingService service)
+{
+    if ((insurancetypeList == null) || (insurancetypeList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var opStatus = await service.UploadInsuranceTypeAsync(insurancetypeList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
 async Task<IResult> CreateHSCodeAsync(HSCodeLookup hscode, IShippingService service)
 {
     if ((hscode.code.Length < 1) || (hscode.description.Length < 1))
@@ -375,6 +428,22 @@ async Task<IResult> CreateHSCodeAsync(HSCodeLookup hscode, IShippingService serv
     try
     {
         var opStatus = await service.CreateHSCodAsync(hscode);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+
+async Task<IResult> UploadHSCodeData(List<HSCodeLookup> hscodeList, IShippingService service)
+{
+    if ((hscodeList == null) || (hscodeList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var opStatus = await service.UploadHSCodesAsync(hscodeList);
         return Results.Ok(opStatus);
     }
     catch(Exception x)
@@ -835,6 +904,21 @@ async Task<IResult> CreatePackagingItemAsync(PackageItemLookup oPackageItem, IPa
     }
 }
 
+async Task<IResult> UploadPackageItemData(List<PackageItemLookup> packageitemList, IPackagingService service)
+{
+    if ((packageitemList == null) || (packageitemList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var opStatus = await service.UploadPackageItemAsync(packageitemList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
 async Task<IResult> CreatePackagingPriceAsync(PackagepriceLookup oPackagePrice, IPackagingService service)
 {
     if (service == null)
@@ -860,6 +944,21 @@ async Task<IResult> CreatePackagingPriceAsync(PackagepriceLookup oPackagePrice, 
     }
 }
 
+async Task<IResult> UploadPackagePriceData(List<PackagepriceLookup> packagepriceList, IPackagingService service)
+{
+    if ((packagepriceList == null) || (packagepriceList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var opStatus = await service.UploadPackagingPriceAsync(packagepriceList);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.Ok(x);
+    }
+}
 #endregion
 
 #region Adhoc - tasks
