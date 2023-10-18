@@ -13,13 +13,13 @@ namespace UserManagementAPI.Models
         /// <summary>
         /// reference to delivery method
         /// </summary>
-        public int? DeliverymethodId { get; set; }
+        //public int? DeliverymethodId { get; set; }
         /// <summary>
         /// reference to country
         /// </summary>
         public int? CountryId { get; set; }
+        public string? Description { get; set; }
 
         public virtual TCountryLookup? Country { get; set; }
-        public virtual TDeliveryMethod? Deliverymethod { get; set; }
     }
 }

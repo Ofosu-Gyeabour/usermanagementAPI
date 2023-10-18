@@ -3,6 +3,7 @@
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {

@@ -1,11 +1,12 @@
-﻿global using UserManagementAPI.Models;
-
+﻿global using Microsoft.EntityFrameworkCore;
+global using UserManagementAPI.Models;
 using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Swashbuckle.AspNetCore.SwaggerUI;
+using UserManagementAPI.Models;
 using UserManagementAPI.utils;
-
 
 namespace UserManagementAPI.Data
 {
@@ -39,7 +40,6 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TDialCode> TDialCodes { get; set; } = null!;
         public virtual DbSet<TEvent> TEvents { get; set; } = null!;
         public virtual DbSet<TInsurance> TInsurances { get; set; } = null!;
-        //public virtual DbSet<TInsuranceType> TInsuranceTypes { get; set; } = null!;
         public virtual DbSet<TLogger> TLoggers { get; set; } = null!;
         public virtual DbSet<TModule> TModules { get; set; } = null!;
         public virtual DbSet<TPackagingItem> TPackagingItems { get; set; } = null!;
@@ -74,8 +74,8 @@ namespace UserManagementAPI.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
-            {              
-                optionsBuilder.UseSqlServer(ConfigObject.DB_CONN);
+            { 
+                optionsBuilder.UseSqlServer(UserManagementAPI.utils.ConfigObject.DB_CONN);
             }
         }
 
@@ -589,10 +589,6 @@ namespace UserManagementAPI.Data
                     .HasColumnName("countryId")
                     .HasComment("reference to country");
 
-                entity.Property(e => e.DeliverymethodId)
-                    .HasColumnName("deliverymethodID")
-                    .HasComment("reference to delivery method");
-
                 entity.Property(e => e.Zone)
                     .HasMaxLength(60)
                     .IsUnicode(false)
@@ -603,11 +599,6 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TDeliveryZones)
                     .HasForeignKey(d => d.CountryId)
                     .HasConstraintName("FK_tDeliveryZone_tCountryLookup");
-
-                entity.HasOne(d => d.Deliverymethod)
-                    .WithMany(p => p.TDeliveryZones)
-                    .HasForeignKey(d => d.DeliverymethodId)
-                    .HasConstraintName("FK_tDeliveryZone_tDeliveryMethod");
             });
 
             modelBuilder.Entity<TDepartment>(entity =>
@@ -681,24 +672,15 @@ namespace UserManagementAPI.Data
                     .HasColumnName("description")
                     .HasComment("description of insurance");
 
+                entity.Property(e => e.InsuranceType)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("insuranceType");
+
                 entity.Property(e => e.UnitPrice)
                     .HasColumnType("numeric(9, 2)")
                     .HasColumnName("unitPrice")
                     .HasComment("unit price of insurance");
-
-            });
-
-            modelBuilder.Entity<TInsuranceType>(entity =>
-            {
-                entity.ToTable("tInsuranceType");
-
-                entity.Property(e => e.Id).HasComment("primary key");
-
-                entity.Property(e => e.InsuranceType)
-                    .HasMaxLength(100)
-                    .IsUnicode(false)
-                    .HasColumnName("insuranceType")
-                    .HasComment("type of insurance");
             });
 
             modelBuilder.Entity<TLogger>(entity =>

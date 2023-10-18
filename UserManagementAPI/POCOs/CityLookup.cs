@@ -185,7 +185,8 @@ namespace UserManagementAPI.POCOs
     {
         public int id { get; set; } = 0;
         public string zoneName { get; set; } = string.Empty;
-        public DeliveryMethodLookup oDeliveryMethod { get; set; }
+        //public DeliveryMethodLookup oDeliveryMethod { get; set; }
+        public string zoneDescription { get; set; } = string.Empty;
         public CountryLookup oCountry { get; set; }
     }
 

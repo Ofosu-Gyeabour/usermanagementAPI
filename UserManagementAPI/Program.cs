@@ -138,6 +138,7 @@ app.MapPost("/DeliveryMethod/Upload", async (List<DeliveryMethodLookup> delivery
 #region deliveryzone - routes
 app.MapGet("/DeliveryZone/List",  (IShippingService service) =>  GetDeliveryZoneListAsync(service)).WithTags("Delivery Zone");
 app.MapPost("/DeliveryZone/Create", async (DeliveryZoneLookup deliveryZone, IShippingService service) => await CreateDeliveryZoneAsync(deliveryZone, service)).WithTags("Delivery Zone");
+app.MapPost("/DeliveryZone/Upload", async (List<DeliveryZoneLookup> deliveryzoneList, IShippingService service) => await UploadDeliveryZoneDataAsync(deliveryzoneList, service)).WithTags("Delivery Zone");
 #endregion
 
 #region HScode - routes
@@ -156,7 +157,7 @@ app.MapPost("/HSCode/Upload", async (List<HSCodeLookup> hscodeList, IShippingSer
 #region Insurance routes
 app.MapGet("/Insurance/List",  (IShippingService service) =>  GetInsuranceListAsync(service)).WithTags("Insurance");
 app.MapPost("/Insurance/Create", async (InsuranceLookup insurance, IShippingService service) => await CreateInsuranceAsync(insurance, service)).WithTags("Insurance");
-app.MapPost("/Insurance/Upload", async (List<InsuranceLookup> insuranceList, IShippingService service) => await UploadInsurance(insuranceList, service)).WithTags("Insurance");
+app.MapPost("/Insurance/Upload", async (List<InsuranceLookup> insuranceList, IShippingService service) => await UploadInsuranceAsync(insuranceList, service)).WithTags("Insurance");
 #endregion
 
 #region sailing schedule routes
@@ -375,7 +376,7 @@ async Task<IResult> CreateInsuranceAsync(InsuranceLookup insurance, IShippingSer
     }
 }
 
-async Task<IResult> UploadInsurance(List<InsuranceLookup> insuranceList, IShippingService service)
+async Task<IResult> UploadInsuranceAsync(List<InsuranceLookup> insuranceList, IShippingService service)
 {
     if ((insuranceList == null) || (insuranceList.Count() == 0))
         return Results.NoContent();
@@ -454,13 +455,28 @@ async Task<IResult> UploadHSCodeData(List<HSCodeLookup> hscodeList, IShippingSer
 }
 async Task<IResult> CreateDeliveryZoneAsync(DeliveryZoneLookup deliveryZone, IShippingService service)
 {
-    if ((deliveryZone.oDeliveryMethod.id == 0) || (deliveryZone.zoneName.Length < 1) || (deliveryZone.oCountry.id == 0))
+    if ( (deliveryZone.zoneName.Length < 1) || (deliveryZone.oCountry.id == 0))
         return Results.BadRequest(@"delivery method, zone name and country cannot be blank");
 
     try
     {
         var opStatus = await service.CreateDeliveryZoneAsync(deliveryZone);
         return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> UploadDeliveryZoneDataAsync(List<DeliveryZoneLookup> deliveryzoneList,IShippingService service)
+{
+    if ((deliveryzoneList == null) || (deliveryzoneList.Count() == 0))
+        return Results.NoContent();
+
+    try
+    {
+        var uploadStatus = await service.UploadDeliveryZoneAsync(deliveryzoneList);
+        return Results.Ok(uploadStatus);
     }
     catch(Exception x)
     {

@@ -44,8 +44,12 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<UploadAPIResponse> UploadDeliveryMethodAsync(IEnumerable<DeliveryMethodLookup> payLoad);
         #endregion
 
+        #region Delivery - Zone
         DefaultAPIResponse GetDeliveryZoneListAsync();
         Task<DefaultAPIResponse> CreateDeliveryZoneAsync(DeliveryZoneLookup payLoad);
+        Task<UploadAPIResponse> UploadDeliveryZoneAsync(IEnumerable<DeliveryZoneLookup> payLoad);
+
+        #endregion
 
         #region HS-Codes
         Task<DefaultAPIResponse> GetHSCodeListAsync();

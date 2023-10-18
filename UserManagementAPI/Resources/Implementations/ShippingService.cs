@@ -4,6 +4,7 @@ using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Diagnostics;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -969,20 +970,17 @@ namespace UserManagementAPI.Resources.Implementations
             try
             {
                 var query = (from dz in config.TDeliveryZones
-                             join dm in config.TDeliveryMethods on dz.DeliverymethodId equals dm.Id
                              join c in config.TCountryLookups on dz.CountryId equals c.CountryId
 
                              select new
                              {
                                  Id = dz.Id,
                                  nameOfzone = dz.Zone,
-                                 method = dm.Method,
-                                 methodId = dm.Id,
                                  countryId = c.CountryId,
                                  nameOfcountry = c.CountryName
                              });
 
-                if (query != null)
+                if (query.Count() > 0)
                 {
                     dzones = new List<DeliveryZoneLookup>();
                     foreach(var q in query)
@@ -991,11 +989,6 @@ namespace UserManagementAPI.Resources.Implementations
                         {
                             id = q.Id,
                             zoneName = q.nameOfzone,
-                            oDeliveryMethod = new DeliveryMethodLookup()
-                            {
-                                id = q.methodId,
-                                method = q.method
-                            },
                             oCountry = new CountryLookup()
                             {
                                 id = q.countryId,
@@ -1029,13 +1022,13 @@ namespace UserManagementAPI.Resources.Implementations
         {
             try
             {
-                var record = await config.TDeliveryZones.Where(x => x.Zone == payLoad.zoneName).Where(x => x.DeliverymethodId == payLoad.oDeliveryMethod.id).Where(x => x.CountryId == payLoad.oCountry.id).FirstOrDefaultAsync();
+                var record = await config.TDeliveryZones.Where(x => x.Zone == payLoad.zoneName).Where(x => x.CountryId == payLoad.oCountry.id).FirstOrDefaultAsync();
                 if (record == null)
                 {
                     TDeliveryZone zoneObj = new TDeliveryZone()
                     {
                         Zone = payLoad.zoneName,
-                        DeliverymethodId = payLoad.oDeliveryMethod.id,
+                        Description = payLoad.zoneDescription.ToUpper().Trim(),
                         CountryId = payLoad.oCountry.id
                     };
 
@@ -1063,6 +1056,98 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<UploadAPIResponse> UploadDeliveryZoneAsync(IEnumerable<DeliveryZoneLookup> payLoad)
+        {
+            UploadAPIResponse response = null;
+            int success = 0;
+            int failed = 0;
+            List<DeliveryZoneLookup> successList = new List<DeliveryZoneLookup>();
+            List<DeliveryZoneLookup> errorList = new List<DeliveryZoneLookup>();
+            List<string> errors = new List<string>();
+            TCountryLookup cc = null;
+
+            try
+            {
+                foreach(var record in payLoad)
+                {
+                    try
+                    {
+                        using (var cfg = new swContext())
+                        {
+                            cc = await cfg.TCountryLookups.Where(c => c.CountryName == record.oCountry.nameOfcountry.Trim()).FirstOrDefaultAsync();
+                        }
+
+                        if (cc != null)
+                        {
+                            var Query = (from dz in config.TDeliveryZones
+                                         join cnt in config.TCountryLookups on dz.CountryId equals cnt.CountryId
+                                         where dz.Zone == record.zoneName.ToUpper().Trim() &&
+                                         dz.CountryId == cc.CountryId
+                                         select new
+                                         {
+                                             id = dz.Id,
+                                             nameOfzone = dz.Zone,
+                                             IdOfcountry = dz.CountryId
+                                         });
+
+                            if (Query.Count() == 0)
+                            {
+                                //new 
+                                TDeliveryZone tdz = new TDeliveryZone() { 
+                                    Zone = record.zoneName.ToUpper().Trim(),
+                                    Description = record.zoneDescription.ToUpper().Trim(),
+                                    CountryId = cc.CountryId
+                                };
+
+                                await config.AddAsync(tdz);
+                                await config.SaveChangesAsync();
+
+                                success += 1;
+                                successList.Add(record);
+                            }
+                            else
+                            {
+                                //already existing
+                                failed += 1;
+                                errorList.Add(record);
+                                errors.Add($"Zone '{record.zoneName}' already exist in the data store for country '{record.oCountry.nameOfcountry}'");
+                            }
+                        }
+                        else
+                        {
+                            failed += 1;
+                            errorList.Add(record);
+                            errors.Add($"Country '{record.oCountry.nameOfcountry}' does not exist in the data store");
+                        }
+                    }
+                    catch(Exception innerExc)
+                    {
+                        failed += 1;
+                        errorList.Add(record);
+                        errors.Add($"Zone '{record.zoneName}' could not be added to the data store: {innerExc.Message}");
+                    }
+                }
+
+                return response = new UploadAPIResponse()
+                {
+                    status = true,
+                    successCount = success,
+                    errorCount = failed,
+                    data = successList,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}"
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new UploadAPIResponse() { 
+                    status = false,
+                    message = $"error: '{x.Message}'",
+                    errorList = errorList
+                };
+            }
+        }
 
         #endregion
 
@@ -1411,47 +1496,37 @@ namespace UserManagementAPI.Resources.Implementations
                 {
                     try
                     {
+                        var query = (from ins in config.TInsurances
+                                        where ins.InsuranceType == record.insuranceType &&
+                                        ins.Description == record.insuranceDescription.Trim() &&
+                                        ins.UnitPrice == record.unitPrice
+                                        select new
+                                        {
+                                            id =ins.Id,
+                                            instype = ins.InsuranceType,
+                                            describ = ins.Description,
+                                            unitP = ins.UnitPrice
+                                        });
 
-                        if (tt != null)
+                        if (query.Count() == 0)
                         {
-                            var query = (from ins in config.TInsurances
-                                         where ins.InsuranceType == record.insuranceType &&
-                                         ins.Description == record.insuranceDescription.Trim() &&
-                                         ins.UnitPrice == record.unitPrice
-                                         select new
-                                         {
-                                             id =ins.Id,
-                                             instype = ins.InsuranceType,
-                                             describ = ins.Description,
-                                             unitP = ins.UnitPrice
-                                         });
+                            TInsurance obj = new TInsurance() { 
+                                InsuranceType = record.insuranceType,
+                                Description = record.insuranceDescription.ToUpper().Trim(),
+                                UnitPrice = record.unitPrice
+                            };
 
-                            if (query.Count() == 0)
-                            {
-                                TInsurance obj = new TInsurance() { 
-                                    InsuranceType = record.insuranceType,
-                                    Description = record.insuranceDescription.ToUpper().Trim(),
-                                    UnitPrice = record.unitPrice
-                                };
+                            await config.AddAsync(obj);
+                            await config.SaveChangesAsync();
 
-                                await config.AddAsync(obj);
-                                await config.SaveChangesAsync();
-
-                                success += 1;
-                                successList.Add(record);
-                            }
-                            else
-                            {
-                                failed += 1;
-                                errorList.Add(record);
-                                errors.Add($"Insurance '{record.insuranceDescription}' already added to the datastore");
-                            }
+                            success += 1;
+                            successList.Add(record);
                         }
                         else
                         {
                             failed += 1;
-                            errors.Add($"Insurance Type '{record.insuranceType}' does not exist in the data store");
                             errorList.Add(record);
+                            errors.Add($"Insurance '{record.insuranceDescription}' already added to the datastore");
                         }
                     }
                     catch(Exception exc)

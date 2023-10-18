@@ -7,7 +7,6 @@ namespace UserManagementAPI.Models
     {
         public TDeliveryMethod()
         {
-            TDeliveryZones = new HashSet<TDeliveryZone>();
         }
 
         public int Id { get; set; }
@@ -20,6 +19,5 @@ namespace UserManagementAPI.Models
         /// </summary>
         public string? Description { get; set; }
 
-        public virtual ICollection<TDeliveryZone> TDeliveryZones { get; set; }
     }
 }
