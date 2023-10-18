@@ -147,9 +147,10 @@ app.MapPost("/HSCode/Upload", async (List<HSCodeLookup> hscodeList, IShippingSer
 #endregion
 
 #region insurance type routes 
-app.MapGet("/InsuranceType/List", async (IShippingService service) => await GetInsuranceTypeListAsync(service)).WithTags("Insurance Type");
-app.MapPost("/InsuranceType/Create", async (InsuranceTypeLookup insuranceType, IShippingService service) => await CreateInsuranceTypeAsync(insuranceType, service)).WithTags("Insurance Type");
-app.MapPost("/InsuranceType/Upload", async (List<InsuranceTypeLookup> insurancetypeList, IShippingService service) => await UploadInsuranceType(insurancetypeList, service)).WithTags("Insurance Type");
+//app.MapGet("/InsuranceType/List", async (IShippingService service) => await GetInsuranceTypeListAsync(service)).WithTags("Insurance Type");
+//app.MapPost("/InsuranceType/Create", async (InsuranceTypeLookup insuranceType, IShippingService service) => await CreateInsuranceTypeAsync(insuranceType, service)).WithTags("Insurance Type");
+//app.MapPost("/InsuranceType/Upload", async (List<InsuranceTypeLookup> insurancetypeList, IShippingService service) => await UploadInsuranceType(insurancetypeList, service)).WithTags("Insurance Type");
+
 #endregion
 
 #region Insurance routes
@@ -172,7 +173,7 @@ app.MapPost("/PackagingItem/Upload", async (List<PackageItemLookup> packageitemL
 
 app.MapPost("/PackagingItem/Create", async (PackageItemLookup oPackageItem, IPackagingService service) => await CreatePackagingItemAsync(oPackageItem, service)).WithTags("PackagingItem");
 app.MapPost("/PackagingPrice/Create", async (PackagepriceLookup oPackagePrice, IPackagingService service) => await CreatePackagingPriceAsync(oPackagePrice, service)).WithTags("PackagingPrice");
-app.MapPost("/PackagingPrice/Upload", async (List<PackagepriceLookup> packagepriceList, IPackagingService service) => await UploadPackagePriceData(packagepriceList, service)).WithTags("PackagingPrice");
+app.MapPost("/PackagingPrice/Upload", async (List<PackagepriceLookup> packagepriceList, IPackagingService service) => await UploadPackagePriceDataAsync(packagepriceList, service)).WithTags("PackagingPrice");
 #endregion
 
 #region Seal - routes
@@ -360,7 +361,7 @@ async Task<IResult> UploadSailingScheduleData(List<SailingScheduleLookup> sailin
 }
 async Task<IResult> CreateInsuranceAsync(InsuranceLookup insurance, IShippingService service)
 {
-    if ((insurance.oInsuranceType.id == 0) || (insurance.unitPrice == 0m) || (insurance.insuranceDescription.Length < 1))
+    if ((insurance.insuranceType.Length < 1) || (insurance.unitPrice == 0m) || (insurance.insuranceDescription.Length < 1))
         return Results.BadRequest(@"insurance type, unit price and description cannot be blank");
 
     try
@@ -389,37 +390,37 @@ async Task<IResult> UploadInsurance(List<InsuranceLookup> insuranceList, IShippi
         return Results.BadRequest(x);
     }
 }
-async Task<IResult> CreateInsuranceTypeAsync(InsuranceTypeLookup insuranceType, IShippingService service)
-{
-    if (insuranceType.insuranceType.Length < 1)
-        return Results.BadRequest(@"insurance type cannot be blank");
+//async Task<IResult> CreateInsuranceTypeAsync(InsuranceTypeLookup insuranceType, IShippingService service)
+//{
+//    if (insuranceType.insuranceType.Length < 1)
+//        return Results.BadRequest(@"insurance type cannot be blank");
 
-    try
-    {
-        var opStatus = await service.CreateInsuranceTypeAsync(insuranceType);
-        return Results.Ok(opStatus);
-    }
-    catch(Exception x)
-    {
-        return Results.BadRequest(x);
-    }
-}
+//    try
+//    {
+//        var opStatus = await service.CreateInsuranceTypeAsync(insuranceType);
+//        return Results.Ok(opStatus);
+//    }
+//    catch(Exception x)
+//    {
+//        return Results.BadRequest(x);
+//    }
+//}
 
-async Task<IResult> UploadInsuranceType(List<InsuranceTypeLookup> insurancetypeList, IShippingService service)
-{
-    if ((insurancetypeList == null) || (insurancetypeList.Count() == 0))
-        return Results.NoContent();
+//async Task<IResult> UploadInsuranceType(List<InsuranceTypeLookup> insurancetypeList, IShippingService service)
+//{
+//    if ((insurancetypeList == null) || (insurancetypeList.Count() == 0))
+//        return Results.NoContent();
 
-    try
-    {
-        var opStatus = await service.UploadInsuranceTypeAsync(insurancetypeList);
-        return Results.Ok(opStatus);
-    }
-    catch(Exception x)
-    {
-        return Results.BadRequest(x);
-    }
-}
+//    try
+//    {
+//        var opStatus = await service.UploadInsuranceTypeAsync(insurancetypeList);
+//        return Results.Ok(opStatus);
+//    }
+//    catch(Exception x)
+//    {
+//        return Results.BadRequest(x);
+//    }
+//}
 async Task<IResult> CreateHSCodeAsync(HSCodeLookup hscode, IShippingService service)
 {
     if ((hscode.code.Length < 1) || (hscode.description.Length < 1))
@@ -674,18 +675,18 @@ IResult GetInsuranceListAsync(IShippingService service)
         return Results.BadRequest(x);
     }
 }
-async Task<IResult> GetInsuranceTypeListAsync(IShippingService service)
-{
-    try
-    {
-        var insurance_type_list = await service.GetInsuranceTypeListAsync();
-        return Results.Ok(insurance_type_list);
-    }
-    catch(Exception x)
-    {
-        return Results.BadRequest(x);
-    }
-}
+//async Task<IResult> GetInsuranceTypeListAsync(IShippingService service)
+//{
+//    try
+//    {
+//        var insurance_type_list = await service.GetInsuranceTypeListAsync();
+//        return Results.Ok(insurance_type_list);
+//    }
+//    catch(Exception x)
+//    {
+//        return Results.BadRequest(x);
+//    }
+//}
 async Task<IResult> GetHSCodeListAsync(IShippingService service)
 {
     try
@@ -944,7 +945,7 @@ async Task<IResult> CreatePackagingPriceAsync(PackagepriceLookup oPackagePrice, 
     }
 }
 
-async Task<IResult> UploadPackagePriceData(List<PackagepriceLookup> packagepriceList, IPackagingService service)
+async Task<IResult> UploadPackagePriceDataAsync(List<PackagepriceLookup> packagepriceList, IPackagingService service)
 {
     if ((packagepriceList == null) || (packagepriceList.Count() == 0))
         return Results.NoContent();

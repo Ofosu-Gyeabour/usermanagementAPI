@@ -52,12 +52,14 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> CreateHSCodAsync(HSCodeLookup payLoad);
         Task<UploadAPIResponse> UploadHSCodesAsync(IEnumerable<HSCodeLookup> payLoad);
         #endregion
-
+        /*
         #region Insurance-Type
         Task<DefaultAPIResponse> GetInsuranceTypeListAsync();
         Task<DefaultAPIResponse> CreateInsuranceTypeAsync(InsuranceTypeLookup payLoad);
         Task<UploadAPIResponse> UploadInsuranceTypeAsync(IEnumerable<InsuranceTypeLookup> payLoad);
         #endregion
+        */
+        
         #region Insurance
         DefaultAPIResponse GetInsuranceListAsync();
         Task<DefaultAPIResponse> CreateInsuranceAsync(InsuranceLookup payLoad);

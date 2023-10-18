@@ -9,7 +9,7 @@ namespace UserManagementAPI.Models
         /// <summary>
         /// type of insurance
         /// </summary>
-        public int? InsuranceTypeId { get; set; }
+        public string? InsuranceType { get; set; }
         /// <summary>
         /// description of insurance
         /// </summary>
@@ -19,6 +19,5 @@ namespace UserManagementAPI.Models
         /// </summary>
         public decimal? UnitPrice { get; set; }
 
-        public virtual TInsuranceType? InsuranceType { get; set; }
     }
 }

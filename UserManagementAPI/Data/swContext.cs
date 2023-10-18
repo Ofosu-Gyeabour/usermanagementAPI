@@ -39,7 +39,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TDialCode> TDialCodes { get; set; } = null!;
         public virtual DbSet<TEvent> TEvents { get; set; } = null!;
         public virtual DbSet<TInsurance> TInsurances { get; set; } = null!;
-        public virtual DbSet<TInsuranceType> TInsuranceTypes { get; set; } = null!;
+        //public virtual DbSet<TInsuranceType> TInsuranceTypes { get; set; } = null!;
         public virtual DbSet<TLogger> TLoggers { get; set; } = null!;
         public virtual DbSet<TModule> TModules { get; set; } = null!;
         public virtual DbSet<TPackagingItem> TPackagingItems { get; set; } = null!;
@@ -681,19 +681,11 @@ namespace UserManagementAPI.Data
                     .HasColumnName("description")
                     .HasComment("description of insurance");
 
-                entity.Property(e => e.InsuranceTypeId)
-                    .HasColumnName("insuranceTypeId")
-                    .HasComment("type of insurance");
-
                 entity.Property(e => e.UnitPrice)
                     .HasColumnType("numeric(9, 2)")
                     .HasColumnName("unitPrice")
                     .HasComment("unit price of insurance");
 
-                entity.HasOne(d => d.InsuranceType)
-                    .WithMany(p => p.TInsurances)
-                    .HasForeignKey(d => d.InsuranceTypeId)
-                    .HasConstraintName("FK_tInsurance_tInsuranceType");
             });
 
             modelBuilder.Entity<TInsuranceType>(entity =>

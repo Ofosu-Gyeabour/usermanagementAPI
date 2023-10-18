@@ -1236,7 +1236,7 @@ namespace UserManagementAPI.Resources.Implementations
         #endregion
 
         #region Insurance type
-
+        /*
         public async Task<DefaultAPIResponse> GetInsuranceTypeListAsync()
         {
             List<InsuranceTypeLookup> results = null;
@@ -1390,6 +1390,7 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
+        */
         #endregion
 
         #region Insurance
@@ -1410,22 +1411,17 @@ namespace UserManagementAPI.Resources.Implementations
                 {
                     try
                     {
-                        using (var cfg = new swContext())
-                        {
-                            tt = await cfg.TInsuranceTypes.Where(x => x.InsuranceType == record.oInsuranceType.insuranceType.Trim()).FirstOrDefaultAsync();
-                        }
 
                         if (tt != null)
                         {
                             var query = (from ins in config.TInsurances
-                                         join instype in config.TInsuranceTypes on ins.InsuranceTypeId equals instype.Id
-                                         where ins.InsuranceTypeId == tt.Id &&
+                                         where ins.InsuranceType == record.insuranceType &&
                                          ins.Description == record.insuranceDescription.Trim() &&
                                          ins.UnitPrice == record.unitPrice
                                          select new
                                          {
                                              id =ins.Id,
-                                             instypeId = ins.InsuranceTypeId,
+                                             instype = ins.InsuranceType,
                                              describ = ins.Description,
                                              unitP = ins.UnitPrice
                                          });
@@ -1433,7 +1429,7 @@ namespace UserManagementAPI.Resources.Implementations
                             if (query.Count() == 0)
                             {
                                 TInsurance obj = new TInsurance() { 
-                                    InsuranceTypeId = tt.Id,
+                                    InsuranceType = record.insuranceType,
                                     Description = record.insuranceDescription.ToUpper().Trim(),
                                     UnitPrice = record.unitPrice
                                 };
@@ -1454,7 +1450,7 @@ namespace UserManagementAPI.Resources.Implementations
                         else
                         {
                             failed += 1;
-                            errors.Add($"Insurance Type '{record.oInsuranceType.insuranceType}' does not exist in the data store");
+                            errors.Add($"Insurance Type '{record.insuranceType}' does not exist in the data store");
                             errorList.Add(record);
                         }
                     }
@@ -1493,15 +1489,12 @@ namespace UserManagementAPI.Resources.Implementations
             try
             {
                 var query = (from i in config.TInsurances
-                             join ityp in config.TInsuranceTypes on i.InsuranceTypeId equals ityp.Id
-
                              select new
                              {
                                  Id = i.Id,
+                                 insuranceType = i.InsuranceType,
                                  description = i.Description,
-                                 unitPrice = i.UnitPrice,
-                                 insuranceTypeId = ityp.Id,
-                                 insuranceType = ityp.InsuranceType
+                                 unitPrice = i.UnitPrice
                              });
 
                 if (query != null)
@@ -1512,13 +1505,9 @@ namespace UserManagementAPI.Resources.Implementations
                         var obj = new InsuranceLookup()
                         {
                             id = q.Id,
+                            insuranceType = q.insuranceType,
                             insuranceDescription = q.description,
-                            unitPrice = (decimal)q.unitPrice,
-                            oInsuranceType = new InsuranceTypeLookup()
-                            {
-                                id = q.insuranceTypeId,
-                                insuranceType = q.insuranceType
-                            }
+                            unitPrice = (decimal)q.unitPrice
                         };
 
                         insurance_list.Add(obj);
@@ -1548,14 +1537,26 @@ namespace UserManagementAPI.Resources.Implementations
         {
             try
             {
-                var record = await config.TInsurances.Where(i => i.InsuranceTypeId == payLoad.oInsuranceType.id).Where(z => z.UnitPrice == payLoad.unitPrice)
-                                                     .Where(a => a.Description == payLoad.insuranceDescription).FirstOrDefaultAsync();
+                //var record = await config.TInsurances.Where(i => i.InsuranceType == payLoad.insuranceType.Trim()).Where(z => z.UnitPrice == payLoad.unitPrice)
+                //                                     .Where(a => a.Description == payLoad.insuranceDescription).FirstOrDefaultAsync();
 
-                if (record == null)
+                var record = (from i in config.TInsurances
+                             where i.InsuranceType == payLoad.insuranceType.Trim() && 
+                             i.UnitPrice == payLoad.unitPrice &&
+                             i.Description == payLoad.insuranceDescription.Trim()
+                             select new
+                             {
+                                 id = i.Id,
+                                 instype= i.InsuranceType,
+                                 describ = i.Description,
+                                 unitP = i.UnitPrice
+                             });
+
+                if (record.Count() == 0)
                 {
                     TInsurance obj = new TInsurance()
                     {
-                        InsuranceTypeId = payLoad.oInsuranceType.id,
+                        InsuranceType = payLoad.insuranceType,
                         Description = payLoad.insuranceDescription,
                         UnitPrice = payLoad.unitPrice
                     };
@@ -1572,13 +1573,10 @@ namespace UserManagementAPI.Resources.Implementations
                 }
                 else
                 {
-                    record.Description = payLoad.insuranceDescription;
-                    await config.SaveChangesAsync();
-
                     response = new DefaultAPIResponse()
                     {
                         status = false,
-                        message = $"Insurance '{payLoad.oInsuranceType.insuranceType}' already exist: Description updated in the data store"
+                        message = $"Insurance '{payLoad.insuranceType}' already exist: Description updated in the data store"
                     };
                 }
 

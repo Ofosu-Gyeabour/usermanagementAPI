@@ -196,18 +196,19 @@ namespace UserManagementAPI.POCOs
         public string description { get; set; } = string.Empty;
     }
 
-    public class InsuranceTypeLookup
-    {
-        public int id { get; set; } = 0;
-        public string insuranceType { get; set; } = string.Empty;
-    }
+    //public class InsuranceTypeLookup
+    //{
+    //    public int id { get; set; } = 0;
+    //    public string insuranceType { get; set; } = string.Empty;
+    //}
 
     public class InsuranceLookup
     {
         public int id { get; set; } = 0;
+        public string insuranceType { get; set; } = string.Empty;
         public string insuranceDescription { get; set; } = string.Empty;
         public decimal unitPrice { get; set; } = 0m;
-        public InsuranceTypeLookup oInsuranceType { get; set; }
+        //public InsuranceTypeLookup oInsuranceType { get; set; }
     }
 
     public class SailingScheduleLookup
