@@ -222,4 +222,36 @@ namespace UserManagementAPI.POCOs
         public DateTime dateOfdeparture { get; set; }
         public DateTime dateOfarrival { get; set; }
     }
+
+    public class CorporateCustomerLookup
+    {
+        public int id { get; set; }
+        public string accountNo { get; set; } = string.Empty;
+        public CityLookup oCity { get; set; }
+        public CountryLookup oCountry { get; set; }
+        public string postCode { get; set; } = string.Empty;
+        public string mobileNo { get; set; } = string.Empty;
+        public string whatsappNo { get; set; } = string.Empty;
+        public string homeTelephone { get; set; } = string.Empty;
+        public string workTelephone { get; set; } = string.Empty;
+        public string clientEmail { get; set; } = string.Empty;
+    }
+
+    public class IndividualCustomerLookup
+    {
+        public int id { get; set; } = 0;
+        public string accountNo { get; set; } = string.Empty;
+        public string surname { get; set; } = string.Empty;
+        public string firstname { get; set; } = string.Empty;
+        public string middlenames { get; set; } = string.Empty;
+        public CityLookup oCity { get; set; }
+        public CountryLookup oCountry { get; set; }
+        public string postCode { get; set; } = string.Empty;
+        public string mobileNo { get; set; } = string.Empty;
+        public string whatsappNo { get; set; } = string.Empty;
+        public string homeTelephone { get; set; } = string.Empty;
+        public string workTelephone { get; set; } = string.Empty;
+        public string clientEmail { get; set; } = string.Empty;
+    }
+
 }

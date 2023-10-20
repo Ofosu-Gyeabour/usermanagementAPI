@@ -48,6 +48,8 @@ builder.Services.AddSingleton<ISealService, SealService>();
 builder.Services.AddSingleton<IShippingPortService, ShippingPortService>();
 builder.Services.AddSingleton<IShippingService, ShippingService>();
 
+builder.Services.AddSingleton<IClientService, ClientService>();
+
 #endregion
 
 #region CORS
@@ -325,6 +327,53 @@ app.MapPost("/Title/Upload", async (List<TitleLookup> titleList, ITitleService s
 app.MapPost("/ShippingPort/Create", async (ShippingPortLookup oShippingPort, IShippingPortService service) => await CreateShippingPortAsync(oShippingPort, service)).WithTags("Shipping Port");
 app.MapGet("/ShippingPort/List", (IShippingPortService service) => GetShippingPortListAsync(service)).WithTags("Shipping Port");
 app.MapPost("/ShippingPort/Upload", async (List<ShippingPortLookup> shippingportList, IShippingPortService service) => await UploadShippingPortData(shippingportList, service)).WithTags("Shipping Port");
+#endregion
+
+#region Client - routes
+
+app.MapGet("/Client/List", async (IClientService service) => await GetClientListAsync(service)).WithTags("Client");
+app.MapGet("/Client/CorporateList", async (IClientService service) => await GetCorporateClientAsync(service)).WithTags("Client");
+app.MapGet("/Client/IndividualList", async (IClientService service) => await GetIndividualClientAsync(service)).WithTags("Client");
+#endregion
+
+#region Client - Tasks
+
+async Task<IResult> GetClientListAsync(IClientService service)
+{
+    try
+    {
+        var opStatus = await service.GetClientInformationAsync();
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetCorporateClientAsync(IClientService service)
+{
+    try
+    {
+        var opStatus = await service.GetCorporateClientAsync();
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
+async Task<IResult> GetIndividualClientAsync(IClientService service)
+{
+    try
+    {
+        var opStatus = await service.GetIndividualClientAsync();
+        return Results.Ok(opStatus);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x);
+    }
+}
 #endregion
 
 #region tasks
