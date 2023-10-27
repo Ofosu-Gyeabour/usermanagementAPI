@@ -12,5 +12,11 @@ namespace UserManagementAPI.Resources.Interfaces
 
         Task<DefaultAPIResponse> GetCorporateClientAsync();
         Task<DefaultAPIResponse> GetIndividualClientAsync();
+
+        Task<PagedResponseAPI> PaginationTestAsync(int pageNumber, int pageSize);
+
+        Task<DefaultAPIResponse> GetGenericCustomerListAsync(SearchParam param);
+
+        Task<DefaultAPIResponse> GetClientRecordAsync(SearchParam param);
     }
 }

@@ -6,6 +6,7 @@ using UserManagementAPI.utils;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -334,10 +335,45 @@ app.MapPost("/ShippingPort/Upload", async (List<ShippingPortLookup> shippingport
 app.MapGet("/Client/List", async (IClientService service) => await GetClientListAsync(service)).WithTags("Client");
 app.MapGet("/Client/CorporateList", async (IClientService service) => await GetCorporateClientAsync(service)).WithTags("Client");
 app.MapGet("/Client/IndividualList", async (IClientService service) => await GetIndividualClientAsync(service)).WithTags("Client");
+
+app.MapPost("/Client/ListSnapshot", async Task<IResult> (IClientService service, SearchParam searchParam) =>
+{
+    try
+    {
+        var opStatus = await service.GetGenericCustomerListAsync(searchParam);
+        return Results.Ok(opStatus);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Client");
+
+app.MapPost("/Client/Get", async Task<IResult> (IClientService service, SearchParam param) =>
+{
+    try
+    {
+        var data = await service.GetClientRecordAsync(param);
+        return Results.Ok(data);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Client");
+
 #endregion
 
 #region Client - Tasks
 
+//app.MapPost("/Client/testPagination", async ([FromBody] PaginationFilter filter, IClientService service) => await TestPagination(filter, service)).WithTags("Testing");
+
+async Task<IResult> TestPagination([FromBody] PaginationFilter filter, IClientService service)
+{
+    var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize);
+    var dta = await service.PaginationTestAsync(filter.PageNumber, filter.PageSize);
+    return Results.Ok(dta);
+}
 async Task<IResult> GetClientListAsync(IClientService service)
 {
     try
