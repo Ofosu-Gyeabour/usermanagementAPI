@@ -19,6 +19,7 @@ builder.Services.AddSwaggerGen(c =>
         Description = @"API handling all user authentication and management",
         Version = "v1"
     });
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
 
 #region custom-repository
@@ -51,6 +52,9 @@ builder.Services.AddSingleton<IShippingService, ShippingService>();
 
 builder.Services.AddSingleton<IClientService, ClientService>();
 
+builder.Services.AddSingleton<IPostCodeService, PostCodeService>();
+builder.Services.AddSingleton<IPaymentTermService, PaymentTermService>();
+
 #endregion
 
 #region CORS
@@ -81,7 +85,8 @@ app.UseCors(@"ApiCorsPolicy");
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "UserManagementAPI v1.0");
+       // c.SwaggerEndpoint("/swagger/v1/swagger.json", "UserManagementAPI v1.0"); //old one
+        c.SwaggerEndpoint("./v1/swagger.json", "WIF UserManagementAPI V1");
     });
 //}
 
@@ -101,6 +106,14 @@ var eventSettings = builder.Configuration.GetSection("Events").Get<Events>();
 EventConfig.AUTH_OPERATION = eventSettings.auth;
 EventConfig.EXIT_OPERATION = eventSettings.exit;
 EventConfig.ADD_RECORD_OPERATION = eventSettings.recordAdd;
+
+//postCodeAnywhereAPI
+var postCodeSettings = builder.Configuration.GetSection("PostCodeAnywhereAPI").Get<PostCodeAnywhereAPI>();
+PostCodeConfigObject.USER = postCodeSettings.userName;
+PostCodeConfigObject.KEY = postCodeSettings.apiKey;
+PostCodeConfigObject.FIND_POST_CODE = postCodeSettings.findEndPoint;
+PostCodeConfigObject.RETRIEVE_ADDRESS = postCodeSettings.retrieveEndPoint;
+PostCodeConfigObject.CONTENT_TYPE = postCodeSettings.contentType;
 
 #endregion
 
@@ -195,6 +208,23 @@ app.MapPost("SealPrice/Create", async (SealPriceLookup oSealPrice, ISealService 
 app.MapGet("/Adhoc/List", async (IAdhocTypeService service) => await ListAdhocTypesAsync(service)).WithTags("AdhocType");
 app.MapPost("/Adhoc/Create", async (AdhocTypeLookup oAdhoc, IAdhocTypeService service) => await CreateAdhocTypeAsync(oAdhoc, service)).WithTags("AdhocType");
 app.MapPost("/Adhoc/Upload", async (List<AdhocTypeLookup> adhoctypeList, IAdhocTypeService service) => await UploadAdhocTypeData(adhoctypeList, service)).WithTags("AdhocType");
+app.MapPost("/Adhoc/OrderSummary", async Task<IResult> (IAdhocTypeService service, OrderSummaryParameter _order) =>
+{
+    try
+    {
+        if (_order.total <= 0)
+            return Results.NoContent();
+
+        var summaryDta = await service.ComputeOrderSummary(_order);
+        return Results.Ok(summaryDta);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("AdhocType");
+
+
 #endregion
 
 #region ContainerTypes - routes
@@ -268,11 +298,46 @@ app.MapPut("/City/UpdateCity", async (CityLookup oCity, ICityService service) =>
 app.MapPut("/City/UpdateCountryOfCity", async (CityLookup oCity, ICityService service) => await UpdateCountryOfCityAsync(oCity, service)).WithTags("City");
 app.MapPost("/City/Upload", async (List<CityLookup> cityList, ICityService service) => await UploadCitiesAsync(cityList, service)).WithTags("City");
 
+app.MapGet("/City/{id}", async Task<IResult> (ICityService service, int id) =>
+{
+    try
+    {
+        if (id <= 0)
+            return Results.BadRequest(@"Id cannot be less than zero");
+
+        var cityRecords = await service.Get(id);
+        return Results.Ok(cityRecords);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("City");
+
+app.MapPost("/City/Country", async Task<IResult> (ICityService service, SingleParam param) =>
+{
+    try
+    {
+        if (param.stringValue == string.Empty)
+            return Results.NoContent();
+
+        var cityRecords = await service.Get(param.stringValue);
+        return Results.Ok(cityRecords);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("City");
+
+
+
 #endregion
 
 #region country - routes
 
 app.MapGet("/Country/GetCountries", async (ICountryService service) => await GetCountriesAsync(service)).WithTags("Country");
+app.MapGet("/Country/Get", async (ICountryService service) => await Get(service)).WithTags("Country");
 app.MapPost("/Country/CreateCountry", async (CountryLookup oCountry, ICountryService service) => await CreateCountryAsync(oCountry, service)).WithTags("Country");
 app.MapPut("/Country/UpdateCountry", async (CountryLookup oCountry, ICountryService service) => await UpdateCountryAsync(oCountry, service)).WithTags("Country");
 app.MapPost("/Country/Upload", async (List<CountryLookup> countryList, ICountryService service) => await UploadCountriesAsync(countryList, service)).WithTags("Country");
@@ -357,6 +422,87 @@ app.MapPost("/Client/Get", async Task<IResult> (IClientService service, SearchPa
         return Results.Ok(data);
     }
     catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Client");
+
+app.MapPost("/PostCode/List", async Task<IResult> (IPostCodeService service, SingleParam param) =>
+{
+    try
+    {
+        var addressDta = await service.GetAddressesAsync(param);
+        return Results.Ok(addressDta);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("PostCode");
+
+app.MapPost("/Client/SaveCorporate", async Task<IResult> (IClientService service, CorporateCustomerLookup corporate) =>
+{
+    try
+    {
+        if (corporate == null)
+            return Results.NoContent();
+
+        IUserService usrservice = new UserService();
+        SingleParam param = new SingleParam() { stringValue = corporate.clientPassword };
+        var dta = await usrservice.GetMD5EncryptedPasswordAsync(param);
+
+        corporate.clientPassword = dta.data.ToString();
+
+        var opStatus = await service.SaveCorporateClientRecordAsync(corporate);
+        return Results.Ok(opStatus);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Client");
+
+app.MapPost("/Client/SaveIndividual", async Task<IResult> (IClientService service, IndividualCustomerLookup individual) =>
+{
+    try
+    {
+        if (individual == null)
+            return Results.NoContent();
+
+        IUserService usrservice = new UserService();
+        SingleParam param = new SingleParam() { stringValue = individual.clientPassword };
+        var encryptedPwd = await usrservice.GetMD5EncryptedPasswordAsync(param);
+
+        individual.clientPassword = encryptedPwd.data.ToString();
+
+        var insertStatus = await service.SaveIndividualClientRecordAsync(individual);
+        return Results.Ok(insertStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Client");
+
+app.MapPost("/Client/UpdateInformation", async Task<IResult> (IClientService service, IndividualCustomerLookup data) =>
+{
+    //update client information
+    try
+    {
+        DefaultAPIResponse addOpStatus = null;
+        if (data.id == 0)
+            return Results.BadRequest(@"Id cannot be zero");
+
+        var opStatus = await service.UpdateClientInformationAsync(data);
+        if (opStatus.status)
+        {
+            addOpStatus = await service.UpdateClientAddressAsync(data);
+        }
+
+        //return Results.Ok(new {opStatus, addOpStatus});
+        return Results.Ok(opStatus);
+    }
+    catch (Exception x)
     {
         return Results.BadRequest(x.Message);
     }
@@ -1984,9 +2130,26 @@ async Task<IResult> GetCountriesAsync(ICountryService service)
             return Results.BadRequest(@"service has not been instantiated");
 
         var dta = await service.GetCountriesAsync();
+        //var dta = await service.Get();
         return Results.Ok(dta);
     }
     catch(Exception ex)
+    {
+        return Results.BadRequest(ex);
+    }
+}
+async Task<IResult> Get(ICountryService service)
+{
+    //gets countries
+    try
+    {
+        if (service == null)
+            return Results.BadRequest(@"service has not been instantiated");
+
+        var dta = await service.Get();
+        return Results.Ok(dta);
+    }
+    catch (Exception ex)
     {
         return Results.BadRequest(ex);
     }
@@ -2267,6 +2430,40 @@ async Task<IResult> CreateRegionAsync(IRegionService service, RegionLookup oRegi
         return Results.BadRequest(exc);
     }
 }
+
+#endregion
+
+#region Payment-Terms
+
+app.MapGet("/PaymentTerms/Get", async Task<IResult> (IPaymentTermService service) =>
+{
+    try
+    {
+        var pay_terms_List = await service.Get();
+        return Results.Ok(pay_terms_List);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("PaymentTerms");
+
+app.MapGet("/AdhocType/Get/{param}", async Task<IResult> (IAdhocTypeService service, string param) =>
+{
+    try
+    {
+        if (param == string.Empty)
+            return Results.NoContent();
+
+        SingleParam obj = new SingleParam() { stringValue = param };
+        var adhocs = await service.GetAdhoc(obj);
+        return Results.Ok(adhocs);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("AdhocType");
 
 #endregion
 

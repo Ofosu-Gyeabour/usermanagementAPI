@@ -5,7 +5,6 @@ using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
-using UserManagementAPI.Models;
 
 namespace UserManagementAPI.utils
 {

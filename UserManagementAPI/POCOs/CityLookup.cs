@@ -46,7 +46,7 @@ namespace UserManagementAPI.POCOs
         public CityLookup oCity { get; set; }
         public CountryLookup oCountry { get; set; }
         public string companyLogo { get; set; } = string.Empty;
-        public DateTime dateOfIncorporation { get; set; }
+        public DateTime dateOfIncorporation { get; set; } = DateTime.Now;
     }
 
     public class ReferralLookup
@@ -105,6 +105,7 @@ namespace UserManagementAPI.POCOs
         public string name { get; set; } = string.Empty;
         public string nomCode { get; set; } = string.Empty;
     }
+
 
     public class PackageItemLookup
     {
@@ -223,7 +224,23 @@ namespace UserManagementAPI.POCOs
         public DateTime dateOfarrival { get; set; }
     }
 
+    public class PaymentTermLookup
+    {
+        public int id { get; set; } = 0;
+        public string paymentTermDescrib { get; set; } = string.Empty;
+    }
 
+    public class OrderSummaryDetails
+    {
+        public string key { get; set; } = string.Empty;
+        public decimal value { get; set; } = 0m;
+    }
+
+    public class OrderSummaryParameter
+    {
+        public decimal total { get; set; } = 0m;
+        public decimal vatRate { get; set; } = 0m;
+    }
     
 
 }

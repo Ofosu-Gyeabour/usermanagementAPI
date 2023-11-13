@@ -10,13 +10,63 @@ namespace UserManagementAPI.Resources.Implementations
 
     public class CountryService : ICountryService
     {
-        swContext config;
+        private swContext config;
 
         public CountryService()
         {
             config = new swContext();
         }
 
+        public async Task<DefaultAPIResponse> Get()
+        {
+            DefaultAPIResponse response = null;
+            List<CountryLookup> countryList = null;
+
+            try
+            {
+
+                var query = (from c in config.TCountryLookups
+                                join r in config.TRegionLookups on c.RegionId equals r.RegionId
+                                where c.CountryId > 0
+                                select new
+                                {
+                                    id = c.CountryId,
+                                    cName = c.CountryName,
+                                    cCode = c.CountryCode,
+                                    regionId = c.RegionId,
+                                    regionName = r.RegionName
+                                });
+
+                var cList = await query.ToListAsync().ConfigureAwait(false);
+                countryList = cList.Select(x => new CountryLookup()
+                {
+                    id = x.id,
+                    nameOfcountry = x.cName.ToUpper(),
+                    codeOfcountry = x.cCode == null ? @"" : x.cCode,
+                    oRegion = new RegionLookup()
+                    {
+                        id = (int)x.regionId,
+                        nameOfregion = x.regionName.ToUpper()
+                    }
+                }).ToList();
+
+                response = new DefaultAPIResponse()
+                {
+                    status = true,
+                    message = @"success",
+                    data = countryList
+                };
+                    
+                return response;
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
         public async Task<DefaultAPIResponse> GetCountriesAsync()
         {
             DefaultAPIResponse rsp = null;
@@ -24,21 +74,23 @@ namespace UserManagementAPI.Resources.Implementations
 
             try
             {
+
                 var data_ = await config.TCountryLookups.Where(c => c.CountryId > 0).Include(r => r.Region).ToListAsync();
                 if (data_ != null)
                 {
                     countries = new List<CountryLookup>();
 
-                    foreach(var d in data_)
+                    foreach (var d in data_)
                     {
                         var obj = new CountryLookup()
                         {
                             id = d.CountryId,
-                            nameOfcountry = d.CountryName,
+                            nameOfcountry = d.CountryName.ToUpper(),
+                            codeOfcountry = d.CountryCode == null ? @"" : d.CountryCode.ToUpper(),
                             oRegion = new RegionLookup()
                             {
                                 id = d.Region.RegionId,
-                                nameOfregion = d.Region.RegionName
+                                nameOfregion = d.Region.RegionName.ToUpper()
                             }
                         };
 
@@ -53,7 +105,7 @@ namespace UserManagementAPI.Resources.Implementations
                     };
                 }
                 else { rsp = new DefaultAPIResponse() { status = false, message = @"No data" }; }
-
+                     
                 return rsp;
             }
             catch(Exception ex)

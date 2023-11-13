@@ -11,5 +11,9 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> CreateAdhocTypeAsync(AdhocTypeLookup payLoad);
 
         Task<UploadAPIResponse> UploadAdhocTypeDataAsync(IEnumerable<AdhocTypeLookup> payLoad);
+
+        Task<DefaultAPIResponse> GetAdhoc(SingleParam param);
+
+        Task<DefaultAPIResponse> ComputeOrderSummary(OrderSummaryParameter param);
     }
 }

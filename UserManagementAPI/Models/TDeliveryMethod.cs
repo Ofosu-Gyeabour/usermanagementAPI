@@ -5,10 +5,6 @@ namespace UserManagementAPI.Models
 {
     public partial class TDeliveryMethod
     {
-        public TDeliveryMethod()
-        {
-        }
-
         public int Id { get; set; }
         /// <summary>
         /// delivery method
@@ -18,6 +14,5 @@ namespace UserManagementAPI.Models
         /// delivery method description
         /// </summary>
         public string? Description { get; set; }
-
     }
 }

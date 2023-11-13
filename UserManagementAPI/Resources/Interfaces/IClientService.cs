@@ -18,5 +18,11 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> GetGenericCustomerListAsync(SearchParam param);
 
         Task<DefaultAPIResponse> GetClientRecordAsync(SearchParam param);
+
+        Task<DefaultAPIResponse> SaveCorporateClientRecordAsync(CorporateCustomerLookup payLoad);
+        Task<DefaultAPIResponse> SaveIndividualClientRecordAsync(IndividualCustomerLookup payLoad);
+
+        Task<DefaultAPIResponse> UpdateClientInformationAsync(IndividualCustomerLookup payLoad);
+        Task<DefaultAPIResponse> UpdateClientAddressAsync(IndividualCustomerLookup payLoad);
     }
 }

@@ -313,6 +313,98 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<DefaultAPIResponse> Get(int id)
+        {
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                var Query = (from c in config_.TCities
+                             join cnt in config_.TCountryLookups on c.CountryId equals cnt.CountryId
+                             where cnt.CountryId == id
+
+                             select new
+                             {
+                                 id = c.Id,
+                                 nameOfcity = c.CityName,
+                                 countryId = cnt.CountryId,
+                                 countryName = cnt.CountryName
+                             });
+
+                var cityList = await Query.ToListAsync().ConfigureAwait(false);
+                var cities = cityList.Select(c => new CityLookup()
+                {
+                    id = c.id,
+                    nameOfcity = c.nameOfcity,
+                    oCountry = new CountryLookup()
+                    {
+                        id = c.countryId,
+                        nameOfcountry = c.countryName
+                    }
+                }).ToList();
+
+                return response = new DefaultAPIResponse() { 
+                    status = true,
+                    message = @"success",
+                    data = cities
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> Get(string country)
+        {
+            //gets the list of cities for country
+            DefaultAPIResponse response = null;
+            List<CityLookup> results = null;
+
+            try
+            {
+                var query = (from c in config_.TCities
+                             join cnt in config_.TCountryLookups on c.CountryId equals cnt.CountryId
+                             where cnt.CountryName == country
+
+                             select new
+                             {
+                                 id = c.Id,
+                                 city = c.CityName,
+                                 IdOfcountry = cnt.CountryId
+                             });
+
+                var queryList = await query.ToListAsync().ConfigureAwait(false);
+
+                results = queryList.Select(q => new CityLookup()
+                {
+                    id = (int)q.id,
+                    nameOfcity = q.city,
+                    oCountry = new CountryLookup()
+                    {
+                        id = (int)q.IdOfcountry,
+                        nameOfcountry = country
+                    }
+                }).ToList();
+
+                return response = new DefaultAPIResponse() {
+                    status = true,
+                    message = @"success",
+                    data = results
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
         #endregion
 
     }

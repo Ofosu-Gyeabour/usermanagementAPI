@@ -3,7 +3,6 @@
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
-using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -94,7 +93,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<UploadAPIResponse> UploadAdhocTypeDataAsync(IEnumerable<AdhocTypeLookup> payLoad)
         {
             UploadAPIResponse response = null;
@@ -166,6 +164,71 @@ namespace UserManagementAPI.Resources.Implementations
                     status = false,
                     message = $"error: {x.Message}",
                     errorList = errorList
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> GetAdhoc(SingleParam param)
+        {
+            DefaultAPIResponse response = null;
+            List<AdhocTypeLookup> adhoctypes = null;
+
+            try
+            {
+                var Q = (from ad in config.TAdhocTypes
+                         where ad.AdhocName.StartsWith(param.stringValue)
+                         select new
+                         {
+                             id = ad.Id,
+                             adhocName = ad.AdhocName,
+                             nomCode = ad.Nomcode
+                         });
+
+                var QList = await Q.ToListAsync().ConfigureAwait(false);
+                adhoctypes = QList.Select(x => new AdhocTypeLookup()
+                {
+                    id = x.id,
+                    name = x.adhocName,
+                    nomCode = x.nomCode.Trim()
+                }).ToList();
+
+                return response = new DefaultAPIResponse() { 
+                    status = true,
+                    message = @"success",
+                    data = adhoctypes
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> ComputeOrderSummary(OrderSummaryParameter param)
+        {
+            //computes order summary
+            DefaultAPIResponse rsp = null;
+            IndividualCustomerLookup obj = new IndividualCustomerLookup();
+
+            try
+            {
+                var orderSummary = await obj.getOrderSummaryAsync(param);
+                rsp = new DefaultAPIResponse() { 
+                    status = true,
+                    message = @"success",
+                    data = orderSummary
+                };
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
                 };
             }
         }

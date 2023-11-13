@@ -15,5 +15,8 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<UploadAPIResponse> UploadCityDataAsync(IEnumerable<CityLookup> payLoad);
 
         Task<DefaultAPIResponse> UpdateCountryOfCityAsync(CityLookup payLoad);
+        Task<DefaultAPIResponse> Get(int id);
+
+        Task<DefaultAPIResponse> Get(string country);
     }
 }

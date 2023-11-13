@@ -43,6 +43,13 @@
         public string clientEmail { get; set; } = string.Empty;
         public string clientEmail2 { get; set; } = string.Empty;
         public string collectionInstruction { get; set; } = string.Empty;
+
+        public int createdBy { get; set; }
+        public int modifiedBy { get; set; }
+        public bool shipper { get; set; }
+
+        public string clientPassword { get; set; } = string.Empty;
+        public bool canLogin { get; set; } = true;
     }
 
 
@@ -51,6 +58,39 @@
         public string surname { get; set; } = string.Empty;
         public string firstname { get; set; } = string.Empty;
         public string middlenames { get; set; } = string.Empty;
+
+        public async Task<List<OrderSummaryDetails>> getOrderSummaryAsync(OrderSummaryParameter param)
+        {
+            //creates order summary
+            List<OrderSummaryDetails> result = null;
+
+            try
+            {
+                var total = new OrderSummaryDetails() { key = @"ITEMS TOTAL", value = param.total };
+                var vRate = new OrderSummaryDetails() { key = @"VAT RATE", value = param.vatRate };
+                var vAmt = new OrderSummaryDetails() { key = @"VAT AMOUNT", value = (param.total * param.vatRate) };
+                var grandTotal = new OrderSummaryDetails() { key = @"TOTAL", value = (total.value + vAmt.value) };
+                var paidTotal = new OrderSummaryDetails() { key = @"PAYMENTS TOTAL", value = (grandTotal.value - grandTotal.value) };
+                var amountDue = new OrderSummaryDetails() { key = @"AMOUNT DUE", value = (grandTotal.value - paidTotal.value) };
+
+                result = new List<OrderSummaryDetails>()
+                {
+                    total,
+                    vRate,
+                    vAmt,
+                    grandTotal,
+                    paidTotal,
+                    amountDue
+                };
+
+                return result;
+            }
+            catch(Exception x)
+            {
+                return result;
+            }
+            
+        }
     }
 
     public class GenericCustomerLookup

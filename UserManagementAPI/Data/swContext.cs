@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Swashbuckle.AspNetCore.SwaggerUI;
-using UserManagementAPI.Models;
 using UserManagementAPI.utils;
 
 namespace UserManagementAPI.Data
@@ -74,7 +73,7 @@ namespace UserManagementAPI.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
-            { 
+            {
                 optionsBuilder.UseSqlServer(UserManagementAPI.utils.ConfigObject.DB_CONN);
             }
         }
@@ -84,6 +83,8 @@ namespace UserManagementAPI.Data
             modelBuilder.Entity<TAdhoc>(entity =>
             {
                 entity.ToTable("tAdhoc");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.AdhocDate)
                     .HasColumnType("datetime")
@@ -266,8 +267,6 @@ namespace UserManagementAPI.Data
             {
                 entity.ToTable("tClient");
 
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.AssociatedCompanyId).HasColumnName("associatedCompanyId");
 
                 entity.Property(e => e.CanLogin).HasColumnName("canLogin");
@@ -304,10 +303,9 @@ namespace UserManagementAPI.Data
                     .HasColumnName("clientPassword");
 
                 entity.Property(e => e.ClientPostCode)
-                    .HasMaxLength(20)
+                    .HasMaxLength(50)
                     .IsUnicode(false)
-                    .HasColumnName("clientPostCode")
-                    .IsFixedLength();
+                    .HasColumnName("clientPostCode");
 
                 entity.Property(e => e.ClientTypeId).HasColumnName("clientTypeId");
 
@@ -588,6 +586,11 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.CountryId)
                     .HasColumnName("countryId")
                     .HasComment("reference to country");
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasComment("zone Description");
 
                 entity.Property(e => e.Zone)
                     .HasMaxLength(60)
