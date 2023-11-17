@@ -54,6 +54,7 @@ builder.Services.AddSingleton<IClientService, ClientService>();
 
 builder.Services.AddSingleton<IPostCodeService, PostCodeService>();
 builder.Services.AddSingleton<IPaymentTermService, PaymentTermService>();
+builder.Services.AddSingleton<ISalesService, SalesService>();
 
 #endregion
 
@@ -224,6 +225,18 @@ app.MapPost("/Adhoc/OrderSummary", async Task<IResult> (IAdhocTypeService servic
     }
 }).WithTags("AdhocType");
 
+app.MapPost("/Sales/Create", async Task<IResult> (ISalesService service, Sale payLoad) =>
+{
+    try
+    {
+        var adhocStatus = await service.CreateSalesAsync(payLoad);
+        return Results.Ok(adhocStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Sales");
 
 #endregion
 
@@ -2464,6 +2477,23 @@ app.MapGet("/AdhocType/Get/{param}", async Task<IResult> (IAdhocTypeService serv
         return Results.BadRequest(x.Message);
     }
 }).WithTags("AdhocType");
+
+#endregion
+
+#region Payment-Methods
+
+app.MapGet("/PaymentMethod/Get", async Task<IResult> (ISalesService service) =>
+{
+    try
+    {
+        var payment_method_list = await service.GetPaymentMethodAsync();
+        return Results.Ok(payment_method_list);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Payment Methods");
 
 #endregion
 

@@ -63,6 +63,7 @@
         {
             //creates order summary
             List<OrderSummaryDetails> result = null;
+            OrderSummaryDetails paidTotal;
 
             try
             {
@@ -70,7 +71,16 @@
                 var vRate = new OrderSummaryDetails() { key = @"VAT RATE", value = param.vatRate };
                 var vAmt = new OrderSummaryDetails() { key = @"VAT AMOUNT", value = (param.total * param.vatRate) };
                 var grandTotal = new OrderSummaryDetails() { key = @"TOTAL", value = (total.value + vAmt.value) };
-                var paidTotal = new OrderSummaryDetails() { key = @"PAYMENTS TOTAL", value = (grandTotal.value - grandTotal.value) };
+
+                if (param.paid > 0)
+                {
+                    paidTotal = new OrderSummaryDetails() { key = @"PAYMENTS TOTAL", value = (param.paid) };
+                }
+                else
+                {
+                    paidTotal = new OrderSummaryDetails() { key = @"PAYMENTS TOTAL", value = (grandTotal.value - grandTotal.value) };
+                }
+                
                 var amountDue = new OrderSummaryDetails() { key = @"AMOUNT DUE", value = (grandTotal.value - paidTotal.value) };
 
                 result = new List<OrderSummaryDetails>()

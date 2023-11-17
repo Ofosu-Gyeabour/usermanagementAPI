@@ -183,5 +183,55 @@ namespace UserManagementAPI.utils
             }
         }
 
+        public async Task<SingleParam> createOrderNumber(string _orderType)
+        {
+            //creates an order number
+            SingleParam result = null;
+
+            try
+            {
+                var newID = config.TAdhocs.Max(u => (int)u.Id);
+
+                result = new SingleParam() { stringValue = newID.ToString() };
+                return result;
+            }
+            catch(Exception x)
+            {
+                Debug.Print(x.Message);
+                return result;
+            }
+        }
+
+        public async Task<TAdhocType> getAdhocType(string adhocName)
+        {
+            //gets the unique ID of the adhoc object
+
+            try
+            {
+                var obj = await config.TAdhocTypes.Where(x => x.AdhocName == adhocName.Trim()).FirstOrDefaultAsync();
+                return obj;
+            }
+            catch(Exception x)
+            {
+                return null;
+            }
+        }
+
+        public async Task<TPaymentMethod> getPaymentMethod(string _method)
+        {
+            //gets a payment method record
+            TPaymentMethod obj = null;
+            
+            try
+            {
+                obj = await config.TPaymentMethods.Where(x => x.Method == _method).FirstOrDefaultAsync();
+                return obj;
+            }
+            catch(Exception x)
+            {
+                return obj;
+            }
+        }
+
     }
 }

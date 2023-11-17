@@ -240,7 +240,14 @@ namespace UserManagementAPI.POCOs
     {
         public decimal total { get; set; } = 0m;
         public decimal vatRate { get; set; } = 0m;
+        public decimal paid { get; set; } = 0m;
     }
     
+    public class PaymentMethod
+    {
+        public int id { get; set; } = 0;
+        public string? method { get; set; } = string.Empty;
+        public bool? isAccount { get; set; } = false;
+    }
 
 }

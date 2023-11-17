@@ -2,7 +2,6 @@
 global using UserManagementAPI.Models;
 using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using UserManagementAPI.utils;
@@ -21,6 +20,8 @@ namespace UserManagementAPI.Data
         }
 
         public virtual DbSet<TAdhoc> TAdhocs { get; set; } = null!;
+        public virtual DbSet<TAdhocItem> TAdhocItems { get; set; } = null!;
+        public virtual DbSet<TAdhocPayment> TAdhocPayments { get; set; } = null!;
         public virtual DbSet<TAdhocType> TAdhocTypes { get; set; } = null!;
         public virtual DbSet<TAirport> TAirports { get; set; } = null!;
         public virtual DbSet<TChannelType> TChannelTypes { get; set; } = null!;
@@ -32,6 +33,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TCompDigiOutlet> TCompDigiOutlets { get; set; } = null!;
         public virtual DbSet<TCongestionCharge> TCongestionCharges { get; set; } = null!;
         public virtual DbSet<TCountryLookup> TCountryLookups { get; set; } = null!;
+        public virtual DbSet<TCreditNote> TCreditNotes { get; set; } = null!;
         public virtual DbSet<TDeliveryCharge> TDeliveryCharges { get; set; } = null!;
         public virtual DbSet<TDeliveryMethod> TDeliveryMethods { get; set; } = null!;
         public virtual DbSet<TDeliveryZone> TDeliveryZones { get; set; } = null!;
@@ -41,9 +43,13 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TInsurance> TInsurances { get; set; } = null!;
         public virtual DbSet<TLogger> TLoggers { get; set; } = null!;
         public virtual DbSet<TModule> TModules { get; set; } = null!;
+        public virtual DbSet<TOrderStatus> TOrderStatuses { get; set; } = null!;
+        public virtual DbSet<TOrderStatusLookup> TOrderStatusLookups { get; set; } = null!;
+        public virtual DbSet<TOrderType> TOrderTypes { get; set; } = null!;
         public virtual DbSet<TPackagingItem> TPackagingItems { get; set; } = null!;
         public virtual DbSet<TPackagingPrice> TPackagingPrices { get; set; } = null!;
         public virtual DbSet<TPackagingStock> TPackagingStocks { get; set; } = null!;
+        public virtual DbSet<TPaymentMethod> TPaymentMethods { get; set; } = null!;
         public virtual DbSet<TPaymentTerm> TPaymentTerms { get; set; } = null!;
         public virtual DbSet<TProfile> TProfiles { get; set; } = null!;
         public virtual DbSet<TRegionLookup> TRegionLookups { get; set; } = null!;
@@ -73,7 +79,7 @@ namespace UserManagementAPI.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
-            {
+            { 
                 optionsBuilder.UseSqlServer(UserManagementAPI.utils.ConfigObject.DB_CONN);
             }
         }
@@ -83,8 +89,6 @@ namespace UserManagementAPI.Data
             modelBuilder.Entity<TAdhoc>(entity =>
             {
                 entity.ToTable("tAdhoc");
-
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.AdhocDate)
                     .HasColumnType("datetime")
@@ -129,6 +133,11 @@ namespace UserManagementAPI.Data
                     .HasColumnName("lastModifedBy")
                     .HasComment("user who last modified record");
 
+                entity.Property(e => e.OrderNo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("orderNo");
+
                 entity.Property(e => e.PaymentTermsId)
                     .HasColumnName("paymentTermsId")
                     .HasComment("reference to payment terms table");
@@ -142,6 +151,93 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TAdhocs)
                     .HasForeignKey(d => d.PaymentTermsId)
                     .HasConstraintName("FK_tAdhoc_tPaymentTerm");
+            });
+
+            modelBuilder.Entity<TAdhocItem>(entity =>
+            {
+                entity.ToTable("tAdhocItem");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.AddedBy)
+                    .HasColumnName("addedBy")
+                    .HasComment("user adding item. important should the order be modified in the future");
+
+                entity.Property(e => e.AddedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addedDate")
+                    .HasComment("date item was added");
+
+                entity.Property(e => e.AdhocId)
+                    .HasColumnName("adhocId")
+                    .HasComment("foreign key to the adhoc table");
+
+                entity.Property(e => e.Describ)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("describ")
+                    .HasComment("description of sale items");
+
+                entity.Property(e => e.NCode)
+                    .HasMaxLength(10)
+                    .HasColumnName("nCode")
+                    .IsFixedLength()
+                    .HasComment("nom code");
+
+                entity.Property(e => e.NCodeDescrib)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("nCodeDescrib")
+                    .HasComment("nom code description");
+
+                entity.Property(e => e.Qty)
+                    .HasColumnName("qty")
+                    .HasComment("quantity or unit of items");
+
+                entity.Property(e => e.UnitPrice)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("unitPrice")
+                    .HasComment("unit price of item");
+
+                entity.HasOne(d => d.Adhoc)
+                    .WithMany(p => p.TAdhocItems)
+                    .HasForeignKey(d => d.AdhocId)
+                    .HasConstraintName("FK_tAdhocItem_tAdhoc");
+            });
+
+            modelBuilder.Entity<TAdhocPayment>(entity =>
+            {
+                entity.ToTable("tAdhocPayment");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.AdhocId)
+                    .HasColumnName("adhocId")
+                    .HasComment("adhoc Id: foreign key to the adhoc table");
+
+                entity.Property(e => e.OutstandingAmt)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("outstandingAmt")
+                    .HasComment("amount left outstanding");
+
+                entity.Property(e => e.PayAmt)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("payAmt")
+                    .HasComment("amount of payment");
+
+                entity.Property(e => e.PayDate)
+                    .HasColumnType("date")
+                    .HasColumnName("payDate")
+                    .HasComment("date of payment");
+
+                entity.Property(e => e.PayMethodId)
+                    .HasColumnName("payMethodId")
+                    .HasComment("method of payment");
+
+                entity.HasOne(d => d.Adhoc)
+                    .WithMany(p => p.TAdhocPayments)
+                    .HasForeignKey(d => d.AdhocId)
+                    .HasConstraintName("FK_tAdhocPayment_tAdhoc");
             });
 
             modelBuilder.Entity<TAdhocType>(entity =>
@@ -530,6 +626,49 @@ namespace UserManagementAPI.Data
                     .HasConstraintName("FK_tcountry_tRegion");
             });
 
+            modelBuilder.Entity<TCreditNote>(entity =>
+            {
+                entity.ToTable("tCreditNote");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ApprovedBy)
+                    .HasColumnName("approvedBy")
+                    .HasComment("the user approving the credit note");
+
+                entity.Property(e => e.CreatedBy)
+                    .HasColumnName("createdBy")
+                    .HasComment("the user creating the credit note");
+
+                entity.Property(e => e.CreditNoteDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("creditNoteDate")
+                    .HasComment("date for the credit note");
+
+                entity.Property(e => e.Lineamount)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("lineamount")
+                    .HasComment("the line amount for the credit note");
+
+                entity.Property(e => e.NoteDescrib)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("noteDescrib")
+                    .HasComment("description given in credit note");
+
+                entity.Property(e => e.OrderId)
+                    .HasColumnName("orderId")
+                    .HasComment("the order id: foreign key to the order table (adhoc/sales, packaging or shipping order)");
+
+                entity.Property(e => e.Qty)
+                    .HasColumnName("qty")
+                    .HasComment("quantity");
+
+                entity.Property(e => e.UploadedToSage)
+                    .HasColumnName("uploadedToSage")
+                    .HasComment("flag determining if credit note has been uploaded to SAGE");
+            });
+
             modelBuilder.Entity<TDeliveryCharge>(entity =>
             {
                 entity.ToTable("tDeliveryCharge");
@@ -763,6 +902,76 @@ namespace UserManagementAPI.Data
                     .HasComment("name of the module");
             });
 
+            modelBuilder.Entity<TOrderStatus>(entity =>
+            {
+                entity.ToTable("tOrderStatus");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ActionedBy)
+                    .HasColumnName("actionedBy")
+                    .HasComment("user performing action");
+
+                entity.Property(e => e.ActionedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("actionedDate")
+                    .HasComment("the date of the action");
+
+                entity.Property(e => e.OrderId)
+                    .HasColumnName("orderId")
+                    .HasComment("Id of order. foreign key to adhoc, packaging or shipping table");
+
+                entity.Property(e => e.OrderStatus)
+                    .HasColumnName("orderStatus")
+                    .HasComment("the Id of the status (APPROVED, CANCELLED, etc)");
+
+                entity.Property(e => e.OrderTypeId)
+                    .HasColumnName("orderTypeId")
+                    .HasComment("the type of order. foreign key to ordertype table");
+
+                entity.Property(e => e.Reason)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("reason")
+                    .HasComment("the reason for the order status");
+
+                entity.HasOne(d => d.OrderStatusNavigation)
+                    .WithMany(p => p.TOrderStatuses)
+                    .HasForeignKey(d => d.OrderStatus)
+                    .HasConstraintName("FK_tOrderStatus_tOrderStatusLookup");
+
+                entity.HasOne(d => d.OrderType)
+                    .WithMany(p => p.TOrderStatuses)
+                    .HasForeignKey(d => d.OrderTypeId)
+                    .HasConstraintName("FK_tOrderStatus_tOrderType");
+            });
+
+            modelBuilder.Entity<TOrderStatusLookup>(entity =>
+            {
+                entity.ToTable("tOrderStatusLookup");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Describ)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("describ")
+                    .HasComment("lookup value: APPROVED , CANCELLED");
+            });
+
+            modelBuilder.Entity<TOrderType>(entity =>
+            {
+                entity.ToTable("tOrderType");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Describ)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("describ")
+                    .HasComment("description of order type: Sales Order, Packaging Order, Shipping Order, etc");
+            });
+
             modelBuilder.Entity<TPackagingItem>(entity =>
             {
                 entity.ToTable("tPackagingItem");
@@ -852,6 +1061,23 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TPackagingStocks)
                     .HasForeignKey(d => d.CompanyId)
                     .HasConstraintName("FK_tPackagingStock_tcompany");
+            });
+
+            modelBuilder.Entity<TPaymentMethod>(entity =>
+            {
+                entity.ToTable("tPaymentMethod");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.IsAccnt)
+                    .HasColumnName("isAccnt")
+                    .HasComment("flag: find out more");
+
+                entity.Property(e => e.Method)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("method")
+                    .HasComment("payment method");
             });
 
             modelBuilder.Entity<TPaymentTerm>(entity =>

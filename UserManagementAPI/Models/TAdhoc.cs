@@ -5,6 +5,12 @@ namespace UserManagementAPI.Models
 {
     public partial class TAdhoc
     {
+        public TAdhoc()
+        {
+            TAdhocItems = new HashSet<TAdhocItem>();
+            TAdhocPayments = new HashSet<TAdhocPayment>();
+        }
+
         public int Id { get; set; }
         /// <summary>
         /// reference to the adhoc type table
@@ -54,7 +60,10 @@ namespace UserManagementAPI.Models
         /// reference to payment terms table
         /// </summary>
         public int? PaymentTermsId { get; set; }
+        public string? OrderNo { get; set; }
 
         public virtual TPaymentTerm? PaymentTerms { get; set; }
+        public virtual ICollection<TAdhocItem> TAdhocItems { get; set; }
+        public virtual ICollection<TAdhocPayment> TAdhocPayments { get; set; }
     }
 }
