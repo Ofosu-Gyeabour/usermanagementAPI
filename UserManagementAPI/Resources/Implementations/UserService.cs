@@ -43,7 +43,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-    
         public async Task<UserAPIResponse> GetUserAsync(UserInfo userCredential)
         {
             UserAPIResponse response = null;
@@ -111,7 +110,47 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
+        public async Task<DefaultAPIResponse> GetUserFromRoleAsync(SystemProfile payLoad)
+        {
+            //TODO: get role-based users
+            DefaultAPIResponse rsp = null;
+            List<userRecord> userRecords = null;
 
+            try
+            {
+                var uQuery = (from u in config.Tusrs
+                              join p in config.TProfiles on u.ProfileId equals p.ProfileId
+                              join c in config.Tcompanies on u.CompanyId equals c.CompanyId
+                              where u.CompanyId == payLoad.companyId && (p.ProfileString.StartsWith(payLoad.nameOfProfile) || p.ProfileString.EndsWith(payLoad.nameOfProfile))
+
+                              select new
+                              {
+                                  id = u.UsrId,
+                                  name = $"{u.Firstname.Trim().ToUpper()} {u.Surname.Trim().ToUpper()}"
+                              });
+
+                var uQueryList = await uQuery.ToListAsync().ConfigureAwait(false);
+
+                userRecords = uQueryList.Select(x => new userRecord()
+                {
+                    id = x.id,
+                    sname = x.name
+                }).ToList();
+
+                return rsp = new DefaultAPIResponse() { 
+                    status = true,
+                    message = $"{userRecords.Count()} fetched for role {payLoad.nameOfProfile}",
+                    data = userRecords
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
         public async Task<DefaultAPIResponse> GetMD5EncryptedPasswordAsync(SingleParam singleParam)
         {
             DefaultAPIResponse results = null;
@@ -141,7 +180,6 @@ namespace UserManagementAPI.Resources.Implementations
                 return new DefaultAPIResponse() { status = false, message = $"{x.Message}" };
             }
         }
-
         public async Task<DefaultAPIResponse> SetLoggedFlagAsync(UserInfo _usr)
         {
             //method logs the user in
@@ -172,7 +210,6 @@ namespace UserManagementAPI.Resources.Implementations
                 return apiResponse;
             }
         }
-
         public async Task<DefaultAPIResponse> SetLoggedOutFlagAsync(UserInfo _usr)
         {
             DefaultAPIResponse apiResponse = null;
@@ -203,7 +240,6 @@ namespace UserManagementAPI.Resources.Implementations
                 return apiResponse;
             }
         }
-
         public async Task<DefaultAPIResponse> GetUserProfileAsync(UserInfo _usr)
         {
             DefaultAPIResponse response = new DefaultAPIResponse();
@@ -261,7 +297,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> AmendUserProfileAsync(UserProfile payLoad)
         {
             //method amends the profile of a user and changes the modules he/she has access to
@@ -277,7 +312,6 @@ namespace UserManagementAPI.Resources.Implementations
                 return apiResponse = new DefaultAPIResponse() { status = false, message = $"{x.Message}" };
             }
         }
-
         public async Task<DefaultAPIResponse> CreateUserAsync(userRecord payLoad)
         {
             DefaultAPIResponse response = null;
@@ -308,7 +342,6 @@ namespace UserManagementAPI.Resources.Implementations
                 return response = new DefaultAPIResponse() { status = false, message = $"{e.Message} | inner exception: {e.InnerException.Message}" };
             }
         }
-
         public async Task<DefaultAPIResponse> ChangeUserPasswordAsync(UserInfo payLoad)
         {
             //amends a user password

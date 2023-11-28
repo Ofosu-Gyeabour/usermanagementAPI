@@ -11,5 +11,7 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> UpdateCompanyTypeAsync(CompanyTypeLookup payLoad);
 
         Task<DefaultAPIResponse> GetCompaniesAsync();
+
+        Task<DefaultAPIResponse> GetWIFAffiliatedCompaniesAsync();
     }
 }

@@ -95,6 +95,81 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<DefaultAPIResponse> GetWIFAffiliatedCompaniesAsync()
+        {
+            //TODO: WIF affiliated companies
+            DefaultAPIResponse response = null;
+            List<CompanyLookup> companyList = null;
+
+            try
+            {
+                var result = (from c in configure.Tcompanies
+                              join tc in configure.TCities on c.CompanyTownId equals tc.Id
+                              join tcc in configure.TCountryLookups on c.CompanyCountryId equals tcc.CountryId
+                              where c.CompanyId == 1 || c.CompanyId == 18 || c.CompanyId == 27 || c.CompanyId == 28 || c.CompanyId == 30
+                              
+                              select new
+                              {
+                                  Id = c.CompanyId,
+                                  company = c.Company,
+                                  address = c.CompanyAddress,
+                                  cityId = tc.Id,
+                                  nameOfcity = tc.CityName,
+                                  countryId = tcc.CountryId,
+                                  nameOfcountry = tcc.CountryName,
+                                  companyLogo = c.CompanyLogo,
+                                  incorporationDate = c.IncorporationDate
+                              });
+
+                //iterate
+                if (result != null)
+                {
+                    companyList = new List<CompanyLookup>();
+
+                    foreach (var item in result)
+                    {
+                        var obj = new CompanyLookup()
+                        {
+                            id = item.Id,
+                            nameOfcompany = item.company,
+                            addressOfcompany = item.address,
+                            oCity = new CityLookup()
+                            {
+                                id = item.cityId,
+                                nameOfcity = item.nameOfcity
+                            },
+                            oCountry = new CountryLookup()
+                            {
+                                id = item.countryId,
+                                nameOfcountry = item.nameOfcountry
+                            },
+                            companyLogo = item.companyLogo,
+                            dateOfIncorporation = (DateTime)item.incorporationDate
+                        };
+
+                        companyList.Add(obj);
+                    }
+
+                    response = new DefaultAPIResponse()
+                    {
+                        status = true,
+                        message = @"success",
+                        data = companyList
+                    };
+                }
+                else { return response = new DefaultAPIResponse() { status = false, message = @"No data" }; }
+
+                return response;
+            }
+            catch (Exception exc)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {exc.Message}"
+                };
+            }
+        }
         public async Task<DefaultAPIResponse> GetCompanyTypesAsync()
         {
             //get the list of company type in the data store

@@ -58,6 +58,78 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
+        
+        public async Task<DefaultAPIResponse> GetPackagingItemAndPriceListAsync(CompanyLookup payLoad)
+        {
+            //TODO: companyId = 1,18,27,28 and 30 uses packaging items from 1
+            DefaultAPIResponse response = null;
+            int cid = payLoad.id;
+            List<PackagepriceLookup> packagePrices = null;
+
+            try
+            {
+                if ((cid == 1) || (cid == 18) || (cid == 27) || (cid == 28) || (cid == 30))
+                {
+                    cid = 1;
+                }
+
+                var Query = (from tpp in config.TPackagingPrices
+                             join tpi in config.Tpackagings on tpp.PackagingItemId equals tpi.Id
+                             join c in config.Tcompanies on tpp.CompanyId equals c.CompanyId
+                             where tpp.CompanyId == cid
+
+                             select new
+                             {
+                                 id = tpp.Id,
+                                 packagingitemId = tpp.PackagingItemId,
+                                 packagingitemName = tpi.Packagingitem,
+                                 description = tpi.Itemdescription,
+                                 unitPrice = tpp.UnitPrice,
+                                 wholesaleprice = tpp.WholesalePrice,
+                                 retailPrice = tpp.RetailPrice,
+                                 companyId = tpp.CompanyId,
+                                 companyName = c.Company,
+                                 nomcode = tpi.Itemcode
+                             });
+
+                var QueryList = await Query.ToListAsync().ConfigureAwait(false);
+
+                packagePrices = QueryList
+                                    .Select(x => new PackagepriceLookup()
+                                    {
+                                        id = x.id,
+                                        oPackageItem = new PackageItemLookup()
+                                        {
+                                            id = (int) x.packagingitemId,
+                                            name = x.packagingitemName
+                                        },
+                                        unitPrice = (decimal) x.unitPrice,
+                                        wholesalePrice = (decimal) x.wholesaleprice,
+                                        retailPrice = (decimal) x.retailPrice,
+                                        oCompany = new CompanyLookup()
+                                        {
+                                            id = (int)x.companyId,
+                                            nameOfcompany = x.companyName
+                                        },
+                                        nomCode = x.nomcode
+                                    }).ToList();
+
+                return response = new DefaultAPIResponse()
+                {
+                    status = true,
+                    message = $"{packagePrices.Count()} records fetched from the data store",
+                    data = packagePrices
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
         public async Task<DefaultAPIResponse> GetPackagePriceListAsync()
         {
             DefaultAPIResponse rs = null;

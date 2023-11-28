@@ -7,6 +7,7 @@ namespace UserManagementAPI.Models
     {
         public TOrderType()
         {
+            TChargeEngines = new HashSet<TChargeEngine>();
             TOrderStatuses = new HashSet<TOrderStatus>();
         }
 
@@ -19,6 +20,7 @@ namespace UserManagementAPI.Models
         /// </summary>
         public string? Describ { get; set; }
 
+        public virtual ICollection<TChargeEngine> TChargeEngines { get; set; }
         public virtual ICollection<TOrderStatus> TOrderStatuses { get; set; }
     }
 }

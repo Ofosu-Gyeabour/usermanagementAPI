@@ -122,6 +122,9 @@ namespace UserManagementAPI.POCOs
         public decimal retailPrice { get; set; } = 0m;
         public PackageItemLookup oPackageItem { get; set; }
         public CompanyLookup oCompany { get; set; }
+
+        //added nomcode
+        public string? nomCode { get; set; } = string.Empty;
     }
 
     public class SealTypeLookup
@@ -242,12 +245,45 @@ namespace UserManagementAPI.POCOs
         public decimal vatRate { get; set; } = 0m;
         public decimal paid { get; set; } = 0m;
     }
+
+    public class OrderTypeLookup
+    {
+        public int id { get; set; } = 0;
+        public string? orderDescription { get; set; } = string.Empty;
+    }
     
+    public class ChargeEngineLookup
+    {
+        public int id { get; set; } = 0;
+        public OrderTypeLookup? oOrderType { get; set; }
+        public string? chargeDescription { get; set; } = string.Empty;
+        public decimal? chargeRate { get; set; } = 0m;
+        //public decimal? thresholdValue { get; set; } = 0m;
+        public decimal? thresholdAmt { get; set; } = 0m;
+        public decimal? thresholdRate { get; set; } = 0m;
+        public int? isLabel { get; set; } = 0;
+    }
+
+    public class ChargeLookup
+    {
+        public int id { get; set; }
+        public string? nameOfcharge { get; set; } = string.Empty;
+        public decimal? rate { get; set; } = 0m;
+        public decimal? changeRate { get; set; } = 0m;
+        public CountryLookup? oCountry { get; set; }
+    }
+
     public class PaymentMethod
     {
         public int id { get; set; } = 0;
         public string? method { get; set; } = string.Empty;
         public bool? isAccount { get; set; } = false;
+    }
+
+    public class GenericLookup
+    {
+        public int id { get; set; } = 0;
+        public string? idValue { get; set; } = string.Empty;
     }
 
 }

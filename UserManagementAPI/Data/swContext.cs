@@ -25,6 +25,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TAdhocType> TAdhocTypes { get; set; } = null!;
         public virtual DbSet<TAirport> TAirports { get; set; } = null!;
         public virtual DbSet<TChannelType> TChannelTypes { get; set; } = null!;
+        public virtual DbSet<TChargeEngine> TChargeEngines { get; set; } = null!;
         public virtual DbSet<TChargeLookup> TChargeLookups { get; set; } = null!;
         public virtual DbSet<TCity> TCities { get; set; } = null!;
         public virtual DbSet<TClient> TClients { get; set; } = null!;
@@ -36,6 +37,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TCreditNote> TCreditNotes { get; set; } = null!;
         public virtual DbSet<TDeliveryCharge> TDeliveryCharges { get; set; } = null!;
         public virtual DbSet<TDeliveryMethod> TDeliveryMethods { get; set; } = null!;
+        public virtual DbSet<TDeliveryTimeLookup> TDeliveryTimeLookups { get; set; } = null!;
         public virtual DbSet<TDeliveryZone> TDeliveryZones { get; set; } = null!;
         public virtual DbSet<TDepartment> TDepartments { get; set; } = null!;
         public virtual DbSet<TDialCode> TDialCodes { get; set; } = null!;
@@ -54,6 +56,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TProfile> TProfiles { get; set; } = null!;
         public virtual DbSet<TRegionLookup> TRegionLookups { get; set; } = null!;
         public virtual DbSet<TSailingSchedule> TSailingSchedules { get; set; } = null!;
+        public virtual DbSet<TSaleTypeLookup> TSaleTypeLookups { get; set; } = null!;
         public virtual DbSet<TSealPrice> TSealPrices { get; set; } = null!;
         public virtual DbSet<TSealType> TSealTypes { get; set; } = null!;
         public virtual DbSet<TShipperCategory> TShipperCategories { get; set; } = null!;
@@ -79,7 +82,7 @@ namespace UserManagementAPI.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
-            { 
+            {
                 optionsBuilder.UseSqlServer(UserManagementAPI.utils.ConfigObject.DB_CONN);
             }
         }
@@ -193,6 +196,11 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.Qty)
                     .HasColumnName("qty")
                     .HasComment("quantity or unit of items");
+
+                entity.Property(e => e.TotalPrice)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("totalPrice")
+                    .HasComment("total price");
 
                 entity.Property(e => e.UnitPrice)
                     .HasColumnType("numeric(9, 2)")
@@ -308,6 +316,47 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("describ")
                     .HasComment("brief description of channel type");
+            });
+
+            modelBuilder.Entity<TChargeEngine>(entity =>
+            {
+                entity.ToTable("tChargeEngine");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ChargeDescrib)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("chargeDescrib")
+                    .HasComment("description of the order");
+
+                entity.Property(e => e.ChargeRate)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("chargeRate")
+                    .HasComment("the rate applied");
+
+                entity.Property(e => e.IsLabel)
+                    .HasColumnName("isLabel")
+                    .HasComment("label or calc");
+
+                entity.Property(e => e.OrdertypeId)
+                    .HasColumnName("ordertypeId")
+                    .HasComment("the Id of the order type");
+
+                entity.Property(e => e.ThresholdAmt)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("thresholdAmt")
+                    .HasComment("amount for threshold to kick in");
+
+                entity.Property(e => e.ThresholdRate)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("thresholdRate")
+                    .HasComment("threshold rate");
+
+                entity.HasOne(d => d.Ordertype)
+                    .WithMany(p => p.TChargeEngines)
+                    .HasForeignKey(d => d.OrdertypeId)
+                    .HasConstraintName("FK_tChargeEngine_tOrderType");
             });
 
             modelBuilder.Entity<TChargeLookup>(entity =>
@@ -716,6 +765,17 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("method")
                     .HasComment("delivery method");
+            });
+
+            modelBuilder.Entity<TDeliveryTimeLookup>(entity =>
+            {
+                entity.ToTable("tDeliveryTimeLookup");
+
+                entity.Property(e => e.DeliverytimeDescrib)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("deliverytimeDescrib")
+                    .HasComment("delivery time");
             });
 
             modelBuilder.Entity<TDeliveryZone>(entity =>
@@ -1181,6 +1241,17 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TSailingSchedules)
                     .HasForeignKey(d => d.VesselId)
                     .HasConstraintName("FK_tSailingSchedule_tVessel");
+            });
+
+            modelBuilder.Entity<TSaleTypeLookup>(entity =>
+            {
+                entity.ToTable("tSaleTypeLookup");
+
+                entity.Property(e => e.SaleTypeDescrib)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("saleTypeDescrib")
+                    .HasComment("sale type");
             });
 
             modelBuilder.Entity<TSealPrice>(entity =>

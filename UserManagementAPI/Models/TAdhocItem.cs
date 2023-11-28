@@ -33,7 +33,9 @@ namespace UserManagementAPI.Models
         /// unit price of item
         /// </summary>
         public decimal? UnitPrice { get; set; }
-
+        /// <summary>
+        /// total price
+        /// </summary>
         public decimal? TotalPrice { get; set; }
         /// <summary>
         /// user adding item. important should the order be modified in the future

@@ -7,6 +7,7 @@ namespace UserManagementAPI.Resources.Interfaces
     {
         Task<DefaultAPIResponse> GetUsersAsync();
         Task<UserAPIResponse> GetUserAsync(UserInfo userCredential);
+        Task<DefaultAPIResponse> GetUserFromRoleAsync(SystemProfile payLoad);
         Task<DefaultAPIResponse> GetMD5EncryptedPasswordAsync(SingleParam singleParam);
 
         Task<DefaultAPIResponse> SetLoggedFlagAsync(UserInfo _usr);

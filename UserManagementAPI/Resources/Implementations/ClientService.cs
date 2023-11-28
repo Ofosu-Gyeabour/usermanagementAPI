@@ -10,6 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using System.Runtime.InteropServices;
 using System.Transactions;
+using UserManagementAPI.utils;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -307,6 +308,7 @@ namespace UserManagementAPI.Resources.Implementations
                     var genericQuery = (from tc in config.TClients
                             join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                             join tca in config.TClientAddresses on tc.Id equals tca.ClientId
+                            join cty in config.TCities on tc.ClientCityId equals cty.Id
                             where tc.ClientAccNo.StartsWith(param.stringValue)
 
                             select new
@@ -318,7 +320,10 @@ namespace UserManagementAPI.Resources.Implementations
                                 nameOrcompany = ct.Id == 1 ? string.Format("{0} {1} {2}", tc.Firstname, tc.Middlenames.Trim(), tc.Surname) : tc.ClientBusinessName,
                                 postCode = tc.ClientPostCode,
                                 mobileNo = string.Format("{0} | {1}", tc.MobileNo, tc.WhatsappNo),
-                                address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4)
+                                address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
+                                
+                                cityid = cty.Id,
+                                cityName = cty.CityName
                             });
 
                     var accountCriteriaList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -339,7 +344,13 @@ namespace UserManagementAPI.Resources.Implementations
                                 nameOrcompany = q.nameOrcompany,
                                 postCode = q.postCode,
                                 address = q.address,
-                                mobileNo = q.mobileNo
+                                mobileNo = q.mobileNo,
+
+                                oCity = new CityLookup()
+                                {
+                                    id = q.cityid,
+                                    nameOfcity = q.cityName
+                                }
                             };
 
                             gList.Add(obj);
@@ -352,6 +363,7 @@ namespace UserManagementAPI.Resources.Implementations
                     var genericQuery = (from tc in config.TClients
                             join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                             join tca in config.TClientAddresses on tc.Id equals tca.ClientId
+                            join cty in config.TCities on tc.ClientCityId equals cty.Id
                             where tc.Surname.StartsWith(param.stringValue) || tc.Firstname.StartsWith(param.stringValue) || tc.Middlenames.StartsWith(param.stringValue) ||
                                   tc.ClientBusinessName.StartsWith(param.stringValue)
 
@@ -364,7 +376,10 @@ namespace UserManagementAPI.Resources.Implementations
                                 nameOrcompany = ct.Id == 1 ? string.Format("{0} {1} {2}", tc.Firstname, tc.Middlenames.Trim(), tc.Surname) : tc.ClientBusinessName,
                                 postCode = tc.ClientPostCode,
                                 mobileNo = string.Format("{0} | {1}", tc.MobileNo, tc.WhatsappNo),
-                                address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4)
+                                address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
+
+                                cityid = cty.Id,
+                                cityName = cty.CityName
                             });
 
                     var clientNameList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -385,7 +400,13 @@ namespace UserManagementAPI.Resources.Implementations
                                 nameOrcompany = q.nameOrcompany,
                                 postCode = q.postCode,
                                 address = q.address,
-                                mobileNo = q.mobileNo
+                                mobileNo = q.mobileNo,
+
+                                oCity = new CityLookup()
+                                {
+                                    id = q.cityid,
+                                    nameOfcity = q.cityName
+                                }
                             };
 
                             gList.Add(obj);
@@ -398,6 +419,7 @@ namespace UserManagementAPI.Resources.Implementations
                     var genericQuery = (from tc in config.TClients
                             join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                             join tca in config.TClientAddresses on tc.Id equals tca.ClientId
+                            join cty in config.TCities on tc.ClientCityId equals cty.Id
                             where tc.MobileNo.StartsWith(param.stringValue) || tc.WhatsappNo.StartsWith(param.stringValue)
 
                             select new
@@ -409,7 +431,10 @@ namespace UserManagementAPI.Resources.Implementations
                                 nameOrcompany = ct.Id == 1 ? string.Format("{0} {1} {2}", tc.Firstname, tc.Middlenames.Trim(), tc.Surname) : tc.ClientBusinessName,
                                 postCode = tc.ClientPostCode,
                                 mobileNo = string.Format("{0} | {1}", tc.MobileNo, tc.WhatsappNo),
-                                address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4)
+                                address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
+
+                                cityid = cty.Id,
+                                cityName = cty.CityName
                             });
 
                     var clientList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -430,7 +455,13 @@ namespace UserManagementAPI.Resources.Implementations
                                 nameOrcompany = q.nameOrcompany,
                                 postCode = q.postCode,
                                 address = q.address,
-                                mobileNo = q.mobileNo
+                                mobileNo = q.mobileNo,
+
+                                oCity = new CityLookup()
+                                {
+                                    id = q.cityid,
+                                    nameOfcity = q.cityName
+                                }
                             };
 
                             gList.Add(obj);
@@ -443,6 +474,7 @@ namespace UserManagementAPI.Resources.Implementations
                     var genericQuery = (from tc in config.TClients
                             join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                             join tca in config.TClientAddresses on tc.Id equals tca.ClientId
+                            join cty in config.TCities on tc.ClientCityId equals cty.Id
                             where tc.HomeTelephone.StartsWith(param.stringValue) || tc.WorkTelephone.StartsWith(param.stringValue)
 
                             select new
@@ -454,7 +486,10 @@ namespace UserManagementAPI.Resources.Implementations
                                 nameOrcompany = ct.Id == 1 ? string.Format("{0} {1} {2}", tc.Firstname, tc.Middlenames.Trim(), tc.Surname) : tc.ClientBusinessName,
                                 postCode = tc.ClientPostCode,
                                 mobileNo = string.Format("{0} | {1}", tc.MobileNo, tc.WhatsappNo),
-                                address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4)
+                                address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
+
+                                cityid = cty.Id,
+                                cityName= cty.CityName
                             });
 
                     var teleList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -475,7 +510,13 @@ namespace UserManagementAPI.Resources.Implementations
                                 nameOrcompany = q.nameOrcompany,
                                 postCode = q.postCode,
                                 address = q.address,
-                                mobileNo = q.mobileNo
+                                mobileNo = q.mobileNo,
+
+                                oCity = new CityLookup()
+                                {
+                                    id = q.cityid,
+                                    nameOfcity = q.cityName
+                                }
                             };
 
                             gList.Add(obj);
@@ -488,6 +529,7 @@ namespace UserManagementAPI.Resources.Implementations
                     var genericQuery = (from tc in config.TClients
                             join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                             join tca in config.TClientAddresses on tc.Id equals tca.ClientId
+                            join cty in config.TCities on tc.ClientCityId equals cty.Id
                             where tc.ClientEmailAddr.StartsWith(param.stringValue) || tc.ClientEmailAddr2.StartsWith(param.stringValue)
 
                             select new
@@ -499,7 +541,10 @@ namespace UserManagementAPI.Resources.Implementations
                                 nameOrcompany = ct.Id == 1 ? string.Format("{0} {1} {2}", tc.Firstname, tc.Middlenames.Trim(), tc.Surname) : tc.ClientBusinessName,
                                 postCode = tc.ClientPostCode,
                                 mobileNo = string.Format("{0} | {1}", tc.MobileNo, tc.WhatsappNo),
-                                address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4)
+                                address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
+
+                                cityid = cty.Id,
+                                cityName = cty.CityName
                             });
 
                     var genericCustomerList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -520,7 +565,13 @@ namespace UserManagementAPI.Resources.Implementations
                                 nameOrcompany = q.nameOrcompany,
                                 postCode = q.postCode,
                                 address = q.address,
-                                mobileNo = q.mobileNo
+                                mobileNo = q.mobileNo,
+
+                                oCity =new CityLookup()
+                                {
+                                    id = q.cityid,
+                                    nameOfcity = q.cityName
+                                }
                             };
 
                             gList.Add(obj);
@@ -533,6 +584,7 @@ namespace UserManagementAPI.Resources.Implementations
                     var genericQuery = (from tc in config.TClients
                                         join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                                         join tca in config.TClientAddresses on tc.Id equals tca.ClientId
+                                        join cty in config.TCities on tc.ClientCityId equals cty.Id
                                         where tc.ClientPostCode.StartsWith(param.stringValue)
 
                                         select new
@@ -544,7 +596,10 @@ namespace UserManagementAPI.Resources.Implementations
                                             nameOrcompany = ct.Id == 1 ? string.Format("{0} {1} {2}", tc.Firstname, tc.Middlenames.Trim(), tc.Surname) : tc.ClientBusinessName,
                                             postCode = tc.ClientPostCode,
                                             mobileNo = string.Format("{0} | {1}", tc.MobileNo, tc.WhatsappNo),
-                                            address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4)
+                                            address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
+                                        
+                                            cityid = cty.Id,
+                                            cityName = cty.CityName
                                         });
 
                     var postCodeList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -565,7 +620,12 @@ namespace UserManagementAPI.Resources.Implementations
                                 nameOrcompany = q.nameOrcompany,
                                 postCode = q.postCode,
                                 address = q.address,
-                                mobileNo = q.mobileNo
+                                mobileNo = q.mobileNo,
+                                oCity = new CityLookup()
+                                {
+                                    id = q.cityid,
+                                    nameOfcity = q.cityName
+                                }
                             };
 
                             gList.Add(obj);
@@ -709,6 +769,7 @@ namespace UserManagementAPI.Resources.Implementations
         {
             object dta = null;
             DefaultAPIResponse response = null;
+            Helper helper = new Helper();
 
             try
             {
@@ -803,7 +864,10 @@ namespace UserManagementAPI.Resources.Implementations
                             },
                             collectionInstruction = obj.collectionInstruction,
                             accountNo = obj.accNo != string.Empty ? obj.accNo.Trim().ToUpper() : string.Empty,
-                            clientBusiness = obj.clientBusiness == string.Empty ? string.Empty : obj.clientBusiness.Trim().ToUpper()
+                            clientBusiness = obj.clientBusiness == string.Empty ? string.Empty : obj.clientBusiness.Trim().ToUpper(),
+
+                            //add the address via a different object call
+                            oAddress = await helper.getClientAddressAsync(obj.uniqueID)
                         };
                     }
 
@@ -850,7 +914,9 @@ namespace UserManagementAPI.Resources.Implementations
                                 sourceOfReferral = obj.referral.Trim().ToUpper()
                             },
                             collectionInstruction = obj.collectionInstruction,
-                            accountNo = obj.accNo == string.Empty ? string.Empty : obj.accNo.Trim().ToUpper()
+                            accountNo = obj.accNo == string.Empty ? string.Empty : obj.accNo.Trim().ToUpper(),
+
+                            oAddress = await helper.getClientAddressAsync(obj.uniqueID)
                         };
                     }
 

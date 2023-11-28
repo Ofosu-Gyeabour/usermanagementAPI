@@ -21,6 +21,7 @@
         public string? address2 { get; set; } = string.Empty;
         public string? address3 { get; set; } = string.Empty;
         public string? address4 { get; set; } = string.Empty;
+        public bool isUK { get; set; } = true;
     }
 
     public class CorporateCustomerLookup
@@ -112,6 +113,7 @@
         public string postCode { get; set; } = string.Empty;
         public string address { get; set; } = string.Empty;
         public string mobileNo { get; set; } = string.Empty;
+        public CityLookup? oCity { get; set; }
     }
 
 }

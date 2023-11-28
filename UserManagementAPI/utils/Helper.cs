@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.utils
 {
@@ -135,6 +136,44 @@ namespace UserManagementAPI.utils
             }
         }
 
+        public async Task<AddressLookup> getClientAddressAsync(int clientID)
+        {
+            AddressLookup obj = null;
+
+            try
+            {
+                var Q = (from addr in config.TClientAddresses
+                         where addr.ClientId == clientID
+
+                         select new
+                         {
+                             uniqueId = addr.Id,
+                             id = clientID,
+                             address1 = addr.ClientAddr1 == null ? string.Empty : addr.ClientAddr1,
+                             address2 = addr.ClientAddr2 == null ? string.Empty : addr.ClientAddr2,
+                             address3 = addr.ClientAddr3 == null ? string.Empty: addr.ClientAddr3,
+                             isUK = addr.IsUk
+                         });
+
+                var QList = await Q.ToListAsync().ConfigureAwait(false);
+
+                obj = QList.Select(x => new AddressLookup()
+                {
+                    id = x.uniqueId,
+                    clientId = x.id,
+                    address1 = x.address1,
+                    address2 = x.address2,
+                    address3 = x.address3,
+                    isUK = (bool) x.isUK
+                }).FirstOrDefault();
+
+                return obj;
+            }
+            catch(Exception x)
+            {
+                return obj;
+            }
+        }
 
         //writes log
         public async Task<bool> WriteLogAsync(Log oLogger)
@@ -230,6 +269,122 @@ namespace UserManagementAPI.utils
             catch(Exception x)
             {
                 return obj;
+            }
+        }
+
+        public async Task<IEnumerable<ChargeEngineLookup>> getAllChargesAsync()
+        {
+            //gets all charges in the data store
+            List<ChargeEngineLookup> engineList = null;
+
+            try
+            {
+                var query = (from c in config.TChargeEngines
+                             join ot in config.TOrderTypes on c.OrdertypeId equals ot.Id
+                             
+                             select new
+                             {
+                                 id = c.Id,
+                                 ordertype = ot.Describ,
+                                 ordertype_Id = c.OrdertypeId,
+                                 chargeDescription = c.ChargeDescrib,
+                                 cRate = c.ChargeRate,
+                                 amtThreshold = c.ThresholdAmt
+                             });
+
+                var queryList = await query.ToListAsync().ConfigureAwait(false);
+                engineList = queryList.Select(q => new ChargeEngineLookup()
+                {
+                    id = q.id,
+                    oOrderType = new OrderTypeLookup()
+                    {
+                        id = (int)q.ordertype_Id,
+                        orderDescription = q.ordertype
+                    },
+                    chargeDescription = q.chargeDescription,
+                    chargeRate = q.cRate,
+                    thresholdAmt = q.amtThreshold
+                }).ToList();
+
+                return engineList;
+            }
+            catch(Exception x)
+            {
+                throw x;
+            }
+        }
+
+        public async Task<IEnumerable<ChargeEngineLookup>> getChargesAsync(OrderTypeLookup _orderType)
+        {
+            //method gets all charges for an order type
+            List<ChargeEngineLookup> engineList = null;
+
+            try
+            {
+                var query = (from c in config.TChargeEngines
+                             join ot in config.TOrderTypes on c.OrdertypeId equals ot.Id
+                             where ot.Describ == _orderType.orderDescription
+                             select new
+                             {
+                                 id = c.Id,
+                                 ordertype = ot.Describ,
+                                 ordertype_Id = c.OrdertypeId,
+                                 chargeDescription = c.ChargeDescrib,
+                                 cRate = c.ChargeRate,
+                                 amtThreshold = c.ThresholdAmt
+                             });
+
+                var queryList = await query.ToListAsync().ConfigureAwait(false);
+                engineList = queryList.Select(q => new ChargeEngineLookup()
+                {
+                    id = q.id,
+                    oOrderType = new OrderTypeLookup()
+                    {
+                        id = (int)q.ordertype_Id,
+                        orderDescription = q.ordertype
+                    },
+                    chargeDescription = q.chargeDescription,
+                    chargeRate = q.cRate,
+                    thresholdAmt = q.amtThreshold
+                }).ToList();
+
+                return engineList;
+            }
+            catch(Exception x)
+            {
+                throw x;
+            }
+        }
+
+        public async Task<IEnumerable<TOrderType>> GetOrderTypesAsync()
+        {
+            //TODO: gets the list of order types in the data store
+            try
+            {
+                var dd = await config.TOrderTypes.ToListAsync();
+                return dd;
+            }
+            catch(Exception xx)
+            {
+                throw xx;
+            }
+        }
+
+        public async Task<bool> doesChargeExist(string chargeDescrib)
+        {
+            //TODO: determine if charge or tax already exist in the data store
+            try
+            {
+                using (config)
+                {
+                    var obj = await config.TChargeLookups.Where(c => c.Charge == chargeDescrib).FirstOrDefaultAsync();
+
+                    return obj == null ? false : true;
+                }
+            }
+            catch(Exception x)
+            {
+                return false;
             }
         }
 

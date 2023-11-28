@@ -55,6 +55,7 @@ builder.Services.AddSingleton<IClientService, ClientService>();
 builder.Services.AddSingleton<IPostCodeService, PostCodeService>();
 builder.Services.AddSingleton<IPaymentTermService, PaymentTermService>();
 builder.Services.AddSingleton<ISalesService, SalesService>();
+builder.Services.AddSingleton<IUtilityService, UtilityService>();
 
 #endregion
 
@@ -187,11 +188,28 @@ app.MapPost("/SailingSchedule/Upload", async (List<SailingScheduleLookup> sailin
 
 app.MapGet("/PackagingItem/Get", async (IPackagingService service) => await GetPackagingItemListAsync(service)).WithTags("PackagingItem");
 app.MapGet("/PackagingPrice/Get", async (IPackagingService service) => await GetPackagingPriceListAsync(service)).WithTags("PackagingPrice");
+
 app.MapPost("/PackagingItem/Upload", async (List<PackageItemLookup> packageitemList, IPackagingService service) => await UploadPackageItemData(packageitemList, service)).WithTags("PackagingItem");
 
 app.MapPost("/PackagingItem/Create", async (PackageItemLookup oPackageItem, IPackagingService service) => await CreatePackagingItemAsync(oPackageItem, service)).WithTags("PackagingItem");
 app.MapPost("/PackagingPrice/Create", async (PackagepriceLookup oPackagePrice, IPackagingService service) => await CreatePackagingPriceAsync(oPackagePrice, service)).WithTags("PackagingPrice");
 app.MapPost("/PackagingPrice/Upload", async (List<PackagepriceLookup> packagepriceList, IPackagingService service) => await UploadPackagePriceDataAsync(packagepriceList, service)).WithTags("PackagingPrice");
+
+app.MapPost("/PackagingPrice/Get/Company", async Task<IResult> (IPackagingService service, CompanyLookup payLoad) =>
+{
+    try
+    {
+        if (payLoad.id <= 0)
+            return Results.BadRequest(@"company Id cannot be less than or equall to zero (0)");
+        
+        var packaging_price_List = await service.GetPackagingItemAndPriceListAsync(payLoad);
+        return Results.Ok(packaging_price_List);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("PackagingPrice");
 #endregion
 
 #region Seal - routes
@@ -280,6 +298,24 @@ app.MapPost("/User/GetUserProfile", async (UserInfo _user, IUserService service)
 app.MapPost("/User/AmendUserProfile", async (UserProfile userProfile, IUserService service) => await AmendUserProfileAsync(userProfile, service)).WithTags("Authentication");
 app.MapPost("/User/CreateAccount", async (userRecord _userRecord, IUserService service) => await CreateUserAccountAsync(_userRecord, service)).WithTags("Authentication");
 
+app.MapPost("/User/GetUser/Role", async Task<IResult> (IUserService service, SystemProfile profile) =>
+{
+    try
+    {
+        if (profile.companyId <= 0)
+            return Results.BadRequest(@"Company Id cannot be less than or equal to zero (0)");
+
+        if (profile.nameOfProfile.Length <= 0)
+            return Results.BadRequest(@"name of role cannot be an empty string");
+
+        var usr_records = await service.GetUserFromRoleAsync(profile);
+        return Results.Ok(usr_records);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Users");
 app.MapPut("/User/ChangePassword", async (UserInfo oUserInfo, IUserService service) => await ChangePasswordAsync(oUserInfo, service)).WithTags("Authentication");
 
 #endregion
@@ -371,6 +407,19 @@ app.MapPost("/CompanyType/CreateCompanyType", async (CompanyTypeLookup oCompanyT
 app.MapPut("/CompanyType/UpdateCompanyType", async (CompanyTypeLookup oCompanyType, ICompanyService service) => await UpdateCompanyTypeAsync(oCompanyType, service)).WithTags("CompanyType");
 
 app.MapGet("/Company/Get", async (ICompanyService service) => await GetCompaniesAsync(service)).WithTags("Company");
+app.MapGet("/Company/WIFAffiliated", async Task<IResult> (ICompanyService service) =>
+{
+    try
+    {
+        var wcomps = await service.GetWIFAffiliatedCompaniesAsync();
+        return Results.Ok(wcomps);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Company");
+
 #endregion
 
 #region Modules - routes
@@ -2496,6 +2545,160 @@ app.MapGet("/PaymentMethod/Get", async Task<IResult> (ISalesService service) =>
 }).WithTags("Payment Methods");
 
 #endregion
+
+#endregion
+
+#region Charges
+
+app.MapGet("/Charges/Get", async Task<IResult> (IUtilityService service) =>
+{
+    try
+    {
+        var returnedData = await service.getAllChargesAsync();
+        return Results.Ok(returnedData);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Charges");
+
+app.MapPost("/Charges/GetCharge", async Task<IResult> (IUtilityService service, OrderTypeLookup payLoad) =>
+{
+    //TODO: gets a charge record
+
+    if (payLoad == null)
+        return Results.NoContent();
+
+    if (payLoad.id <= 0)
+        return Results.BadRequest(@"Id cannot be equall or less than zero (0)");
+
+    try
+    {
+        var returnedData = await service.getChargeEngineAsync(payLoad);
+        return Results.Ok(returnedData);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+
+}).WithTags("Charges");
+
+app.MapPost("/Charges/Create", async Task<IResult> (IUtilityService service, ChargeEngineLookup payLoad) =>
+{
+    try
+    {
+        var opStatus = await service.createChargeAsync(payLoad);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+
+}).WithTags("Charges");
+
+app.MapPost("/Charges/GetChargeLines", async Task<IResult> (IUtilityService service, OrderTypeLookup payLoad) =>
+{
+    //gets the charge lines for an order type
+    if (payLoad.id <= 0)
+        return Results.BadRequest(@"ID cannot be less or equall to zero (0)");
+
+    try
+    {
+        var charge_lines = await service.getChargeEngineLinesAsync(payLoad);
+        return Results.Ok(charge_lines);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Charges");
+
+#endregion
+
+#region Charge
+
+app.MapPost("/Charge/Add", async Task<IResult> (IUtilityService service, ChargeLookup chargePayLoad) =>
+{
+    if (chargePayLoad.nameOfcharge == string.Empty)
+        return Results.BadRequest(@"name of charge cannot be empty or blank");
+
+    try
+    {
+        var opStatus = await service.addChargeOrTaxAsync(chargePayLoad);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Charge");
+
+app.MapGet("/Charge/List", async Task<IResult> (IUtilityService service) =>
+{
+    try
+    {
+        var chargeOrTaxList = await service.getChargeOrTaxListAsync();
+        return Results.Ok(chargeOrTaxList);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Charge");
+
+#endregion
+
+#region OrderTypes
+
+app.MapGet("/OrderType/Get", async Task<IResult> (IUtilityService service) =>
+{
+    try
+    {
+        var orderTypes = await service.getOrderTypeAsync();
+        return Results.Ok(orderTypes);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("OrderType");
+
+#endregion
+
+#region SalesType
+
+app.MapGet("/SalesType/Get", async Task<IResult> (IUtilityService service) =>
+{
+    try
+    {
+        var stypeList = await service.getSalesTypeAsync();
+        return Results.Ok(stypeList);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("SalesType");
+
+#endregion
+
+#region DeliveryTime
+
+app.MapGet("/DeliveryTime/Get", async Task<IResult> (IUtilityService service) =>
+{
+    try
+    {
+        var deliveryTimeList = await service.getDeliveryTimeAsync();
+        return Results.Ok(deliveryTimeList);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Delivery Time");
 
 #endregion
 
