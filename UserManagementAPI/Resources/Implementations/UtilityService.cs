@@ -28,7 +28,7 @@ namespace UserManagementAPI.Resources.Implementations
                     TChargeEngine obj = new TChargeEngine()
                     {
                         OrdertypeId = payLoad.oOrderType.id,
-                        ChargeDescrib = payLoad.chargeDescription,
+                        ChargeId = payLoad.oChargeLookup.id,
                         ChargeRate = payLoad.chargeRate,
                         //ThresholdValue = payLoad.thresholdValue,
                         ThresholdAmt = payLoad.thresholdAmt,
@@ -42,7 +42,7 @@ namespace UserManagementAPI.Resources.Implementations
                     rsp = new DefaultAPIResponse()
                     {
                         status = true,
-                        message = $"{payLoad.chargeDescription} added successfully to the Charge Engine",
+                        message = $"{payLoad.oChargeLookup.nameOfcharge} added successfully to the Charge Engine",
                         data = payLoad
                     };
                 }
@@ -112,7 +112,7 @@ namespace UserManagementAPI.Resources.Implementations
         {
             //amends a charge list record
             DefaultAPIResponse rsp = null;
-            var oldDescrib = string.Empty;
+            
 
             try
             {
@@ -121,10 +121,9 @@ namespace UserManagementAPI.Resources.Implementations
                     var objChargeEngine = await config.TChargeEngines.Where(x => x.Id == payLoad.id).FirstOrDefaultAsync();
                     if (objChargeEngine != null)
                     {
-                        oldDescrib = objChargeEngine.ChargeDescrib;
-
+                        
                         objChargeEngine.OrdertypeId = payLoad.oOrderType.id;
-                        objChargeEngine.ChargeDescrib = payLoad.chargeDescription;
+                        objChargeEngine.ChargeId = payLoad.oChargeLookup.id;
                         objChargeEngine.ChargeRate = payLoad.chargeRate;
                         objChargeEngine.ThresholdAmt = payLoad.thresholdAmt;
 
@@ -133,7 +132,7 @@ namespace UserManagementAPI.Resources.Implementations
                         rsp = new DefaultAPIResponse()
                         {
                             status = true,
-                            message = $"Charge {oldDescrib} amended to {objChargeEngine.ChargeDescrib} successfully",
+                            message = $"Charge amended to {payLoad.oChargeLookup.nameOfcharge} successfully",
                             data = payLoad
                         };
                     }
@@ -202,13 +201,15 @@ namespace UserManagementAPI.Resources.Implementations
             try
             {
                 var Query = (from ch in config.TChargeEngines 
+                             join clk in config.TChargeLookups on ch.ChargeId equals clk.Id
                              join ot in config.TOrderTypes on ch.OrdertypeId equals ot.Id
                              where ot.Id == payLoad.id
 
                              select new
                              {
                                  id = ch.Id,
-                                 charge = ch.ChargeDescrib,
+                                 chargeId = ch.ChargeId,
+                                 charge = clk.Charge,
                                  rate = ch.ChargeRate,
                                  threshold = ch.ThresholdAmt,
                                  ordertypeId = ch.OrdertypeId,
@@ -225,7 +226,10 @@ namespace UserManagementAPI.Resources.Implementations
                         id = (int) x.ordertypeId,
                         orderDescription = x.ordertypeDescrib
                     },
-                    chargeDescription = x.charge,
+                    oChargeLookup = new ChargeLookup() { 
+                        id = (int) x.chargeId,
+                        nameOfcharge = x.charge
+                    },
                     chargeRate = x.rate,
                     thresholdAmt = x.threshold
                     
@@ -329,13 +333,7 @@ namespace UserManagementAPI.Resources.Implementations
             {
                 if (! await helper.doesChargeExist(payLoad.nameOfcharge))
                 {
-                    TChargeLookup obj = new TChargeLookup()
-                    {
-                        Charge = payLoad.nameOfcharge,
-                        Unitcharge = payLoad.rate,
-                        Cumchargerate = payLoad.changeRate,
-                        CountryId = payLoad.oCountry.id
-                    };
+                    TChargeLookup obj = new TChargeLookup() { Charge = payLoad.nameOfcharge };
 
                     await config.AddAsync(obj);
                     await config.SaveChangesAsync();
@@ -367,17 +365,12 @@ namespace UserManagementAPI.Resources.Implementations
 
             try
             {
-                var Q = (from c in config.TChargeLookups join
-                         cnt in config.TCountryLookups on c.CountryId equals cnt.CountryId
+                var Q = (from c in config.TChargeLookups
 
                          select new
                          {
                              id = c.Id,
-                             chargeDescription = c.Charge,
-                             rateOfcharge = c.Unitcharge,
-                             chargeChangeRate = c.Cumchargerate,
-                             countryId = cnt.CountryId,
-                             countryName = cnt.CountryName
+                             chargeDescription = c.Charge
                          });
 
                 var QList = await Q.ToListAsync().ConfigureAwait(false);
@@ -386,14 +379,7 @@ namespace UserManagementAPI.Resources.Implementations
                                 .Select(a => new ChargeLookup()
                                 {
                                     id = a.id,
-                                    nameOfcharge = a.chargeDescription,
-                                    rate = a.rateOfcharge,
-                                    changeRate = a.chargeChangeRate,
-                                    oCountry = new CountryLookup()
-                                    {
-                                        id = (int) a.countryId,
-                                        nameOfcountry = a.countryName
-                                    }
+                                    nameOfcharge = a.chargeDescription
                                 }).ToList();
 
                 return response = new DefaultAPIResponse()

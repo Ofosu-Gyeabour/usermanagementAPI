@@ -8,6 +8,7 @@ namespace UserManagementAPI.Models
         public TPackagingItem()
         {
             TPackagingPrices = new HashSet<TPackagingPrice>();
+            TPackagingStocks = new HashSet<TPackagingStock>();
         }
 
         /// <summary>
@@ -24,5 +25,6 @@ namespace UserManagementAPI.Models
         public string? PackagingDescription { get; set; }
 
         public virtual ICollection<TPackagingPrice> TPackagingPrices { get; set; }
+        public virtual ICollection<TPackagingStock> TPackagingStocks { get; set; }
     }
 }

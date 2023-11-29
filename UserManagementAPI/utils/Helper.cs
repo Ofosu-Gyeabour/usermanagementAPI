@@ -5,7 +5,6 @@ using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
-using UserManagementAPI.Models;
 
 namespace UserManagementAPI.utils
 {
@@ -280,6 +279,7 @@ namespace UserManagementAPI.utils
             try
             {
                 var query = (from c in config.TChargeEngines
+                             join clk in config.TChargeLookups on c.ChargeId equals clk.Id
                              join ot in config.TOrderTypes on c.OrdertypeId equals ot.Id
                              
                              select new
@@ -287,7 +287,8 @@ namespace UserManagementAPI.utils
                                  id = c.Id,
                                  ordertype = ot.Describ,
                                  ordertype_Id = c.OrdertypeId,
-                                 chargeDescription = c.ChargeDescrib,
+                                 chargeId = c.ChargeId,
+                                 chargeDescription = clk.Charge,
                                  cRate = c.ChargeRate,
                                  amtThreshold = c.ThresholdAmt
                              });
@@ -301,7 +302,10 @@ namespace UserManagementAPI.utils
                         id = (int)q.ordertype_Id,
                         orderDescription = q.ordertype
                     },
-                    chargeDescription = q.chargeDescription,
+                    oChargeLookup = new ChargeLookup() { 
+                        id = (int) q.chargeId,
+                        nameOfcharge = q.chargeDescription
+                    },
                     chargeRate = q.cRate,
                     thresholdAmt = q.amtThreshold
                 }).ToList();
@@ -322,14 +326,17 @@ namespace UserManagementAPI.utils
             try
             {
                 var query = (from c in config.TChargeEngines
+                             join clk in config.TChargeLookups on c.ChargeId equals clk.Id
                              join ot in config.TOrderTypes on c.OrdertypeId equals ot.Id
                              where ot.Describ == _orderType.orderDescription
+
                              select new
                              {
                                  id = c.Id,
                                  ordertype = ot.Describ,
                                  ordertype_Id = c.OrdertypeId,
-                                 chargeDescription = c.ChargeDescrib,
+                                 chargeId = c.ChargeId,
+                                 chargeDescription = clk.Charge,
                                  cRate = c.ChargeRate,
                                  amtThreshold = c.ThresholdAmt
                              });
@@ -343,7 +350,10 @@ namespace UserManagementAPI.utils
                         id = (int)q.ordertype_Id,
                         orderDescription = q.ordertype
                     },
-                    chargeDescription = q.chargeDescription,
+                    oChargeLookup = new ChargeLookup() { 
+                        id = (int) q.chargeId,
+                        nameOfcharge = q.chargeDescription
+                    },
                     chargeRate = q.cRate,
                     thresholdAmt = q.amtThreshold
                 }).ToList();

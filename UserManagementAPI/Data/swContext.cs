@@ -19,6 +19,7 @@ namespace UserManagementAPI.Data
         {
         }
 
+        public virtual DbSet<SaleTypeLookup> SaleTypeLookups { get; set; } = null!;
         public virtual DbSet<TAdhoc> TAdhocs { get; set; } = null!;
         public virtual DbSet<TAdhocItem> TAdhocItems { get; set; } = null!;
         public virtual DbSet<TAdhocPayment> TAdhocPayments { get; set; } = null!;
@@ -82,13 +83,22 @@ namespace UserManagementAPI.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
-            {
+            {     
                 optionsBuilder.UseSqlServer(UserManagementAPI.utils.ConfigObject.DB_CONN);
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<SaleTypeLookup>(entity =>
+            {
+                entity.ToTable("SaleTypeLookup");
+
+                entity.Property(e => e.Describ)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+            });
+
             modelBuilder.Entity<TAdhoc>(entity =>
             {
                 entity.ToTable("tAdhoc");
@@ -324,10 +334,8 @@ namespace UserManagementAPI.Data
 
                 entity.Property(e => e.Id).HasComment("primary key");
 
-                entity.Property(e => e.ChargeDescrib)
-                    .HasMaxLength(50)
-                    .IsUnicode(false)
-                    .HasColumnName("chargeDescrib")
+                entity.Property(e => e.ChargeId)
+                    .HasColumnName("chargeId")
                     .HasComment("description of the order");
 
                 entity.Property(e => e.ChargeRate)
@@ -353,6 +361,11 @@ namespace UserManagementAPI.Data
                     .HasColumnName("thresholdRate")
                     .HasComment("threshold rate");
 
+                entity.HasOne(d => d.Charge)
+                    .WithMany(p => p.TChargeEngines)
+                    .HasForeignKey(d => d.ChargeId)
+                    .HasConstraintName("FK_tChargeEngine_tChargeLookup");
+
                 entity.HasOne(d => d.Ordertype)
                     .WithMany(p => p.TChargeEngines)
                     .HasForeignKey(d => d.OrdertypeId)
@@ -370,25 +383,6 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("charge")
                     .HasComment("charge");
-
-                entity.Property(e => e.CountryId)
-                    .HasColumnName("countryId")
-                    .HasComment("the country in which the charges apply");
-
-                entity.Property(e => e.Cumchargerate)
-                    .HasColumnType("numeric(9, 2)")
-                    .HasColumnName("cumchargerate")
-                    .HasComment("rate of increase of charge for quantity of items > 1");
-
-                entity.Property(e => e.Unitcharge)
-                    .HasColumnType("numeric(9, 2)")
-                    .HasColumnName("unitcharge")
-                    .HasComment("charge per unit of item being transported");
-
-                entity.HasOne(d => d.Country)
-                    .WithMany(p => p.TChargeLookups)
-                    .HasForeignKey(d => d.CountryId)
-                    .HasConstraintName("FK_tChargeLookup_tCountryLookup");
             });
 
             modelBuilder.Entity<TCity>(entity =>
@@ -1121,6 +1115,11 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TPackagingStocks)
                     .HasForeignKey(d => d.CompanyId)
                     .HasConstraintName("FK_tPackagingStock_tcompany");
+
+                entity.HasOne(d => d.TpackagingItem)
+                    .WithMany(p => p.TPackagingStocks)
+                    .HasForeignKey(d => d.TpackagingItemId)
+                    .HasConstraintName("FK_tPackagingStock_tPackagingItem");
             });
 
             modelBuilder.Entity<TPaymentMethod>(entity =>

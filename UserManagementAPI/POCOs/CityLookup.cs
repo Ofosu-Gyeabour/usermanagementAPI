@@ -256,7 +256,8 @@ namespace UserManagementAPI.POCOs
     {
         public int id { get; set; } = 0;
         public OrderTypeLookup? oOrderType { get; set; }
-        public string? chargeDescription { get; set; } = string.Empty;
+        
+        public ChargeLookup? oChargeLookup { get; set; } = null;
         public decimal? chargeRate { get; set; } = 0m;
         //public decimal? thresholdValue { get; set; } = 0m;
         public decimal? thresholdAmt { get; set; } = 0m;
@@ -268,9 +269,7 @@ namespace UserManagementAPI.POCOs
     {
         public int id { get; set; }
         public string? nameOfcharge { get; set; } = string.Empty;
-        public decimal? rate { get; set; } = 0m;
-        public decimal? changeRate { get; set; } = 0m;
-        public CountryLookup? oCountry { get; set; }
+        
     }
 
     public class PaymentMethod

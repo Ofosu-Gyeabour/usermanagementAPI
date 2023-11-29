@@ -8,7 +8,6 @@ namespace UserManagementAPI.Models
         public TCountryLookup()
         {
             TAirports = new HashSet<TAirport>();
-            TChargeLookups = new HashSet<TChargeLookup>();
             TClients = new HashSet<TClient>();
             TDeliveryCharges = new HashSet<TDeliveryCharge>();
             TDeliveryZones = new HashSet<TDeliveryZone>();
@@ -36,7 +35,6 @@ namespace UserManagementAPI.Models
 
         public virtual TRegionLookup? Region { get; set; }
         public virtual ICollection<TAirport> TAirports { get; set; }
-        public virtual ICollection<TChargeLookup> TChargeLookups { get; set; }
         public virtual ICollection<TClient> TClients { get; set; }
         public virtual ICollection<TDeliveryCharge> TDeliveryCharges { get; set; }
         public virtual ICollection<TDeliveryZone> TDeliveryZones { get; set; }

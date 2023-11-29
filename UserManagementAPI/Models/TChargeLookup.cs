@@ -7,6 +7,7 @@ namespace UserManagementAPI.Models
     {
         public TChargeLookup()
         {
+            TChargeEngines = new HashSet<TChargeEngine>();
             TDeliveryCharges = new HashSet<TDeliveryCharge>();
         }
 
@@ -18,20 +19,8 @@ namespace UserManagementAPI.Models
         /// charge
         /// </summary>
         public string? Charge { get; set; }
-        /// <summary>
-        /// charge per unit of item being transported
-        /// </summary>
-        public decimal? Unitcharge { get; set; }
-        /// <summary>
-        /// rate of increase of charge for quantity of items &gt; 1
-        /// </summary>
-        public decimal? Cumchargerate { get; set; }
-        /// <summary>
-        /// the country in which the charges apply
-        /// </summary>
-        public int? CountryId { get; set; }
 
-        public virtual TCountryLookup? Country { get; set; }
+        public virtual ICollection<TChargeEngine> TChargeEngines { get; set; }
         public virtual ICollection<TDeliveryCharge> TDeliveryCharges { get; set; }
     }
 }

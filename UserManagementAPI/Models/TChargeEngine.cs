@@ -16,7 +16,7 @@ namespace UserManagementAPI.Models
         /// <summary>
         /// description of the order
         /// </summary>
-        public string? ChargeDescrib { get; set; }
+        public int? ChargeId { get; set; }
         /// <summary>
         /// the rate applied
         /// </summary>
@@ -34,6 +34,7 @@ namespace UserManagementAPI.Models
         /// </summary>
         public int? IsLabel { get; set; }
 
+        public virtual TChargeLookup? Charge { get; set; }
         public virtual TOrderType? Ordertype { get; set; }
     }
 }

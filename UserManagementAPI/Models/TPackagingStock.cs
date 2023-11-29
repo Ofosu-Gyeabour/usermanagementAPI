@@ -31,5 +31,6 @@ namespace UserManagementAPI.Models
         public int? CompanyId { get; set; }
 
         public virtual Tcompany? Company { get; set; }
+        public virtual TPackagingItem? TpackagingItem { get; set; }
     }
 }
