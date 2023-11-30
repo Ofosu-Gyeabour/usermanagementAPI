@@ -1,5 +1,7 @@
 ﻿#nullable disable
 
+using System.ComponentModel;
+
 namespace UserManagementAPI.POCOs
 {
     public class CityLookup
@@ -237,6 +239,17 @@ namespace UserManagementAPI.POCOs
     {
         public string key { get; set; } = string.Empty;
         public decimal value { get; set; } = 0m;
+    }
+
+    public class OrderStat
+    {
+        public List<OrderSummaryDetails> summary { get; set; }
+        public decimal? totAmt { get; set; } = 0m;
+        public int? itemCount { get; set; } = 0;
+        public decimal? deliveryCharge { get; set; } = 0m;
+        public decimal? congestionCharge { get; set; } = 0m;
+        public decimal? VAT { get; set; } = 0m;
+        public OrderTypeLookup? oOrderType { get; set; }
     }
 
     public class OrderSummaryParameter

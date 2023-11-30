@@ -2687,6 +2687,28 @@ app.MapGet("/Order/OrderSummary/GetKeys/{orderID}", async Task<IResult> (IUtilit
     }
 }).WithTags("OrderType");
 
+app.MapPost("/Order/OrderSummary/UpdateAccntKeys", async Task<IResult> (IUtilityService service, OrderStat payLoad) =>
+{
+    //update account dictionary / account keys
+
+    if (payLoad.oOrderType == null)
+        return Results.BadRequest(@"Order type cannot be NULL");
+
+    if (payLoad.oOrderType.id <= 0)
+        return Results.BadRequest(@"Order type cannot be less or equal to zero (0)");
+
+
+    try
+    {
+        var returnedData = await service.updateAccountKeysAsync(payLoad);
+        return Results.Ok(returnedData);
+    }
+    catch(Exception xx)
+    {
+        return Results.BadRequest(xx.Message);
+    }
+}).WithTags("OrderType");
+
 #endregion
 
 #region SalesType

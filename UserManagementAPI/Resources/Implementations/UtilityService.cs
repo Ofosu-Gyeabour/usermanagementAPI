@@ -395,5 +395,30 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<DefaultAPIResponse> updateAccountKeysAsync(OrderStat payLoad)
+        {
+            //TODO: update account keys for the given order
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                Helper obj = new Helper();
+                var dta = await obj.updateOrderSummaryKeys(payLoad);
+
+                return response = new DefaultAPIResponse() { 
+                    status = true,
+                    message = @"success",
+                    data = dta
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
     }
 }

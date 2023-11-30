@@ -27,5 +27,7 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> getChargeOrTaxListAsync();
 
         Task<DefaultAPIResponse> getOrderSummaryKeysAsync(OrderTypeLookup payLoad);
+
+        Task<DefaultAPIResponse> updateAccountKeysAsync(OrderStat payLoad);
     }
 }

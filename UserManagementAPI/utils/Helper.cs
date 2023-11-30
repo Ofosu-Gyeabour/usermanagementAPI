@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
+using Microsoft.JSInterop.Implementation;
 
 namespace UserManagementAPI.utils
 {
@@ -13,12 +14,12 @@ namespace UserManagementAPI.utils
         swContext config;
         public Helper() {
             config = new swContext();
-        }   
+        }
 
         public async Task<bool> AmendUserModules(string _usr, string _newProfile)
         {
             try
-            {    
+            {
                 try
                 {
                     var pObj = await config.TProfiles.Where(p => p.ProfileName == _newProfile).FirstOrDefaultAsync();
@@ -36,14 +37,14 @@ namespace UserManagementAPI.utils
                 catch (Exception transErr)
                 {
                     throw;
-                }   
+                }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw;
             }
         }
-    
+
         public async Task<int> getCountryIdAsync(string name)
         {
             //gets the country Id
@@ -52,7 +53,7 @@ namespace UserManagementAPI.utils
                 var obj = await config.TCountryLookups.Where(x => x.CountryName == name).FirstOrDefaultAsync();
                 return obj.CountryId;
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 Debug.Print($"error: {x.Message}");
                 return 0;
@@ -69,7 +70,7 @@ namespace UserManagementAPI.utils
                 _country = await config.TCountryLookups.Where(x => x.CountryId == id).FirstOrDefaultAsync();
                 return _country;
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 return _country = new TCountryLookup() { CountryId = 0 };
             }
@@ -98,7 +99,7 @@ namespace UserManagementAPI.utils
 
                 return obj;
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 return obj = new CountryLookup() { id = 0 };
             }
@@ -129,7 +130,7 @@ namespace UserManagementAPI.utils
                 obj = await config.TCities.Where(x => x.CityName == name).FirstOrDefaultAsync();
                 return obj;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return obj = new TCity() { Id = 0 };
             }
@@ -150,7 +151,7 @@ namespace UserManagementAPI.utils
                              id = clientID,
                              address1 = addr.ClientAddr1 == null ? string.Empty : addr.ClientAddr1,
                              address2 = addr.ClientAddr2 == null ? string.Empty : addr.ClientAddr2,
-                             address3 = addr.ClientAddr3 == null ? string.Empty: addr.ClientAddr3,
+                             address3 = addr.ClientAddr3 == null ? string.Empty : addr.ClientAddr3,
                              isUK = addr.IsUk
                          });
 
@@ -163,12 +164,12 @@ namespace UserManagementAPI.utils
                     address1 = x.address1,
                     address2 = x.address2,
                     address3 = x.address3,
-                    isUK = (bool) x.isUK
+                    isUK = (bool)x.isUK
                 }).FirstOrDefault();
 
                 return obj;
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 return obj;
             }
@@ -176,7 +177,7 @@ namespace UserManagementAPI.utils
 
         //writes log
         public async Task<bool> WriteLogAsync(Log oLogger)
-        {          
+        {
             try
             {
                 var obj = new TLogger()
@@ -215,7 +216,7 @@ namespace UserManagementAPI.utils
 
                 return objEvent;
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 return objEvent;
             }
@@ -233,7 +234,7 @@ namespace UserManagementAPI.utils
                 result = new SingleParam() { stringValue = newID.ToString() };
                 return result;
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 Debug.Print(x.Message);
                 return result;
@@ -249,7 +250,7 @@ namespace UserManagementAPI.utils
                 var obj = await config.TAdhocTypes.Where(x => x.AdhocName == adhocName.Trim()).FirstOrDefaultAsync();
                 return obj;
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 return null;
             }
@@ -259,13 +260,13 @@ namespace UserManagementAPI.utils
         {
             //gets a payment method record
             TPaymentMethod obj = null;
-            
+
             try
             {
                 obj = await config.TPaymentMethods.Where(x => x.Method == _method).FirstOrDefaultAsync();
                 return obj;
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 return obj;
             }
@@ -281,7 +282,7 @@ namespace UserManagementAPI.utils
                 var query = (from c in config.TChargeEngines
                              join clk in config.TChargeLookups on c.ChargeId equals clk.Id
                              join ot in config.TOrderTypes on c.OrdertypeId equals ot.Id
-                             
+
                              select new
                              {
                                  id = c.Id,
@@ -302,8 +303,8 @@ namespace UserManagementAPI.utils
                         id = (int)q.ordertype_Id,
                         orderDescription = q.ordertype
                     },
-                    oChargeLookup = new ChargeLookup() { 
-                        id = (int) q.chargeId,
+                    oChargeLookup = new ChargeLookup() {
+                        id = (int)q.chargeId,
                         nameOfcharge = q.chargeDescription
                     },
                     chargeRate = q.cRate,
@@ -312,7 +313,7 @@ namespace UserManagementAPI.utils
 
                 return engineList;
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 throw x;
             }
@@ -350,8 +351,8 @@ namespace UserManagementAPI.utils
                         id = (int)q.ordertype_Id,
                         orderDescription = q.ordertype
                     },
-                    oChargeLookup = new ChargeLookup() { 
-                        id = (int) q.chargeId,
+                    oChargeLookup = new ChargeLookup() {
+                        id = (int)q.chargeId,
                         nameOfcharge = q.chargeDescription
                     },
                     chargeRate = q.cRate,
@@ -360,7 +361,7 @@ namespace UserManagementAPI.utils
 
                 return engineList;
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 throw x;
             }
@@ -380,7 +381,7 @@ namespace UserManagementAPI.utils
                     if (Q != null)
                     {
                         results = new List<ChargeLookup>();
-                        foreach(var item in Q)
+                        foreach (var item in Q)
                         {
                             var obj = new ChargeLookup()
                             {
@@ -395,7 +396,7 @@ namespace UserManagementAPI.utils
                     return results;
                 }
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 return results;
             }
@@ -424,14 +425,14 @@ namespace UserManagementAPI.utils
 
                         return true;
                     }
-                    catch(Exception x)
+                    catch (Exception x)
                     {
                         Debug.Print(x.Message);
                         return false;
                     }
                 }
             }
-            catch(Exception xx)
+            catch (Exception xx)
             {
                 return false;
             }
@@ -445,7 +446,7 @@ namespace UserManagementAPI.utils
                 var dd = await config.TOrderTypes.ToListAsync();
                 return dd;
             }
-            catch(Exception xx)
+            catch (Exception xx)
             {
                 throw xx;
             }
@@ -463,7 +464,7 @@ namespace UserManagementAPI.utils
                     return obj == null ? false : true;
                 }
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 return false;
             }
@@ -502,7 +503,55 @@ namespace UserManagementAPI.utils
             }
         }
 
+        public async Task<IEnumerable<OrderSummaryDetails>> updateOrderSummaryKeys(OrderStat obj)
+        {
+            List<OrderSummaryDetails> results = new List<OrderSummaryDetails>();
+            try
+            {
+                decimal deliveryFee = 0m;
+                decimal congestionFee = 0m;
+                decimal vatFee = 0m;
 
+                foreach (var item in obj.summary)
+                {
+                    if (item.key == "DELIVERY")
+                    {
+                        deliveryFee = (decimal)(obj.totAmt * obj.deliveryCharge);
+                        item.value = deliveryFee;
+                    }
+
+                    if (item.key == @"CONGESTION CHARGE")
+                    {
+                        congestionFee = (decimal)(obj.totAmt * obj.congestionCharge);
+                        item.value = congestionFee;
+                    }
+
+                    if (item.key == @"VAT")
+                    {
+                        item.value = (decimal)(obj.totAmt * obj.VAT);
+                    }
+
+                    if (item.key == @"ITEMS TOTAL")
+                    {
+                        item.value = (decimal)obj.itemCount;
+                    }
+
+                    if (item.key == @"TOTAL")
+                    {
+                        item.value = (decimal)obj.totAmt;
+                    }
+
+                    results.Add(item); 
+                }
+
+                return results;
+            }
+            catch(Exception ex)
+            {
+                Debug.Print(ex.Message);
+                return results;
+            }
+        }
 
 
     }
