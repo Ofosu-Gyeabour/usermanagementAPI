@@ -20,6 +20,7 @@ C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\Pu
 C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Microsoft.IdentityModel.Tokens.dll
 C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Microsoft.OpenApi.dll
 C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Microsoft.Win32.SystemEvents.dll
+C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Newtonsoft.Json.dll
 C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Swashbuckle.AspNetCore.Swagger.dll
 C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Swashbuckle.AspNetCore.SwaggerUI.dll

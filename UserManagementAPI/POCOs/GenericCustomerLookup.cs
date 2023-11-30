@@ -1,4 +1,7 @@
-﻿namespace UserManagementAPI.POCOs
+﻿using Microsoft.AspNetCore.Mvc.Formatters;
+using System.Security.Cryptography.Xml;
+
+namespace UserManagementAPI.POCOs
 {
     public class ClientTypeLookup
     {
@@ -102,6 +105,7 @@
             }
             
         }
+        
     }
 
     public class GenericCustomerLookup

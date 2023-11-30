@@ -2666,6 +2666,27 @@ app.MapGet("/OrderType/Get", async Task<IResult> (IUtilityService service) =>
     }
 }).WithTags("OrderType");
 
+app.MapGet("/Order/OrderSummary/GetKeys/{orderID}", async Task<IResult> (IUtilityService service, int orderID) =>
+{
+    //TODO: gets the list of order keys to display for accounting summary
+    if (orderID <= 0)
+        return Results.BadRequest(@"order ID must be greater than zero (0)");
+
+    try
+    {
+        OrderTypeLookup obj = new OrderTypeLookup() { 
+            id = orderID
+        };
+
+        var orderKeys = await service.getOrderSummaryKeysAsync(obj);
+        return Results.Ok(orderKeys);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("OrderType");
+
 #endregion
 
 #region SalesType

@@ -366,6 +366,77 @@ namespace UserManagementAPI.utils
             }
         }
 
+        public async Task<IEnumerable<ChargeLookup>> getChargeLookupAsync()
+        {
+            //TODO: get charge lookups
+            List<ChargeLookup> results = null;
+
+            try
+            {
+                using (config)
+                {
+                    var Q = await config.TChargeLookups.ToListAsync();
+
+                    if (Q != null)
+                    {
+                        results = new List<ChargeLookup>();
+                        foreach(var item in Q)
+                        {
+                            var obj = new ChargeLookup()
+                            {
+                                id = item.Id,
+                                nameOfcharge = item.Charge
+                            };
+
+                            results.Add(obj);
+                        }
+                    }
+
+                    return results;
+                }
+            }
+            catch(Exception x)
+            {
+                return results;
+            }
+        }
+
+        public async Task<bool> addChargeEngineEntryAsync(ChargeEngineLookup obj)
+        {
+            //TODO: create a charge engine entry
+            try
+            {
+                using (config)
+                {
+                    try
+                    {
+                        TChargeEngine chargeEngine = new TChargeEngine() {
+                            OrdertypeId = obj.oOrderType.id,
+                            ChargeId = obj.oChargeLookup.id,
+                            ChargeRate = obj.chargeRate,
+                            ThresholdAmt = obj.thresholdAmt,
+                            ThresholdRate = obj.thresholdRate,
+                            IsLabel = obj.isLabel
+                        };
+
+                        await config.AddAsync(chargeEngine);
+                        await config.SaveChangesAsync();
+
+                        return true;
+                    }
+                    catch(Exception x)
+                    {
+                        Debug.Print(x.Message);
+                        return false;
+                    }
+                }
+            }
+            catch(Exception xx)
+            {
+                return false;
+            }
+        }
+
         public async Task<IEnumerable<TOrderType>> GetOrderTypesAsync()
         {
             //TODO: gets the list of order types in the data store
@@ -397,6 +468,42 @@ namespace UserManagementAPI.utils
                 return false;
             }
         }
+
+        public async Task<IEnumerable<OrderSummaryDetails>> getOrderSummaryKeys(OrderTypeLookup ordertypelookup)
+        {
+            //TODO: use order lookup to fetch accounting keys for order computation
+            List<OrderSummaryDetails> resultKeys = null;
+
+            try
+            {
+                var query = (from ce in config.TChargeEngines
+                             join ot in config.TOrderTypes on ce.OrdertypeId equals ot.Id
+                             join ch in config.TChargeLookups on ce.ChargeId equals ch.Id
+                             where ce.OrdertypeId == ordertypelookup.id
+                             select new
+                             {
+                                 id = ce.Id,
+                                 chargeName = ch.Charge,
+                                 rate = ce.ChargeRate
+                             });
+
+                var qList = await query.ToListAsync().ConfigureAwait(false);
+                resultKeys = qList.Select(x => new OrderSummaryDetails()
+                {
+                    key = x.chargeName,
+                    value = (decimal)x.rate
+                }).ToList();
+
+                return resultKeys;
+            }
+            catch (Exception xx)
+            {
+                return resultKeys;
+            }
+        }
+
+
+
 
     }
 }

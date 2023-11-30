@@ -20,32 +20,17 @@ namespace UserManagementAPI.Resources.Implementations
         {
             //makes a charge engine entry
             DefaultAPIResponse rsp = null;
+            Helper helper = new Helper();
 
             try
             {
-                using (config)
+                bool bln = await helper.addChargeEngineEntryAsync(payLoad);
+                rsp = new DefaultAPIResponse()
                 {
-                    TChargeEngine obj = new TChargeEngine()
-                    {
-                        OrdertypeId = payLoad.oOrderType.id,
-                        ChargeId = payLoad.oChargeLookup.id,
-                        ChargeRate = payLoad.chargeRate,
-                        //ThresholdValue = payLoad.thresholdValue,
-                        ThresholdAmt = payLoad.thresholdAmt,
-                        ThresholdRate = payLoad.thresholdRate,
-                        IsLabel = payLoad.isLabel
-                    };
-
-                    await config.AddAsync(obj);
-                    await config.SaveChangesAsync();
-
-                    rsp = new DefaultAPIResponse()
-                    {
-                        status = true,
-                        message = $"{payLoad.oChargeLookup.nameOfcharge} added successfully to the Charge Engine",
-                        data = payLoad
-                    };
-                }
+                    status = bln,
+                    message = $"{payLoad.oChargeLookup.nameOfcharge} added successfully to the Charge Engine",
+                    data = payLoad
+                };               
                 
                 return rsp;
             }
@@ -361,32 +346,43 @@ namespace UserManagementAPI.Resources.Implementations
         {
             //TODO: get charge or tax list
             DefaultAPIResponse response = null;
-            List<ChargeLookup> results = null;
+            IEnumerable<ChargeLookup> results = null;
+            Helper helper = new Helper();
 
             try
             {
-                var Q = (from c in config.TChargeLookups
-
-                         select new
-                         {
-                             id = c.Id,
-                             chargeDescription = c.Charge
-                         });
-
-                var QList = await Q.ToListAsync().ConfigureAwait(false);
-
-                results = QList
-                                .Select(a => new ChargeLookup()
-                                {
-                                    id = a.id,
-                                    nameOfcharge = a.chargeDescription
-                                }).ToList();
+                results = await helper.getChargeLookupAsync();
 
                 return response = new DefaultAPIResponse()
                 {
                     status = true,
                     message = $"{results.Count()} records fetched from datastore",
                     data = results
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> getOrderSummaryKeysAsync(OrderTypeLookup payLoad)
+        {
+            //TODO: gets keys for order summary
+            DefaultAPIResponse response = null;
+            Helper helper = new Helper();
+
+            try
+            {
+                var returnedKeys = await helper.getOrderSummaryKeys(payLoad);
+                return response = new DefaultAPIResponse() { 
+                    status = true,
+                    message = $"{returnedKeys.Count()} keys returned successfully",
+                    data = returnedKeys
                 };
             }
             catch(Exception x)

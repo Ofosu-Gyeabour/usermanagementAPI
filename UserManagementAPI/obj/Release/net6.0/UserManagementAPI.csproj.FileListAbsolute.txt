@@ -199,3 +199,4 @@ C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\Us
 C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\UserManagementAPI.genruntimeconfig.cache
 C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\obj\Release\net6.0\ref\UserManagementAPI.dll
 C:\Users\Blessings\Documents\WIF_Projects\userMgmtAPI\UserManagementAPI\bin\Release\net6.0\Newtonsoft.Json.dll
+C:\Users\ofosu\Documents\WIF\userMgmtAPI\UserManagementAPI\bin\Release\net6.0\Newtonsoft.Json.dll
