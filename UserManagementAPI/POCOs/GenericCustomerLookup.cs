@@ -117,7 +117,10 @@ namespace UserManagementAPI.POCOs
         public string postCode { get; set; } = string.Empty;
         public string address { get; set; } = string.Empty;
         public string mobileNo { get; set; } = string.Empty;
+        public string? whatsappNo { get; set; } = string.Empty;
+        public string? emailAddress { get; set; } = string.Empty;
         public CityLookup? oCity { get; set; }
+        public CountryLookup? oCountry { get; set; }
     }
 
 }

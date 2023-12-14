@@ -420,5 +420,56 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<DefaultAPIResponse> getShippingItemsAsync()
+        {
+            //TODO: gets shipping items 
+            DefaultAPIResponse response = null;
+            
+            try
+            {
+                var obj = new clsShippingItem();
+                var dta = await obj.getShippingItemsAsync();
+
+                return response = new DefaultAPIResponse()
+                {
+                    status = true,
+                    message = $"{dta.Count()} records fetched",
+                    data = dta.ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> getShippingOrderItemsAsync()
+        {
+            //TODO: gets shipping order items
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                var obj = new clsShippingOrderItem();
+                var dta = await obj.getShippingOrderItemsAsync();
+
+                return response = new DefaultAPIResponse() {
+                    status = true,
+                    message = $"{dta.Count()} records fetched",
+                    data = dta.ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
     }
 }

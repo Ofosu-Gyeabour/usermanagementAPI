@@ -29,5 +29,9 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> getOrderSummaryKeysAsync(OrderTypeLookup payLoad);
 
         Task<DefaultAPIResponse> updateAccountKeysAsync(OrderStat payLoad);
+
+        Task<DefaultAPIResponse> getShippingItemsAsync();
+        Task<DefaultAPIResponse> getShippingOrderItemsAsync();
+
     }
 }

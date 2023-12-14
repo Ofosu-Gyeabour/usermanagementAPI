@@ -2,6 +2,7 @@
 global using UserManagementAPI.Models;
 using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using UserManagementAPI.utils;
@@ -46,6 +47,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TInsurance> TInsurances { get; set; } = null!;
         public virtual DbSet<TLogger> TLoggers { get; set; } = null!;
         public virtual DbSet<TModule> TModules { get; set; } = null!;
+        public virtual DbSet<TOrderCharge> TOrderCharges { get; set; } = null!;
         public virtual DbSet<TOrderStatus> TOrderStatuses { get; set; } = null!;
         public virtual DbSet<TOrderStatusLookup> TOrderStatusLookups { get; set; } = null!;
         public virtual DbSet<TOrderType> TOrderTypes { get; set; } = null!;
@@ -61,8 +63,12 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TSealPrice> TSealPrices { get; set; } = null!;
         public virtual DbSet<TSealType> TSealTypes { get; set; } = null!;
         public virtual DbSet<TShipperCategory> TShipperCategories { get; set; } = null!;
+        public virtual DbSet<TShipping> TShippings { get; set; } = null!;
+        public virtual DbSet<TShippingCharge> TShippingCharges { get; set; } = null!;
+        public virtual DbSet<TShippingItem> TShippingItems { get; set; } = null!;
         public virtual DbSet<TShippingLine> TShippingLines { get; set; } = null!;
         public virtual DbSet<TShippingMethod> TShippingMethods { get; set; } = null!;
+        public virtual DbSet<TShippingOrderItem> TShippingOrderItems { get; set; } = null!;
         public virtual DbSet<TSla> TSlas { get; set; } = null!;
         public virtual DbSet<TTask> TTasks { get; set; } = null!;
         public virtual DbSet<TTemplate> TTemplates { get; set; } = null!;
@@ -83,7 +89,7 @@ namespace UserManagementAPI.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
-            {     
+            {
                 optionsBuilder.UseSqlServer(UserManagementAPI.utils.ConfigObject.DB_CONN);
             }
         }
@@ -956,6 +962,39 @@ namespace UserManagementAPI.Data
                     .HasComment("name of the module");
             });
 
+            modelBuilder.Entity<TOrderCharge>(entity =>
+            {
+                entity.ToTable("tOrderCharge");
+
+                entity.Property(e => e.ChargeId)
+                    .HasColumnName("chargeId")
+                    .HasComment("the Id of the charge");
+
+                entity.Property(e => e.ChargeRate)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("chargeRate")
+                    .HasComment("the rate of the charge");
+
+                entity.Property(e => e.ChargeValue)
+                    .HasColumnType("numeric(18, 2)")
+                    .HasColumnName("chargeValue")
+                    .HasComment("the nominal value upon computation");
+
+                entity.Property(e => e.OrderId)
+                    .HasColumnName("orderId")
+                    .HasComment("order id...for all orders");
+
+                entity.HasOne(d => d.Charge)
+                    .WithMany(p => p.TOrderCharges)
+                    .HasForeignKey(d => d.ChargeId)
+                    .HasConstraintName("FK_tOrderCharge_tChargeLookup");
+
+                entity.HasOne(d => d.Order)
+                    .WithMany(p => p.TOrderCharges)
+                    .HasForeignKey(d => d.OrderId)
+                    .HasConstraintName("FK_tOrderCharge_tShipping");
+            });
+
             modelBuilder.Entity<TOrderStatus>(entity =>
             {
                 entity.ToTable("tOrderStatus");
@@ -988,6 +1027,11 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("reason")
                     .HasComment("the reason for the order status");
+
+                entity.HasOne(d => d.Order)
+                    .WithMany(p => p.TOrderStatuses)
+                    .HasForeignKey(d => d.OrderId)
+                    .HasConstraintName("FK_tOrderStatus_tShipping");
 
                 entity.HasOne(d => d.OrderStatusNavigation)
                     .WithMany(p => p.TOrderStatuses)
@@ -1312,6 +1356,221 @@ namespace UserManagementAPI.Data
                     .HasComment("category of shipping");
             });
 
+            modelBuilder.Entity<TShipping>(entity =>
+            {
+                entity.ToTable("tShipping");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasComment("primary key");
+
+                entity.Property(e => e.ArrivalPortId)
+                    .HasColumnName("arrivalPortId")
+                    .HasComment("id of the arrival port");
+
+                entity.Property(e => e.CompanyId)
+                    .HasColumnName("companyId")
+                    .HasComment("company id");
+
+                entity.Property(e => e.ConsignorId)
+                    .HasColumnName("consignorId")
+                    .HasComment("Id of the consignee");
+
+                entity.Property(e => e.ConsolidatorDescrib)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("consolidatorDescrib")
+                    .HasComment("consolidator description");
+
+                entity.Property(e => e.CreatedBy)
+                    .HasColumnName("createdBy")
+                    .HasComment("system user creating order");
+
+                entity.Property(e => e.CustomerId)
+                    .HasColumnName("customerId")
+                    .HasComment("customer placing order");
+
+                entity.Property(e => e.DelMethodId)
+                    .HasColumnName("delMethodId")
+                    .HasComment("id of the delivery method");
+
+                entity.Property(e => e.InvoiceDate)
+                    .HasColumnType("date")
+                    .HasColumnName("invoiceDate")
+                    .HasComment("date of invoicing");
+
+                entity.Property(e => e.IsConsolidated)
+                    .HasColumnName("isConsolidated")
+                    .HasComment("flag to determine if order is consolidated");
+
+                entity.Property(e => e.IsInvoiced)
+                    .HasColumnName("isInvoiced")
+                    .HasComment("flag determining if order has been invoiced");
+
+                entity.Property(e => e.NotifyPartyId)
+                    .HasColumnName("notifyPartyId")
+                    .HasComment("Id of the notify party");
+
+                entity.Property(e => e.PayMethodId)
+                    .HasColumnName("payMethodId")
+                    .HasComment("Id of the payment method");
+
+                entity.Property(e => e.ReceipientId)
+                    .HasColumnName("receipientId")
+                    .HasComment("Id of the receipient");
+
+                entity.Property(e => e.RoutingId)
+                    .HasColumnName("routingId")
+                    .HasComment("route of shipment");
+
+                entity.Property(e => e.SealPrice)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("sealPrice")
+                    .HasComment("price of seal");
+
+                entity.Property(e => e.SealQty)
+                    .HasColumnName("sealQty")
+                    .HasComment("seal quantity");
+            });
+
+            modelBuilder.Entity<TShippingCharge>(entity =>
+            {
+                entity.ToTable("tShippingCharge");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasComment("primary key");
+
+                entity.Property(e => e.CnD)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasComment("C&D");
+
+                entity.Property(e => e.Cs)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("CS")
+                    .HasComment("CS charge");
+
+                entity.Property(e => e.Customs)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("customs")
+                    .HasComment("customs charge");
+
+                entity.Property(e => e.DestinationThc)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("destinationTHC")
+                    .HasComment("terminal haulage charge for the destination");
+
+                entity.Property(e => e.Dmtlcar)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("DMTLCar")
+                    .HasComment("DMTL Car");
+
+                entity.Property(e => e.Docs)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("docs")
+                    .HasComment("docs charge");
+
+                entity.Property(e => e.Duties)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("duties")
+                    .HasComment("duties");
+
+                entity.Property(e => e.Freight)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("freight")
+                    .HasComment("nominal value of freight charge");
+
+                entity.Property(e => e.FreightDenom)
+                    .HasColumnName("freightDenom")
+                    .HasComment("the denomination of the freight");
+
+                entity.Property(e => e.FreightRate)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("freightRate")
+                    .HasComment("freight rate");
+
+                entity.Property(e => e.Haulage)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("haulage")
+                    .HasComment("haulage charge");
+
+                entity.Property(e => e.Hazmat)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("hazmat")
+                    .HasComment("hazmat charge");
+
+                entity.Property(e => e.ImportLic)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("importLic")
+                    .HasComment("import license charge");
+
+                entity.Property(e => e.InsuranceId)
+                    .HasColumnName("insuranceId")
+                    .HasComment("Id of the insurance");
+
+                entity.Property(e => e.InsuranceValue)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("insuranceValue")
+                    .HasComment("the nominal value of the insurance");
+
+                entity.Property(e => e.Packing)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("packing")
+                    .HasComment("packing charge");
+
+                entity.Property(e => e.ShippingId)
+                    .HasColumnName("shippingId")
+                    .HasComment("Id of the shipping order");
+
+                entity.Property(e => e.TerminalHandlingCharge)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("terminalHandlingCharge")
+                    .HasComment("terminal handling charge (thc)");
+
+                entity.Property(e => e.VerifiedGrossMass)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("verifiedGrossMass")
+                    .HasComment("verified gross mass (VGM)");
+
+                entity.Property(e => e.Wrapping)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("wrapping")
+                    .HasComment("wrapping charge");
+            });
+
+            modelBuilder.Entity<TShippingItem>(entity =>
+            {
+                entity.ToTable("tShippingItem");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.CountryId).HasColumnName("countryId");
+
+                entity.Property(e => e.ItemDescription)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("itemDescription");
+
+                entity.Property(e => e.ItemName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("itemName");
+
+                entity.Property(e => e.ItemPrice)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("itemPrice");
+
+                entity.Property(e => e.PluralName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("pluralName");
+
+                entity.HasOne(d => d.Country)
+                    .WithMany(p => p.TShippingItems)
+                    .HasForeignKey(d => d.CountryId)
+                    .HasConstraintName("FK_tShippingItem_tCountryLookup");
+            });
+
             modelBuilder.Entity<TShippingLine>(entity =>
             {
                 entity.ToTable("tShippingLine");
@@ -1342,6 +1601,75 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("route")
                     .HasComment("route to use (Air, Land, Sea, etc)");
+            });
+
+            modelBuilder.Entity<TShippingOrderItem>(entity =>
+            {
+                entity.ToTable("tShippingOrderItem");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasComment("primary key");
+
+                entity.Property(e => e.Hscode)
+                    .HasMaxLength(500)
+                    .IsUnicode(false)
+                    .HasColumnName("hscode")
+                    .HasComment("hs code");
+
+                entity.Property(e => e.ItemDescription)
+                    .HasMaxLength(4000)
+                    .IsUnicode(false)
+                    .HasColumnName("itemDescription")
+                    .HasComment("description of the item");
+
+                entity.Property(e => e.ItemId)
+                    .HasColumnName("itemId")
+                    .HasComment("the Item Id");
+
+                entity.Property(e => e.ItemPicPath)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("itemPicPath")
+                    .HasComment("path to uploaded reference image or picture");
+
+                entity.Property(e => e.ItemVolume)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("itemVolume")
+                    .HasComment("volume of the item");
+
+                entity.Property(e => e.ItemWeight)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("itemWeight")
+                    .HasComment("weight of the item");
+
+                entity.Property(e => e.LpId)
+                    .HasColumnName("lpId")
+                    .HasComment("lpId");
+
+                entity.Property(e => e.Marks)
+                    .HasMaxLength(1000)
+                    .IsUnicode(false)
+                    .HasColumnName("marks")
+                    .HasComment("marks");
+
+                entity.Property(e => e.Qty)
+                    .HasColumnName("qty")
+                    .HasComment("the quantity of the items");
+
+                entity.Property(e => e.ShippingorderId)
+                    .HasColumnName("shippingorderId")
+                    .HasComment("shipping order Id");
+
+                entity.Property(e => e.UnitPrice)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("unitPrice")
+                    .HasComment("unitprice of the item");
+
+                entity.HasOne(d => d.Item)
+                    .WithMany(p => p.TShippingOrderItems)
+                    .HasForeignKey(d => d.ItemId)
+                    .HasConstraintName("FK_tShippingOrderItem_tShippingItem");
             });
 
             modelBuilder.Entity<TSla>(entity =>

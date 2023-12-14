@@ -309,6 +309,9 @@ namespace UserManagementAPI.Resources.Implementations
                             join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                             join tca in config.TClientAddresses on tc.Id equals tca.ClientId
                             join cty in config.TCities on tc.ClientCityId equals cty.Id
+
+                            join cnt in config.TCountryLookups on tc.ClientCountryId equals cnt.CountryId   //added
+                            
                             where tc.ClientAccNo.StartsWith(param.stringValue)
 
                             select new
@@ -319,11 +322,16 @@ namespace UserManagementAPI.Resources.Implementations
                                 accNo = tc.ClientAccNo,
                                 nameOrcompany = ct.Id == 1 ? string.Format("{0} {1} {2}", tc.Firstname, tc.Middlenames.Trim(), tc.Surname) : tc.ClientBusinessName,
                                 postCode = tc.ClientPostCode,
-                                mobileNo = string.Format("{0} | {1}", tc.MobileNo, tc.WhatsappNo),
+                                mobileNo = tc.MobileNo == null? string.Empty:tc.MobileNo,
+                                whatsappNo = tc.WhatsappNo == null? string.Empty: tc.WhatsappNo,
                                 address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
-                                
+                                email = tc.ClientEmailAddr == null ? string.Empty: tc.ClientEmailAddr,
                                 cityid = cty.Id,
-                                cityName = cty.CityName
+                                cityName = cty.CityName,
+
+                                //added country
+                                countryId = tc.ClientCountryId,
+                                countryName = cnt.CountryName
                             });
 
                     var accountCriteriaList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -345,11 +353,19 @@ namespace UserManagementAPI.Resources.Implementations
                                 postCode = q.postCode,
                                 address = q.address,
                                 mobileNo = q.mobileNo,
+                                whatsappNo = q.whatsappNo,
+                                emailAddress = q.email,
 
                                 oCity = new CityLookup()
                                 {
                                     id = q.cityid,
                                     nameOfcity = q.cityName
+                                },
+
+                                oCountry = new CountryLookup()
+                                {
+                                    id = (int)q.countryId,
+                                    nameOfcountry = q.countryName
                                 }
                             };
 
