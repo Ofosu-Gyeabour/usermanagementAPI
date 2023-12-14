@@ -471,5 +471,32 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
+
+        public async Task<DefaultAPIResponse> getConsigneesAsync(consigneeParam payLoad)
+        {
+            //TODO: gets consignees
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                var obj = new clsConsigee();
+                var consigee_data = await obj.fetchTopN(payLoad);
+
+                return response = new DefaultAPIResponse() { 
+                    status = true,
+                    message = $"{consigee_data.Count()} records fetched",
+                    data = consigee_data.ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
     }
 }

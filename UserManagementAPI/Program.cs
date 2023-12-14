@@ -2773,6 +2773,24 @@ app.MapGet("/ShippingOrder/GetItems", async Task<IResult> (IUtilityService servi
     }
 }).WithTags("Shipping Order");
 
+app.MapPost("/Shipping/Consignees/Get", async Task<IResult> (IUtilityService service, consigneeParam param) =>
+{
+    if (param.consignorId < 1)
+        return Results.BadRequest(@"Consignor Id cannot be equal to zero (0)");
+
+    if (param.totalFetched < 1)
+        return Results.BadRequest(@"Records to return cannot be equal to zero (0)");
+
+    try
+    {
+        var consigneeList = await service.getConsigneesAsync(param);
+        return Results.Ok(consigneeList);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("Shipping");
 #endregion
 
 

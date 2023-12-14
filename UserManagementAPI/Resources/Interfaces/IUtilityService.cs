@@ -32,6 +32,7 @@ namespace UserManagementAPI.Resources.Interfaces
 
         Task<DefaultAPIResponse> getShippingItemsAsync();
         Task<DefaultAPIResponse> getShippingOrderItemsAsync();
+        Task<DefaultAPIResponse> getConsigneesAsync(consigneeParam payLoad);
 
     }
 }
