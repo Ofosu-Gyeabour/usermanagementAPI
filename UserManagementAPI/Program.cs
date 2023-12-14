@@ -2745,6 +2745,37 @@ app.MapGet("/DeliveryTime/Get", async Task<IResult> (IUtilityService service) =>
 
 #endregion
 
+#region Shipping Items
+
+app.MapGet("/ShippingItem/Get", async Task<IResult> (IUtilityService service) =>
+{
+    try
+    {
+        var sItems = await service.getShippingItemsAsync();
+        return Results.Ok(sItems);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("ShippingItem");
+
+app.MapGet("/ShippingOrder/GetItems", async Task<IResult> (IUtilityService service) =>
+{
+    try
+    {
+        var order_items = await service.getShippingOrderItemsAsync();
+        return Results.Ok(order_items);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Shipping Order");
+
+#endregion
+
+
 #endregion
 
 app.Run();

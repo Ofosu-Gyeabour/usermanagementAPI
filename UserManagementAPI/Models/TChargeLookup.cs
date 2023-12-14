@@ -9,6 +9,7 @@ namespace UserManagementAPI.Models
         {
             TChargeEngines = new HashSet<TChargeEngine>();
             TDeliveryCharges = new HashSet<TDeliveryCharge>();
+            TOrderCharges = new HashSet<TOrderCharge>();
         }
 
         /// <summary>
@@ -22,5 +23,6 @@ namespace UserManagementAPI.Models
 
         public virtual ICollection<TChargeEngine> TChargeEngines { get; set; }
         public virtual ICollection<TDeliveryCharge> TDeliveryCharges { get; set; }
+        public virtual ICollection<TOrderCharge> TOrderCharges { get; set; }
     }
 }

@@ -34,6 +34,7 @@ namespace UserManagementAPI.Models
         /// </summary>
         public int? ActionedBy { get; set; }
 
+        public virtual TShipping? Order { get; set; }
         public virtual TOrderStatusLookup? OrderStatusNavigation { get; set; }
         public virtual TOrderType? OrderType { get; set; }
     }

@@ -4563,24 +4563,37 @@
     ]
   },
   "packageFolders": {
+<<<<<<< HEAD
     "C:\\Users\\Nana\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+=======
+    "C:\\Users\\Blessings\\.nuget\\packages\\": {}
+>>>>>>> 0f51c128a666dff1c1ae415dafb460080967fef1
   },
   "project": {
     "version": "1.0.0",
     "restore": {
+<<<<<<< HEAD
       "projectUniqueName": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\UserManagementAPI.csproj",
       "projectName": "UserManagementAPI",
       "projectPath": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\UserManagementAPI.csproj",
       "packagesPath": "C:\\Users\\Nana\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\obj\\",
+=======
+      "projectUniqueName": "C:\\Users\\Blessings\\Documents\\WIF_Projects\\usr2\\UserManagementAPI\\UserManagementAPI.csproj",
+      "projectName": "UserManagementAPI",
+      "projectPath": "C:\\Users\\Blessings\\Documents\\WIF_Projects\\usr2\\UserManagementAPI\\UserManagementAPI.csproj",
+      "packagesPath": "C:\\Users\\Blessings\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Blessings\\Documents\\WIF_Projects\\usr2\\UserManagementAPI\\obj\\",
+>>>>>>> 0f51c128a666dff1c1ae415dafb460080967fef1
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
+<<<<<<< HEAD
         "C:\\Users\\Nana\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+=======
+        "C:\\Users\\Blessings\\AppData\\Roaming\\NuGet\\NuGet.Config",
+>>>>>>> 0f51c128a666dff1c1ae415dafb460080967fef1
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -4588,7 +4601,7 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
+        "C:\\Program Files\\dotnet\\sdk\\7.0.306\\Sdks\\Microsoft.NET.Sdk.Web\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -4675,7 +4688,11 @@
             "privateAssets": "all"
           }
         },
+<<<<<<< HEAD
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100\\RuntimeIdentifierGraph.json"
+=======
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.306\\RuntimeIdentifierGraph.json"
+>>>>>>> 0f51c128a666dff1c1ae415dafb460080967fef1
       }
     }
   }
