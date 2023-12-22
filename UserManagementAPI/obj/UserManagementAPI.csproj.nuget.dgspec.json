@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\UserManagementAPI.csproj": {}
+    "C:\\Users\\Nana Appiah\\Projects\\usrMgmtAPI\\UserManagementAPI\\UserManagementAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\UserManagementAPI.csproj": {
+    "C:\\Users\\Nana Appiah\\Projects\\usrMgmtAPI\\UserManagementAPI\\UserManagementAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\UserManagementAPI.csproj",
+        "projectUniqueName": "C:\\Users\\Nana Appiah\\Projects\\usrMgmtAPI\\UserManagementAPI\\UserManagementAPI.csproj",
         "projectName": "UserManagementAPI",
-        "projectPath": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\UserManagementAPI.csproj",
-        "packagesPath": "C:\\Users\\Nana\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\obj\\",
+        "projectPath": "C:\\Users\\Nana Appiah\\Projects\\usrMgmtAPI\\UserManagementAPI\\UserManagementAPI.csproj",
+        "packagesPath": "C:\\Users\\Nana Appiah\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Nana Appiah\\Projects\\usrMgmtAPI\\UserManagementAPI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Nana\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Nana Appiah\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],

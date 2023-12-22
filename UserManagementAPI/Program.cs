@@ -502,6 +502,23 @@ app.MapPost("/PostCode/List", async Task<IResult> (IPostCodeService service, Sin
     }
 }).WithTags("PostCode");
 
+app.MapPost("/PostCode/CongestionCharge/Get", async Task<IResult> (IPostCodeService service, SingleParam param) =>
+{
+    //todo: gets congestion charge
+    if (param.stringValue.Trim().Length < 1)
+        return Results.BadRequest(@"Post code cannot be blank");
+
+    try
+    {
+        var result = await service.getPostCodeCongestionChargeAsync(param);
+        return Results.Ok(result);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("PostCode");
+
 app.MapPost("/Client/SaveCorporate", async Task<IResult> (IClientService service, CorporateCustomerLookup corporate) =>
 {
     try

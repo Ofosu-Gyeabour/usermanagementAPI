@@ -89,5 +89,45 @@ namespace UserManagementAPI.Resources.Implementations
             return client;
         }
 
+        public async Task<DefaultAPIResponse> getPostCodeCongestionChargeAsync(SingleParam payLoad)
+        {
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                clsCongestion obj = new clsCongestion()
+                {
+                    postCode = payLoad.stringValue.Trim()
+                };
+
+                var returnedResults = await obj.getCongestionChargeAsync();
+
+                return returnedResults == null ? response = new DefaultAPIResponse()
+                {
+                    status = true,
+                    message = $"no data",
+                    data = new clsCongestion()
+                    {
+                        postCode = obj.postCode,
+                        congestionCharge = 0
+                    }
+                } :
+                response = new DefaultAPIResponse()
+                {
+                    status = true,
+                    message = $"congestion charge fee for PostCode {obj.postCode} is {returnedResults.congestionCharge}",
+                    data = returnedResults
+                };
+            }
+            catch (Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
     }
 }
