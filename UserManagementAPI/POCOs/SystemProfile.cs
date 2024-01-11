@@ -41,4 +41,14 @@ namespace UserManagementAPI.POCOs
         public int profileid { get; set; }
     }
 
+    public class consolUserRecord : userRecord
+    {
+        public string? clientBusinessName { get; set; }
+        public int consolID { get; set; }
+        public int? loggedAttempt { get; set; } = 3;
+        public int? failedAttempt { get; set; } = 0;
+        public int? createdBy { get; set; }
+        public string createdByName { get; set; } = string.Empty;
+    }
+
 }

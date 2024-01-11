@@ -17,5 +17,7 @@ namespace UserManagementAPI.Resources.Interfaces
 
         Task<UploadAPIResponse> UploadPackageItemAsync(IEnumerable<PackageItemLookup> payLoad);
         Task<UploadAPIResponse> UploadPackagingPriceAsync(IEnumerable<PackagepriceLookup> payLoad);
+
+        Task<DefaultAPIResponse> GetPackagePriceRecord(int companyId, int itemID);
     }
 }

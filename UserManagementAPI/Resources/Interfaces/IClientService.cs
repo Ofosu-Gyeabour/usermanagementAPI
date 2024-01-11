@@ -24,5 +24,6 @@ namespace UserManagementAPI.Resources.Interfaces
 
         Task<DefaultAPIResponse> UpdateClientInformationAsync(IndividualCustomerLookup payLoad);
         Task<DefaultAPIResponse> UpdateClientAddressAsync(IndividualCustomerLookup payLoad);
+
     }
 }

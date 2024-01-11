@@ -4,6 +4,7 @@ using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
 using System.Diagnostics;
+using UserManagementAPI.utils;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -207,6 +208,33 @@ namespace UserManagementAPI.Resources.Implementations
                     status = false,
                     message = $"error: {x.Message}",
                     errorList = errorList
+                };
+            }
+        }
+    
+        public async Task<DefaultAPIResponse> GetCountryShippingPortAsync(CountryLookup payLoad)
+        {
+            //TODO: gets the shipping ports belonging to a country
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                var objHelper = new Helper();
+                var ports_list = await objHelper.getCountryPortsAsync(payLoad.id);
+
+                return response = new DefaultAPIResponse()
+                {
+                    status = true,
+                    message = $"{ports_list.Count()} records fetched",
+                    data = ports_list.ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
                 };
             }
         }

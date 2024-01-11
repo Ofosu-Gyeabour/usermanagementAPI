@@ -6,9 +6,17 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using Microsoft.JSInterop.Implementation;
+using System.Security.Cryptography;
+using System.Transactions;
 
 namespace UserManagementAPI.utils
 {
+    public record clientCreatedRecord
+    {
+        public int id { get; set; }
+        public string acctNo { get; set; }
+        public TClient clientObj { get; set; }
+    }
     public class Helper
     {
         swContext config;
@@ -401,7 +409,6 @@ namespace UserManagementAPI.utils
                 return results;
             }
         }
-
         public async Task<bool> addChargeEngineEntryAsync(ChargeEngineLookup obj)
         {
             //TODO: create a charge engine entry
@@ -437,7 +444,6 @@ namespace UserManagementAPI.utils
                 return false;
             }
         }
-
         public async Task<IEnumerable<TOrderType>> GetOrderTypesAsync()
         {
             //TODO: gets the list of order types in the data store
@@ -451,7 +457,6 @@ namespace UserManagementAPI.utils
                 throw xx;
             }
         }
-
         public async Task<bool> doesChargeExist(string chargeDescrib)
         {
             //TODO: determine if charge or tax already exist in the data store
@@ -469,7 +474,6 @@ namespace UserManagementAPI.utils
                 return false;
             }
         }
-
         public async Task<IEnumerable<OrderSummaryDetails>> getOrderSummaryKeys(OrderTypeLookup ordertypelookup)
         {
             //TODO: use order lookup to fetch accounting keys for order computation
@@ -491,6 +495,7 @@ namespace UserManagementAPI.utils
                 var qList = await query.ToListAsync().ConfigureAwait(false);
                 resultKeys = qList.Select(x => new OrderSummaryDetails()
                 {
+                    id = x.id,
                     key = x.chargeName,
                     value = (decimal)x.rate
                 }).ToList();
@@ -502,7 +507,6 @@ namespace UserManagementAPI.utils
                 return resultKeys;
             }
         }
-
         public async Task<IEnumerable<OrderSummaryDetails>> updateOrderSummaryKeys(OrderStat obj)
         {
             List<OrderSummaryDetails> results = new List<OrderSummaryDetails>();
@@ -553,6 +557,406 @@ namespace UserManagementAPI.utils
             }
         }
 
+        public async Task<IEnumerable<ShippingPortLookup>> getCountryPortsAsync(int countryId)
+        {
+            //gets ports for a specific country
+            List<ShippingPortLookup> results = null;
+
+            try
+            {
+                var Q = (from p in config.Tshippingports
+                         join cnt in config.TCountryLookups on p.CountryId equals cnt.CountryId
+                         where p.CountryId == countryId
+                         select new
+                         {
+                             id = p.Id,
+                             portName = p.NameOfport,
+                             portCode = p.Portcode,
+                             sailingTime = p.TraveltimeInDays,
+                             countryId = p.CountryId,
+                             countryName = cnt.CountryName,
+                             countryCode = cnt.CountryCode
+                         });
+
+                var QList = await Q.ToListAsync().ConfigureAwait(false);
+
+                return results = QList.Select(x => new ShippingPortLookup()
+                {
+                    id = x.id,
+                    nameOfport = x.portName,
+                    codeOfport = x.portCode,
+                    sailingTimeInDays = (int)x.sailingTime,
+                    oCountry = new CountryLookup()
+                    {
+                        id = (int)x.id,
+                        nameOfcountry = x.countryName,
+                        codeOfcountry = x.countryCode
+                    }
+                }).ToList();
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<clientCreatedRecord> createIndividualClientRecordAsync(IndividualCustomerLookup record)
+        {
+            //TODO: creates an individual client record in the data store
+            clientCreatedRecord rec = null;
+            TClient obj = null;
+            TClientAddress tad = null;
+
+            int _Id = 0;
+
+            try
+            {
+                using (var cfg = new swContext())
+                {
+                    _Id = config.TClients.Max(u => (int)u.Id);
+                }
+
+                using (config)
+                {
+                    using var transaction = config.Database.BeginTransaction();
+                    try
+                    {
+                        obj = new TClient()
+                        {
+                            ClientTypeId = record.oClientType.id,
+                            AssociatedCompanyId = record.oCompany.id,
+                            ChannelTypeId = record.oChannelType.id,
+
+                            Firstname = record.firstname.Trim().ToUpper(),
+                            Middlenames = record.middlenames.Trim().ToUpper(),
+                            Surname = record.surname.Trim().ToUpper(),
+
+                            ClientBusinessName = record.clientBusiness.Trim().ToUpper(),
+                            MobileNo = record.mobileNo.Trim(),
+                            WhatsappNo = record.whatsappNo.Trim(),
+                            HomeTelephone = record.homeTelephone.Trim(),
+                            WorkTelephone = record.workTelephone.Trim(),
+                            ClientEmailAddr = record.clientEmail.Trim(),
+                            ClientEmailAddr2 = record.clientEmail2.Trim(),
+                            ClientCityId = record.oCity.id,
+                            ClientCountryId = record.oCountry.id,
+                            ClientPostCode = record.postCode.Trim().ToUpper(),
+                            ReferralId = record.oReferral.id,
+                            CollectionInstruction = record.collectionInstruction.Trim(),
+                            IsShipper = true,
+                            ClientAccNo = string.Format("{0}{1}{2}", record.firstname.Trim().ToUpper().Substring(0, 1), record.surname.Trim().ToUpper().Substring(0, 1), (_Id + 1)),
+                            ClientPassword = record.clientPassword,
+                            CanLogin = true,
+                            ConsolidatorId = record.consolidator
+                        };
+
+
+                        await config.AddAsync(obj);
+                        await config.SaveChangesAsync();
+
+                        if (record.oAddress.address1.Length > 0)
+                        {
+
+                            tad = new TClientAddress()
+                            {
+                                ClientId = obj.Id,
+                                ClientAddr1 = record.oAddress.address1.Trim().ToUpper(),
+                                ClientAddr2 = record.oAddress.address2.Trim().ToUpper(),
+                                ClientAddr3 = record.oAddress.address3.Trim().ToUpper(),
+                                ClientAddr4 = record.oAddress.address4.Trim().ToUpper(),
+                                IsUk = record.oAddress.isUK
+                            };
+
+                            await config.AddAsync(tad);
+                            await config.SaveChangesAsync();
+                        }
+
+                        await transaction.CommitAsync();
+                    }
+                    catch(Exception terr)
+                    {
+                        await transaction.RollbackAsync();
+                    } 
+                }
+
+                return rec = new clientCreatedRecord()
+                {
+                    id = obj.Id,
+                    acctNo = obj.ClientAccNo,
+                    clientObj = obj
+                };
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<clientCreatedRecord> createCorporateClientRecordAsync(CorporateCustomerLookup record)
+        {
+            //TODO: creates a corporate account in the tclient table data store
+            clientCreatedRecord rec = null;
+            TClient obj = null;
+            TClientAddress tad = null;
+
+            int _Id = 0;
+
+            try
+            {
+                using (var cfg = new swContext())
+                {
+                    _Id = config.TClients.Max(u => (int)u.Id);
+                }
+
+                using var transaction = config.Database.BeginTransaction();
+
+                try
+                {
+                    obj = new TClient()
+                    {
+                        ClientTypeId = record.oClientType.id,
+                        AssociatedCompanyId = record.oCompany.id,
+                        ChannelTypeId = record.oChannelType.id,
+                        ClientBusinessName = record.clientBusiness.Trim().ToUpper(),
+                        MobileNo = record.mobileNo.Trim(),
+                        WhatsappNo = record.whatsappNo.Trim(),
+                        HomeTelephone = record.homeTelephone.Trim(),
+                        WorkTelephone = record.workTelephone.Trim(),
+                        ClientEmailAddr = record.clientEmail.Trim(),
+                        ClientEmailAddr2 = record.clientEmail2.Trim(),
+                        ClientCityId = record.oCity.id,
+                        ClientCountryId = record.oCountry.id,
+                        ClientPostCode = record.postCode.Trim().ToUpper(),
+                        ReferralId = record.oReferral.id,
+                        CollectionInstruction = record.collectionInstruction.Trim(),
+                        IsShipper = true,
+                        ClientAccNo = string.Format("{0}{1}", record.clientBusiness.Trim().ToUpper().Substring(0, 3), (_Id + 1)),
+                        ClientPassword = record.clientPassword,
+                        CanLogin = true,
+                        ConsolidatorId = record.consolidator
+                    };
+
+                    await config.AddAsync(obj);
+                    await config.SaveChangesAsync();
+
+                    if (record.oAddress.address1.Length > 0)
+                    {
+                        tad = new TClientAddress()
+                        {
+                            ClientId = obj.Id,
+                            ClientAddr1 = record.oAddress.address1.Trim().ToUpper(),
+                            ClientAddr2 = record.oAddress.address2.Trim().ToUpper(),
+                            ClientAddr3 = record.oAddress.address3.Trim().ToUpper(),
+                            ClientAddr4 = record.oAddress.address4.Trim().ToUpper(),
+                            IsUk = record.oAddress.isUK
+                        };
+
+                        await config.AddAsync(tad);
+                        await config.SaveChangesAsync();
+                    }
+
+                    await transaction.CommitAsync();
+                }
+                catch(Exception tErr)
+                {
+                    await transaction.RollbackAsync();
+                }
+
+                return rec = new clientCreatedRecord()
+                {
+                    id = obj.Id,
+                    acctNo = obj.ClientAccNo,
+                    clientObj = obj
+                };
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+    
+        public async Task<PackagepriceLookup> getPackagePriceRecordAsync(int companyID, int itemID)
+        {
+            PackagepriceLookup result = null;
+
+            try
+            {
+                var q = (from pp in config.TPackagingPrices
+                         join tpi in config.TPackagingItems on pp.PackagingItemId equals tpi.Id
+                         join cmp in config.Tcompanies on pp.CompanyId equals cmp.CompanyId
+                         join tp in config.Tpackagings on pp.PackagingItemId equals tp.Id
+                         where pp.CompanyId == companyID && pp.PackagingItemId == itemID
+
+                         select new
+                         {
+                             uniqueID = pp.Id,
+                             packagingItemId = pp.PackagingItemId,
+                             packagingItem = tpi.PackagingItem,
+                             packagingDescr = tpi.PackagingDescription,
+                             uPrice = pp.UnitPrice,
+                             wPrice = pp.WholesalePrice,
+                             rPrice = pp.RetailPrice,
+                             companyId = pp.CompanyId,
+                             companyName = cmp.Company,
+                             itemcode = tp.Itemcode
+                         });
+
+                var qList = await q.ToListAsync().ConfigureAwait(false);
+
+                result = qList
+                            .Select(a => new PackagepriceLookup()
+                            {
+                                id = a.uniqueID,
+                                oPackageItem = new PackageItemLookup()
+                                {
+                                    id = (int) a.packagingItemId,
+                                    name = a.packagingItem,
+                                    description = a.packagingDescr
+                                },
+                                unitPrice = (decimal) a.uPrice,
+                                wholesalePrice = (decimal) a.wPrice,
+                                retailPrice = (decimal) a.rPrice,
+                                oCompany = new CompanyLookup()
+                                {
+                                    id = (int) a.companyId,
+                                    nameOfcompany = a.companyName
+                                },
+                                nomCode = a.itemcode
+                            }).FirstOrDefault();
+
+                return result;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<IEnumerable<clsRateType>> getRateTypesAsync()
+        {
+            //TODO: method fetches the types of rates in the data store
+            List<clsRateType> rates = null;
+
+            try
+            {
+                var q = (from r in config.TRateTypes
+                         select new
+                         {
+                             uniqueID = r.Id,
+                             rateDescription = r.Describ
+                         });
+
+                var qa = await q.ToListAsync().ConfigureAwait(false);
+
+                return rates = qa
+                    .Select(a => new clsRateType()
+                    {
+                        id = a.uniqueID,
+                        describ = a.rateDescription
+                    }).ToList();
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<int> createShippingOrderRecordAsync(clsShippingOrder order)
+        {
+            //change returnvalue to string to return a properly formatted SHIPPING ORDER NUMBER
+            //method creates shipping order record in the data store
+            //int shippingID = 0;
+
+            try
+            {
+                //using (var cfg = new swContext())
+                //{
+                //    shippingID = config.TShippings.Max(u => (int)u.Id);
+                //}
+                    
+                using var transaction = await config.Database.BeginTransactionAsync();
+
+                try
+                {
+                    //tshipping first
+                    TShipping shipping = new TShipping() { 
+                        CompanyId = order.oShipping.oCompany.id,
+                        IsConsolidated = order.oShipping.isConsolidated == 1 ? true: false,
+                        ConsolidatorDescrib = order.oShipping.consolidatedDescription,
+                        IsInvoiced = order.oShipping.isInvoiced == 1 ? true: false,
+                        InvoiceDate = order.oShipping.invoiceDate,
+                        CreatedBy = order.oShipping.createdBy,
+                        CustomerId = order.oShipping.customerId,
+                        ConsignorId = order.oShipping.consignorId,
+                        ReceipientId = order.oShipping.recipientId,
+                        NotifyPartyId = order.oShipping.notifyPartyId,
+                        SealQty = order.oShipping.sealQty,
+                        SealPrice = order.oShipping.sealPrice,
+                        RoutingId = order.oShipping.routingId,
+                        DelMethodId  = order.oShipping.deliveryMethodId,
+                        PayMethodId = order.oShipping.payMethodId,
+                        ArrivalPortId = order.oShipping.arrivalPortId,
+                        ContactInstr = order.oShipping.contactInstruction,
+                        OrderNote = order.oShipping.orderNote,
+                        CargoDescr = order.oShipping.cargoDescription,
+                        OrderCreationDate = order.oShipping.orderCreationDate,
+                        OrderStatusId = await order.oShipping.oShippingStatus.getId()
+                    };
+
+                    await config.AddAsync(shipping);
+                    await config.SaveChangesAsync();
+
+                    //tshippingorderitems
+                    foreach(var item in order.oShippingOrderItems)
+                    {
+                        TShippingOrderItem shippingItem = new TShippingOrderItem() { 
+                            ShippingorderId = shipping.Id,
+                            ItemId = item.item.id,
+                            Qty = item.quantity,
+                            ItemDescription = item.itemDescription,
+                            ItemWeight = item.itemWeight,
+                            ItemVolume = item.itemVolume,
+                            UnitPrice = item.unitPrice,
+                            Marks = item.marks,
+                            Hscode = item.hscode,
+                            LpId = 0,
+                            ItemPicPath = string.Empty
+                        };
+
+                        await config.AddAsync(shippingItem);
+                        await config.SaveChangesAsync();
+                    }
+
+                    //tshippingordercharges
+                    foreach(var ch in order.oShippingOrderCharges)
+                    {
+                        TShippingOrderCharge shippingOrderCharge = new TShippingOrderCharge() { 
+                            ShippingOrderId = shipping.Id,
+                            ChargeId = ch.oCharge.id,
+                            ChargeAmt = ch.chargeAmt,
+                            ChargeDescription = ch.chargeDescription,
+                            CurrencyId = await ch.oCurrency.getID()
+                        };
+
+                        await config.AddAsync(shippingOrderCharge);
+                        await config.SaveChangesAsync();
+                    }
+
+                    //commit transaction asynchronously
+                    await transaction.CommitAsync();
+                    return shipping.Id;
+                }
+                catch(Exception tex)
+                {
+                    await transaction.RollbackAsync();
+                    return 0;
+                }
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
 
     }
 }

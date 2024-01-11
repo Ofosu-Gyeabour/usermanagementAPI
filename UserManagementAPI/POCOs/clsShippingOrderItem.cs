@@ -1,5 +1,7 @@
 ﻿#nullable disable
 
+using UserManagementAPI.Data;
+
 namespace UserManagementAPI.POCOs
 {
     public class clsShippingOrderItem

@@ -5,6 +5,11 @@ namespace UserManagementAPI.Models
 {
     public partial class Tshippingport
     {
+        public Tshippingport()
+        {
+            TAgencyRates = new HashSet<TAgencyRate>();
+        }
+
         /// <summary>
         /// primary key
         /// </summary>
@@ -27,5 +32,6 @@ namespace UserManagementAPI.Models
         public int? TraveltimeInDays { get; set; }
 
         public virtual TCountryLookup? Country { get; set; }
+        public virtual ICollection<TAgencyRate> TAgencyRates { get; set; }
     }
 }

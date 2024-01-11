@@ -54,6 +54,8 @@ namespace UserManagementAPI.POCOs
 
         public string clientPassword { get; set; } = string.Empty;
         public bool canLogin { get; set; } = true;
+
+        public int consolidator { get; set; } = 1;
     }
 
 
@@ -110,6 +112,7 @@ namespace UserManagementAPI.POCOs
 
     public class GenericCustomerLookup
     {
+       // public int recordId { get; set; } = 0;
         public int id { get; set; } = 0;
         public string? accountNo { get; set; } = string.Empty;
         public ClientTypeLookup? oClientType { get; set; }

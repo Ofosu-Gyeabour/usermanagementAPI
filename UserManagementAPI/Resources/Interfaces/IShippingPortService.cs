@@ -10,5 +10,8 @@ namespace UserManagementAPI.Resources.Interfaces
         DefaultAPIResponse GetShippingPortsAsync();
         Task<DefaultAPIResponse> CreateShippingPortAsync(ShippingPortLookup payLoad);
         Task<UploadAPIResponse> UploadShippingPortAsync(IEnumerable<ShippingPortLookup> payLoad);
+
+        Task<DefaultAPIResponse> GetCountryShippingPortAsync(CountryLookup payLoad);
+
     }
 }

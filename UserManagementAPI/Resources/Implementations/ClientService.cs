@@ -962,78 +962,19 @@ namespace UserManagementAPI.Resources.Implementations
         {
             //saves corporate client record
             DefaultAPIResponse response = null;
-            int newID = 0;
-            int insertedID = 0;
-
-            using (var cfg = new swContext())
-            {
-                newID = cfg.TClients.Max(u => (int)u.Id);
-            }
+            clientCreatedRecord cRekord = null;
 
             try
             {
-                using (var trans = config.Database.BeginTransaction())
+                Helper helper = new Helper();
+                cRekord = await helper.createCorporateClientRecordAsync(payLoad);
+
+                return response = new DefaultAPIResponse()
                 {
-                    TClient obj = new TClient()
-                    {
-                        //Id = 12233,
-                        ClientTypeId = payLoad.oClientType.id,
-                        AssociatedCompanyId = payLoad.oCompany.id,
-                        ChannelTypeId = payLoad.oChannelType.id,
-                        ClientBusinessName = payLoad.clientBusiness.Trim().ToUpper(),
-                        MobileNo = payLoad.mobileNo.Trim(),
-                        WhatsappNo = payLoad.whatsappNo.Trim(),
-                        HomeTelephone = payLoad.homeTelephone.Trim(),
-                        WorkTelephone = payLoad.workTelephone.Trim(),
-                        ClientEmailAddr = payLoad.clientEmail.Trim(),
-                        ClientEmailAddr2 = payLoad.clientEmail2.Trim(),
-                        ClientCityId = payLoad.oCity.id,
-                        ClientCountryId = payLoad.oCountry.id,
-                        ClientPostCode = payLoad.postCode.Trim().ToUpper(),
-                        ReferralId = payLoad.oReferral.id,
-                        CollectionInstruction = payLoad.collectionInstruction.Trim(),
-                        IsShipper = true,
-                        ClientAccNo = string.Format("{0}{1}", payLoad.clientBusiness.Trim().ToUpper().Substring(0, 3), (newID + 1)),
-                        ClientPassword = payLoad.clientPassword,
-                        CanLogin = true
-                    };
-
-                    await config.AddAsync(obj);
-                    await config.SaveChangesAsync();
-
-                    insertedID = obj.Id;
-
-                    if (payLoad.oAddress.address1.Length == 0)
-                    {
-                        await trans.CommitAsync();
-                    }
-                    else
-                    {
-                        //add the tAddress inputs too
-                        TClientAddress tad = new TClientAddress() 
-                        { 
-                            ClientId = insertedID,
-                            ClientAddr1 = payLoad.oAddress.address1.Trim().ToUpper(),
-                            ClientAddr2 = payLoad.oAddress.address2.Trim().ToUpper(),
-                            ClientAddr3 = payLoad.oAddress.address3.Trim().ToUpper(),
-                            ClientAddr4 = payLoad.oAddress.address4.Trim().ToUpper()
-                        };
-
-                        await config.AddAsync(tad);
-                        await config.SaveChangesAsync();
-
-                        await trans.CommitAsync();
-                    }
-
-                    response = new DefaultAPIResponse()
-                    {
-                        status = true,
-                        message = $"Customer record created successfully: Account Number is {obj.ClientAccNo.Trim().ToUpper()}",
-                        data = obj
-                    };
-                }
-                
-                return response;
+                    status = true,
+                    message = $"Customer record {payLoad.clientBusiness.ToUpper()} created successfully: Account number is {cRekord.acctNo}",
+                    data = payLoad
+                };
             }
             catch (Exception x)
             {
@@ -1048,82 +989,21 @@ namespace UserManagementAPI.Resources.Implementations
         public async Task<DefaultAPIResponse> SaveIndividualClientRecordAsync(IndividualCustomerLookup payLoad)
         {
             DefaultAPIResponse response = null;
-            int newID = 0;
-            int insertedID = 0;
-            TClientAddress tad = null;
+            clientCreatedRecord rekord = null;
 
             try
             {
-                using (var cfg = new swContext())
-                {
-                    newID = cfg.TClients.Max(u => (int)u.Id);
-                }
+                Helper helper = new Helper();
 
-                using var trans = config.Database.BeginTransaction();
+                rekord = await helper.createIndividualClientRecordAsync(payLoad);
 
-                TClient obj = new TClient()
-                {
-                    //Id = 12233,
-                    ClientTypeId = payLoad.oClientType.id,
-                    AssociatedCompanyId = payLoad.oCompany.id,
-                    ChannelTypeId = payLoad.oChannelType.id,
-
-                    Firstname = payLoad.firstname.Trim().ToUpper(),
-                    Middlenames = payLoad.middlenames.Trim().ToUpper(),
-                    Surname = payLoad.surname.Trim().ToUpper(),
-
-                    ClientBusinessName = payLoad.clientBusiness.Trim().ToUpper(),
-                    MobileNo = payLoad.mobileNo.Trim(),
-                    WhatsappNo = payLoad.whatsappNo.Trim(),
-                    HomeTelephone = payLoad.homeTelephone.Trim(),
-                    WorkTelephone = payLoad.workTelephone.Trim(),
-                    ClientEmailAddr = payLoad.clientEmail.Trim(),
-                    ClientEmailAddr2 = payLoad.clientEmail2.Trim(),
-                    ClientCityId = payLoad.oCity.id,
-                    ClientCountryId = payLoad.oCountry.id,
-                    ClientPostCode = payLoad.postCode.Trim().ToUpper(),
-                    ReferralId = payLoad.oReferral.id,
-                    CollectionInstruction = payLoad.collectionInstruction.Trim(),
-                    IsShipper = true,
-                    ClientAccNo = string.Format("{0}{1}{2}", payLoad.firstname.Trim().ToUpper().Substring(0, 1),payLoad.surname.Trim().ToUpper().Substring(0,1),(newID + 1)),
-                    ClientPassword = payLoad.clientPassword,
-                    CanLogin = true
-                };
-
-                await config.AddAsync(obj);
-                await config.SaveChangesAsync();
-
-                insertedID = obj.Id;
-
-                if (payLoad.oAddress.address1.Length == 0)
-                {
-                    await trans.CommitAsync();
-                }
-                else
-                {
-                    tad = new TClientAddress()
-                    {
-                        ClientId = insertedID,
-                        ClientAddr1 = payLoad.oAddress.address1.Trim().ToUpper(),
-                        ClientAddr2 = payLoad.oAddress.address2.Trim().ToUpper(),
-                        ClientAddr3 = payLoad.oAddress.address3.Trim().ToUpper(),
-                        ClientAddr4 = payLoad.oAddress.address4.Trim().ToUpper()
-                    };
-
-                    await config.AddAsync(tad);
-                    await config.SaveChangesAsync();
-
-                    await trans.CommitAsync();
-                }
-
-                response = new DefaultAPIResponse()
+                return response = new DefaultAPIResponse()
                 {
                     status = true,
-                    message = $"Customer record created successfully: Account Number is {obj.ClientAccNo.Trim().ToUpper()}",
-                    data = new { obj, tad }
+                    message = $"Customer record created successfully: Account Number is {rekord.acctNo}",
+                    //data = new { rekord.clientObj, tad }
+                    data = payLoad 
                 };
-
-                return response;
             }
             catch(Exception x)
             {

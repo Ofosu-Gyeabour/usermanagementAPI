@@ -8,6 +8,7 @@ namespace UserManagementAPI.Models
         public TClient()
         {
             TClientAddresses = new HashSet<TClientAddress>();
+            TConsolUsrs = new HashSet<TConsolUsr>();
         }
 
         public int Id { get; set; }
@@ -36,6 +37,7 @@ namespace UserManagementAPI.Models
         public string? ClientAccNo { get; set; }
         public string? ClientPassword { get; set; }
         public bool? CanLogin { get; set; }
+        public int? ConsolidatorId { get; set; }
 
         public virtual Tcompany? AssociatedCompany { get; set; }
         public virtual TChannelType? ChannelType { get; set; }
@@ -44,5 +46,6 @@ namespace UserManagementAPI.Models
         public virtual TClientType? ClientType { get; set; }
         public virtual Tclientreferralsource? Referral { get; set; }
         public virtual ICollection<TClientAddress> TClientAddresses { get; set; }
+        public virtual ICollection<TConsolUsr> TConsolUsrs { get; set; }
     }
 }

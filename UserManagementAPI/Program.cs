@@ -7,6 +7,9 @@ using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using System.Net.Http;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +59,7 @@ builder.Services.AddSingleton<IPostCodeService, PostCodeService>();
 builder.Services.AddSingleton<IPaymentTermService, PaymentTermService>();
 builder.Services.AddSingleton<ISalesService, SalesService>();
 builder.Services.AddSingleton<IUtilityService, UtilityService>();
+builder.Services.AddSingleton<IConsolidatorService, ConsolidatorService>();
 
 #endregion
 
@@ -157,6 +161,20 @@ app.MapPost("/DeliveryMethod/Upload", async (List<DeliveryMethodLookup> delivery
 app.MapGet("/DeliveryZone/List",  (IShippingService service) =>  GetDeliveryZoneListAsync(service)).WithTags("Delivery Zone");
 app.MapPost("/DeliveryZone/Create", async (DeliveryZoneLookup deliveryZone, IShippingService service) => await CreateDeliveryZoneAsync(deliveryZone, service)).WithTags("Delivery Zone");
 app.MapPost("/DeliveryZone/Upload", async (List<DeliveryZoneLookup> deliveryzoneList, IShippingService service) => await UploadDeliveryZoneDataAsync(deliveryzoneList, service)).WithTags("Delivery Zone");
+
+app.MapGet("/DeliveryZone/Get", async Task<IResult> (IShippingService service) =>
+{
+    try
+    {
+        var zList = await service.GetZoneListAsync();
+        return Results.Ok(zList);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Zones");
+
 #endregion
 
 #region HScode - routes
@@ -197,6 +215,7 @@ app.MapPost("/PackagingPrice/Upload", async (List<PackagepriceLookup> packagepri
 
 app.MapPost("/PackagingPrice/Get/Company", async Task<IResult> (IPackagingService service, CompanyLookup payLoad) =>
 {
+    //TODO: packaging prices for a company
     try
     {
         if (payLoad.id <= 0)
@@ -210,6 +229,26 @@ app.MapPost("/PackagingPrice/Get/Company", async Task<IResult> (IPackagingServic
         return Results.BadRequest(x.Message);
     }
 }).WithTags("PackagingPrice");
+
+app.MapPost("/PackagingPrice/Company/Item/Get", async Task<IResult> (IPackagingService service, PackagepriceLookup payLoad) =>
+{
+    if (payLoad.oPackageItem.id <= 0)
+        return Results.BadRequest(@"ID of Item cannot be less than or equal to zero (0)");
+
+    if (payLoad.oCompany.id <= 0)
+        return Results.BadRequest(@"ID of Company cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var packagePriceRecord = await service.GetPackagePriceRecord(payLoad.oCompany.id, payLoad.oPackageItem.id);
+        return Results.Ok(packagePriceRecord);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("PackagingPrice");
+
 #endregion
 
 #region Seal - routes
@@ -455,6 +494,23 @@ app.MapPost("/Title/Upload", async (List<TitleLookup> titleList, ITitleService s
 app.MapPost("/ShippingPort/Create", async (ShippingPortLookup oShippingPort, IShippingPortService service) => await CreateShippingPortAsync(oShippingPort, service)).WithTags("Shipping Port");
 app.MapGet("/ShippingPort/List", (IShippingPortService service) => GetShippingPortListAsync(service)).WithTags("Shipping Port");
 app.MapPost("/ShippingPort/Upload", async (List<ShippingPortLookup> shippingportList, IShippingPortService service) => await UploadShippingPortData(shippingportList, service)).WithTags("Shipping Port");
+
+app.MapPost("/ShippingPort/Country/Fetch", async Task<IResult> (IShippingPortService service, CountryLookup payLoad) =>
+{
+    if (payLoad.id == 0)
+        return Results.BadRequest(@"ID of country cannot be zero (0)");
+
+    try
+    {
+        var pList = await service.GetCountryShippingPortAsync(payLoad);
+        return Results.Ok(pList);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Shipping Port");
+
 #endregion
 
 #region Client - routes
@@ -582,6 +638,23 @@ app.MapPost("/Client/UpdateInformation", async Task<IResult> (IClientService ser
         return Results.Ok(opStatus);
     }
     catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Client");
+
+app.MapPost("/Client/Customers/Get", async Task<IResult> (IConsolidatorService service, consolUserRecord payLoad) =>
+{
+    //TODO: gets the clients belonging to a company (i.e. consolidator)
+    if (payLoad.consolID == 0)
+        return Results.BadRequest(@"ID of consolidator cannot be less or equal to zero (0)");
+
+    try
+    {
+        var data = await service.GetCustomersOfClientAsync(payLoad);
+        return Results.Ok(data);
+    }
+    catch(Exception x)
     {
         return Results.BadRequest(x.Message);
     }
@@ -1770,6 +1843,9 @@ async Task<IResult> AuthenticateUserAsync(UserInfo userCredential, IUserService 
     {
         if (userCredential != null)
         {
+            var hashed = await usrservice.GetMD5EncryptedPasswordAsync(new SingleParam() { stringValue = userCredential.password });
+            userCredential.password = hashed.data.ToString();
+
             var results = await usrservice.GetUserAsync(userCredential);
             return Results.Ok(results);
         }
@@ -2057,6 +2133,59 @@ async Task<IResult> CreateUserAccountAsync(userRecord _userRecord, IUserService 
         return Results.BadRequest($"error: {ex.Message}");
     }
 }
+
+#region Consolidator 
+
+app.MapPost("/Consolidator/createUserAccount", async Task<IResult> (IConsolidatorService service, consolUserRecord _userRecord) =>
+{
+    //todo: creates a user in the consolidator user table
+    if (_userRecord.consolID == 0)
+        return Results.BadRequest(@"ID of consolidator cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var serviceOp = await service.CreateConsolidatorUserAccountAsync(_userRecord);
+        return Results.Ok(serviceOp);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("Consolidator");
+
+app.MapPost("/Consolidator/resetUserAccount", async Task<IResult> (IConsolidatorService service, consolUserRecord payLoad) =>
+{
+    if (payLoad.consolID == 0)
+        return Results.BadRequest(@"ID of consolidator cannot be less or equal to zero (0)");
+
+    try
+    {
+        var serviceOp = await service.ResetUserAccountAsync(payLoad);
+        return Results.Ok(serviceOp);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Consolidator");
+
+app.MapPost("/Consolidator/Users/GetConsolUsers", async Task<IResult> (IConsolidatorService service, consolUserRecord payLoad) =>
+{
+    if (payLoad.consolID == 0)
+        return Results.BadRequest(@"ID of Consolidator cannot be less or equal to zero (0)");
+
+    try
+    {
+        var returnedData = await service.ListConsolidatorUsersAsync(payLoad);
+        return Results.Ok(returnedData);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Consolidator");
+
+#endregion
 
 #endregion
 
@@ -2704,6 +2833,23 @@ app.MapGet("/Order/OrderSummary/GetKeys/{orderID}", async Task<IResult> (IUtilit
     }
 }).WithTags("OrderType");
 
+app.MapPost("/Order/OrderSummary/GetKeys", async Task<IResult> (IUtilityService service, OrderTypeLookup payLoad) =>
+{
+    //TODO: gets the list of order keys to display for accounting summary
+    if (payLoad.id <= 0)
+        return Results.BadRequest(@"order ID must be greater than zero (0)");
+
+    try
+    {
+        var orderKeys = await service.getOrderSummaryKeysAsync(payLoad);
+        return Results.Ok(orderKeys);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("OrderType");
+
 app.MapPost("/Order/OrderSummary/UpdateAccntKeys", async Task<IResult> (IUtilityService service, OrderStat payLoad) =>
 {
     //update account dictionary / account keys
@@ -2777,19 +2923,6 @@ app.MapGet("/ShippingItem/Get", async Task<IResult> (IUtilityService service) =>
     }
 }).WithTags("ShippingItem");
 
-app.MapGet("/ShippingOrder/GetItems", async Task<IResult> (IUtilityService service) =>
-{
-    try
-    {
-        var order_items = await service.getShippingOrderItemsAsync();
-        return Results.Ok(order_items);
-    }
-    catch(Exception x)
-    {
-        return Results.BadRequest(x.Message);
-    }
-}).WithTags("Shipping Order");
-
 app.MapPost("/Shipping/Consignees/Get", async Task<IResult> (IUtilityService service, consigneeParam param) =>
 {
     if (param.consignorId < 1)
@@ -2808,6 +2941,195 @@ app.MapPost("/Shipping/Consignees/Get", async Task<IResult> (IUtilityService ser
         return Results.BadRequest(ex.Message);
     }
 }).WithTags("Shipping");
+#endregion
+
+#region Parishes
+
+app.MapGet("/Parish/List", async Task<IResult> (IUtilityService service) =>
+{
+    try
+    {
+        var parish_List = await service.getTotalParishesAsync();
+        return Results.Ok(parish_List);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Parish");
+
+app.MapPost("/Parish/Zone/Fetch", async Task<IResult> (IUtilityService service, clsParish payLoad) =>
+{
+    if (payLoad.id == 0)
+        return Results.BadRequest(@"ID of Parish cannot be zero (0)");
+
+    try
+    {
+        var zone_item = await service.getZoneFromParishAsync(payLoad);
+        return Results.Ok(zone_item);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Parish");
+
+#endregion
+
+#region
+
+app.MapPost("/Freight/calculateFreight", async Task<IResult> (IUtilityService service, clsFreightInput payLoad) =>
+{
+    if (payLoad.agentId == 0)
+        return Results.BadRequest(@"ID of agent cannot be zero (0)");
+
+    if (payLoad.portId == 0)
+        return Results.BadRequest(@"ID of Port cannot be zero (0)");
+
+    if (payLoad.cubic == 0)
+        return Results.BadRequest(@"Cubic measurement cannot be zero (0)");
+
+    try
+    {
+        var freightDetails = await service.calculateFreightCostAsync(payLoad);
+        return Results.Ok(freightDetails);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+
+}).WithTags("Freight");
+
+#endregion
+
+#region Consolidator
+
+app.MapPost("/Consolidator/ValidateConsolidator", async Task<IResult> (IConsolidatorService service, UserInfo payLoad) =>
+{
+    if (payLoad.username == string.Empty)
+        return Results.BadRequest(@"Username cannot be blank");
+
+    if (payLoad.password == string.Empty)
+        return Results.BadRequest(@"Password cannot be blank");
+
+    try
+    {
+        var returnedData = await service.AuthenticatorConsolidatorAsync(payLoad);
+        return Results.Ok(returnedData);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Consolidator");
+
+app.MapPost("/Consolidator/SaveIndividual", async Task<IResult> (IConsolidatorService service, IndividualConsolidatorClient payLoad) =>
+{
+    if (payLoad.consolidatorID == 0)
+        return Results.BadRequest(@"ID of consolidator cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var status = await service.CreateIndividualCustomerAsync(payLoad);
+        return Results.Ok(status);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("Consolidator");
+
+app.MapPost("/Consolidator/SaveCorporate", async Task<IResult> (IConsolidatorService service, CorporateConsolidatorClient payLoad) =>
+{
+    if (payLoad.consolidatorID == 0)
+        return Results.BadRequest(@"ID of consolidator cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var status = await service.CreateCorporateCustomerAsync(payLoad);
+        return Results.Ok(status);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("Consolidator");
+
+
+app.MapPost("/Consolidator/SaveOrder", async Task<IResult> (IConsolidatorService service, clsConsolidatorOrder payLoad) =>
+{
+    if (payLoad.consolID == 0)
+        return Results.BadRequest(@"ID of consolidator cannot be less or equal to zero (0)");
+
+    try
+    {
+        var feedBackStatus = await service.CreateConsolidatorOrderAsync(payLoad);
+
+        //write to log here
+        //LoggerService logService = new LoggerService();
+        //var logger = new Log()
+        //{
+        //    eventId = 5,
+        //    actor = @"n.appiah@wifreight.com",
+        //    entity = @"Consolidator Order",
+        //    entityValue = JsonConvert.SerializeObject(payLoad),
+        //    companyId = 1,
+        //    logDate = DateTime.Now
+        //};
+
+        //await logService.WriteLogAsync(logger);
+
+        return Results.Ok(feedBackStatus);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("Consolidator");
+
+app.MapGet("/RateType/List", async Task<IResult> (IUtilityService service) =>
+{
+    try
+    {
+        var opData = await service.getRateListAsync();
+        return Results.Ok(opData);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("Rates");
+
+#endregion
+
+#region Shipping Order
+
+app.MapGet("/ShippingOrder/GetItems", async Task<IResult> (IUtilityService service) =>
+{
+    try
+    {
+        var order_items = await service.getShippingOrderItemsAsync();
+        return Results.Ok(order_items);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Shipping Order");
+
+app.MapPost("/ShippingOrder/Create", async Task<IResult> (IUtilityService service) =>
+{
+    try
+    {
+        return Results.Ok(true);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Shipping Order");
+
 #endregion
 
 

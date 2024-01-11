@@ -5,6 +5,11 @@ namespace UserManagementAPI.Models
 {
     public partial class TDeliveryMethod
     {
+        public TDeliveryMethod()
+        {
+            TD2dukDeliveries = new HashSet<TD2dukDelivery>();
+        }
+
         public int Id { get; set; }
         /// <summary>
         /// delivery method
@@ -14,5 +19,7 @@ namespace UserManagementAPI.Models
         /// delivery method description
         /// </summary>
         public string? Description { get; set; }
+
+        public virtual ICollection<TD2dukDelivery> TD2dukDeliveries { get; set; }
     }
 }

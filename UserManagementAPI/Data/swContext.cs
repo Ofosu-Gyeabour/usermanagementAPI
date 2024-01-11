@@ -2,7 +2,6 @@
 global using UserManagementAPI.Models;
 using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using UserManagementAPI.utils;
@@ -25,6 +24,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TAdhocItem> TAdhocItems { get; set; } = null!;
         public virtual DbSet<TAdhocPayment> TAdhocPayments { get; set; } = null!;
         public virtual DbSet<TAdhocType> TAdhocTypes { get; set; } = null!;
+        public virtual DbSet<TAgencyRate> TAgencyRates { get; set; } = null!;
         public virtual DbSet<TAirport> TAirports { get; set; } = null!;
         public virtual DbSet<TChannelType> TChannelTypes { get; set; } = null!;
         public virtual DbSet<TChargeEngine> TChargeEngines { get; set; } = null!;
@@ -35,8 +35,15 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TClientType> TClientTypes { get; set; } = null!;
         public virtual DbSet<TCompDigiOutlet> TCompDigiOutlets { get; set; } = null!;
         public virtual DbSet<TCongestionCharge> TCongestionCharges { get; set; } = null!;
+        public virtual DbSet<TConsol> TConsols { get; set; } = null!;
+        public virtual DbSet<TConsolOrder> TConsolOrders { get; set; } = null!;
+        public virtual DbSet<TConsolOrderItem> TConsolOrderItems { get; set; } = null!;
+        public virtual DbSet<TConsolStatus> TConsolStatuses { get; set; } = null!;
+        public virtual DbSet<TConsolUsr> TConsolUsrs { get; set; } = null!;
         public virtual DbSet<TCountryLookup> TCountryLookups { get; set; } = null!;
         public virtual DbSet<TCreditNote> TCreditNotes { get; set; } = null!;
+        public virtual DbSet<TCurrencyLookup> TCurrencyLookups { get; set; } = null!;
+        public virtual DbSet<TD2dukDelivery> TD2dukDeliveries { get; set; } = null!;
         public virtual DbSet<TDeliveryCharge> TDeliveryCharges { get; set; } = null!;
         public virtual DbSet<TDeliveryMethod> TDeliveryMethods { get; set; } = null!;
         public virtual DbSet<TDeliveryTimeLookup> TDeliveryTimeLookups { get; set; } = null!;
@@ -54,9 +61,11 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TPackagingItem> TPackagingItems { get; set; } = null!;
         public virtual DbSet<TPackagingPrice> TPackagingPrices { get; set; } = null!;
         public virtual DbSet<TPackagingStock> TPackagingStocks { get; set; } = null!;
+        public virtual DbSet<TParish> TParishes { get; set; } = null!;
         public virtual DbSet<TPaymentMethod> TPaymentMethods { get; set; } = null!;
         public virtual DbSet<TPaymentTerm> TPaymentTerms { get; set; } = null!;
         public virtual DbSet<TProfile> TProfiles { get; set; } = null!;
+        public virtual DbSet<TRateType> TRateTypes { get; set; } = null!;
         public virtual DbSet<TRegionLookup> TRegionLookups { get; set; } = null!;
         public virtual DbSet<TSailingSchedule> TSailingSchedules { get; set; } = null!;
         public virtual DbSet<TSaleTypeLookup> TSaleTypeLookups { get; set; } = null!;
@@ -65,16 +74,24 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TShipperCategory> TShipperCategories { get; set; } = null!;
         public virtual DbSet<TShipping> TShippings { get; set; } = null!;
         public virtual DbSet<TShippingCharge> TShippingCharges { get; set; } = null!;
+        public virtual DbSet<TShippingConsigneeItem> TShippingConsigneeItems { get; set; } = null!;
         public virtual DbSet<TShippingItem> TShippingItems { get; set; } = null!;
         public virtual DbSet<TShippingLine> TShippingLines { get; set; } = null!;
         public virtual DbSet<TShippingMethod> TShippingMethods { get; set; } = null!;
+        public virtual DbSet<TShippingOrderCharge> TShippingOrderCharges { get; set; } = null!;
+        public virtual DbSet<TShippingOrderDriver> TShippingOrderDrivers { get; set; } = null!;
+        public virtual DbSet<TShippingOrderInsurance> TShippingOrderInsurances { get; set; } = null!;
         public virtual DbSet<TShippingOrderItem> TShippingOrderItems { get; set; } = null!;
+        public virtual DbSet<TShippingOrderPackageItem> TShippingOrderPackageItems { get; set; } = null!;
+        public virtual DbSet<TShippingOrderPayment> TShippingOrderPayments { get; set; } = null!;
+        public virtual DbSet<TShippingOrderStatus> TShippingOrderStatuses { get; set; } = null!;
         public virtual DbSet<TSla> TSlas { get; set; } = null!;
         public virtual DbSet<TTask> TTasks { get; set; } = null!;
         public virtual DbSet<TTemplate> TTemplates { get; set; } = null!;
         public virtual DbSet<TTitle> TTitles { get; set; } = null!;
         public virtual DbSet<TUsrDetail> TUsrDetails { get; set; } = null!;
         public virtual DbSet<TVessel> TVessels { get; set; } = null!;
+        public virtual DbSet<TZone> TZones { get; set; } = null!;
         public virtual DbSet<Tbranch> Tbranches { get; set; } = null!;
         public virtual DbSet<Tclientreferralsource> Tclientreferralsources { get; set; } = null!;
         public virtual DbSet<Tcompany> Tcompanies { get; set; } = null!;
@@ -90,7 +107,7 @@ namespace UserManagementAPI.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(UserManagementAPI.utils.ConfigObject.DB_CONN);
+                optionsBuilder.UseSqlServer(utils.ConfigObject.LOCAL_CONN);
             }
         }
 
@@ -283,6 +300,70 @@ namespace UserManagementAPI.Data
                     .HasComment("nom code of adhoc type");
             });
 
+            modelBuilder.Entity<TAgencyRate>(entity =>
+            {
+                entity.ToTable("tAgencyRate");
+
+                entity.Property(e => e.Agency)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("agency");
+
+                entity.Property(e => e.AgentId).HasColumnName("agentId");
+
+                entity.Property(e => e.B1)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("b1");
+
+                entity.Property(e => e.B2)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("b2");
+
+                entity.Property(e => e.B3)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("b3");
+
+                entity.Property(e => e.Frgt1)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgt1");
+
+                entity.Property(e => e.Frgt2)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgt2");
+
+                entity.Property(e => e.Frgt3)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgt3");
+
+                entity.Property(e => e.Frgt4)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgt4");
+
+                entity.Property(e => e.Minimum)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("minimum");
+
+                entity.Property(e => e.PortId).HasColumnName("portId");
+
+                entity.Property(e => e.Retail)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("retail");
+
+                entity.Property(e => e.RtypeId).HasColumnName("rtypeId");
+
+                entity.Property(e => e.Surcharge)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("surcharge");
+
+                entity.Property(e => e.Trade)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("trade");
+
+                entity.HasOne(d => d.Port)
+                    .WithMany(p => p.TAgencyRates)
+                    .HasForeignKey(d => d.PortId)
+                    .HasConstraintName("FK_tAgencyRate_tshippingport");
+            });
+
             modelBuilder.Entity<TAirport>(entity =>
             {
                 entity.ToTable("tAirport");
@@ -457,6 +538,8 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.CollectionInstruction)
                     .IsUnicode(false)
                     .HasColumnName("collectionInstruction");
+
+                entity.Property(e => e.ConsolidatorId).HasColumnName("consolidatorId");
 
                 entity.Property(e => e.CreatedBy).HasColumnName("createdBy");
 
@@ -641,6 +724,317 @@ namespace UserManagementAPI.Data
                     .HasComment("postal code");
             });
 
+            modelBuilder.Entity<TConsol>(entity =>
+            {
+                entity.ToTable("tConsol");
+
+                entity.Property(e => e.ClientAddress1)
+                    .HasMaxLength(500)
+                    .IsUnicode(false)
+                    .HasColumnName("clientAddress1")
+                    .HasComment("address1 of client");
+
+                entity.Property(e => e.ClientAddress2)
+                    .HasMaxLength(500)
+                    .IsUnicode(false)
+                    .HasColumnName("clientAddress2")
+                    .HasComment("address2 of client");
+
+                entity.Property(e => e.ClientAddress3)
+                    .HasMaxLength(500)
+                    .IsUnicode(false)
+                    .HasColumnName("clientAddress3")
+                    .HasComment("third address of client");
+
+                entity.Property(e => e.ClientBusinessName)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("clientBusinessName")
+                    .HasComment("business Name of client");
+
+                entity.Property(e => e.ClientCityId)
+                    .HasColumnName("clientCityId")
+                    .HasComment("Id of the city");
+
+                entity.Property(e => e.ClientCountryId)
+                    .HasColumnName("clientCountryId")
+                    .HasComment("Id of the country");
+
+                entity.Property(e => e.ClientEmailAddr)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("clientEmailAddr")
+                    .HasComment("primary email address of the consolidator's client");
+
+                entity.Property(e => e.ClientEmailAddr2)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("clientEmailAddr2")
+                    .HasComment("secondary email address of the client");
+
+                entity.Property(e => e.ClientPostCode)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("clientPostCode")
+                    .HasComment("post code of client");
+
+                entity.Property(e => e.ConsolId)
+                    .HasColumnName("consolID")
+                    .HasComment("Id of the consolidator");
+
+                entity.Property(e => e.Fname)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("fname")
+                    .HasComment("first name of client");
+
+                entity.Property(e => e.Inputter).HasColumnName("inputter");
+
+                entity.Property(e => e.IsUk)
+                    .HasColumnName("isUK")
+                    .HasComment("checks if the address is a UK - domiciled location");
+
+                entity.Property(e => e.Middlenames)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("middlenames")
+                    .HasComment("middle names of client");
+
+                entity.Property(e => e.MobileNo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("mobileNo")
+                    .HasComment("mobile number of the client");
+
+                entity.Property(e => e.Sname)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("sname")
+                    .HasComment("surname of client");
+
+                entity.Property(e => e.WhatsappNo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("whatsappNo")
+                    .HasComment("whatsapp number");
+
+                entity.HasOne(d => d.InputterNavigation)
+                    .WithMany(p => p.TConsols)
+                    .HasForeignKey(d => d.Inputter)
+                    .HasConstraintName("FK_tConsol_tConsolUsr");
+            });
+
+            modelBuilder.Entity<TConsolOrder>(entity =>
+            {
+                entity.ToTable("tConsolOrder");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ArrivalPortId)
+                    .HasColumnName("arrivalPortId")
+                    .HasComment("port of arrival");
+
+                entity.Property(e => e.ArrivalcountryId)
+                    .HasColumnName("arrivalcountryId")
+                    .HasComment("country of arrival");
+
+                entity.Property(e => e.ConsolId)
+                    .HasColumnName("consolID")
+                    .HasComment("consolidator id");
+
+                entity.Property(e => e.ConsolOrderNo)
+                    .HasMaxLength(11)
+                    .IsUnicode(false)
+                    .HasColumnName("consolOrderNo")
+                    .HasComment("order number (format: PCO-0000001)");
+
+                entity.Property(e => e.OrderInputBy)
+                    .HasColumnName("orderInputBy")
+                    .HasComment("system user creating order");
+
+                entity.Property(e => e.OrderInputDate)
+                    .HasColumnType("date")
+                    .HasColumnName("orderInputDate")
+                    .HasComment("the date order was created or inputted");
+
+                entity.Property(e => e.OrderNote)
+                    .HasMaxLength(1000)
+                    .IsUnicode(false)
+                    .HasColumnName("orderNote")
+                    .HasComment("the notes coming with order");
+
+                entity.Property(e => e.OrderconvertedBy)
+                    .HasColumnName("orderconvertedBy")
+                    .HasComment("system user converting order in the main shipping module");
+
+                entity.Property(e => e.OrderconvertedDate)
+                    .HasColumnType("date")
+                    .HasColumnName("orderconvertedDate")
+                    .HasComment("the date the order was converted in the main shipping module");
+
+                entity.Property(e => e.RecipientId)
+                    .HasColumnName("recipientId")
+                    .HasComment("the customer receiving the order at the destination");
+
+                entity.Property(e => e.StatusId)
+                    .HasColumnName("statusId")
+                    .HasComment("the current status of the order");
+
+                entity.HasOne(d => d.OrderInputByNavigation)
+                    .WithMany(p => p.TConsolOrders)
+                    .HasForeignKey(d => d.OrderInputBy)
+                    .HasConstraintName("FK_tConsolOrder_tConsolUsr");
+
+                entity.HasOne(d => d.OrderconvertedByNavigation)
+                    .WithMany(p => p.TConsolOrders)
+                    .HasForeignKey(d => d.OrderconvertedBy)
+                    .HasConstraintName("FK_tConsolOrder_tusr");
+
+                entity.HasOne(d => d.Status)
+                    .WithMany(p => p.TConsolOrders)
+                    .HasForeignKey(d => d.StatusId)
+                    .HasConstraintName("FK_tConsolOrder_tConsolStatus");
+            });
+
+            modelBuilder.Entity<TConsolOrderItem>(entity =>
+            {
+                entity.ToTable("tConsolOrderItem");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ConsolOrderId)
+                    .HasColumnName("consolOrderId")
+                    .HasComment("Id of the consolidated order");
+
+                entity.Property(e => e.Describ)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("describ")
+                    .HasComment("description of the item and it's contents");
+
+                entity.Property(e => e.Hscode)
+                    .HasMaxLength(500)
+                    .IsUnicode(false)
+                    .HasColumnName("hscode")
+                    .HasComment("the hscode for the item");
+
+                entity.Property(e => e.ItemId)
+                    .HasColumnName("itemId")
+                    .HasComment("Id of the item");
+
+                entity.Property(e => e.ItemVol)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("itemVol")
+                    .HasComment("volume of the item");
+
+                entity.Property(e => e.ItemWgt)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("itemWgt")
+                    .HasComment("weight of the item");
+
+                entity.Property(e => e.Marks)
+                    .HasMaxLength(300)
+                    .IsUnicode(false)
+                    .HasColumnName("marks")
+                    .HasComment("marks for the item");
+
+                entity.Property(e => e.Qty)
+                    .HasColumnName("qty")
+                    .HasComment("quantity of item");
+
+                entity.HasOne(d => d.ConsolOrder)
+                    .WithMany(p => p.TConsolOrderItems)
+                    .HasForeignKey(d => d.ConsolOrderId)
+                    .HasConstraintName("FK_tConsolOrderItem_tConsolOrder");
+            });
+
+            modelBuilder.Entity<TConsolStatus>(entity =>
+            {
+                entity.ToTable("tConsolStatus");
+
+                entity.Property(e => e.Describ)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("describ");
+            });
+
+            modelBuilder.Entity<TConsolUsr>(entity =>
+            {
+                entity.ToTable("tConsolUsr");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ClientBusinessName)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("clientBusinessName");
+
+                entity.Property(e => e.ConsolId)
+                    .HasColumnName("consolID")
+                    .HasComment("identification number of consolidator");
+
+                entity.Property(e => e.CreatedBy)
+                    .HasColumnName("createdBy")
+                    .HasComment("user creating account");
+
+                entity.Property(e => e.FailedAttempt)
+                    .HasColumnName("failedAttempt")
+                    .HasComment("failed attempts");
+
+                entity.Property(e => e.Fname)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("fname");
+
+                entity.Property(e => e.IsActive)
+                    .HasColumnName("isActive")
+                    .HasComment("active flag");
+
+                entity.Property(e => e.IsAdmin)
+                    .HasColumnName("isAdmin")
+                    .HasComment("admin flag");
+
+                entity.Property(e => e.IsLogged)
+                    .HasColumnName("isLogged")
+                    .HasComment("logged flag");
+
+                entity.Property(e => e.LogAttempt)
+                    .HasColumnName("logAttempt")
+                    .HasComment("system-enabled log attempt");
+
+                entity.Property(e => e.Onames)
+                    .HasMaxLength(70)
+                    .IsUnicode(false)
+                    .HasColumnName("onames");
+
+                entity.Property(e => e.Sname)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("sname");
+
+                entity.Property(e => e.Usrname)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("usrname")
+                    .HasComment("user name");
+
+                entity.Property(e => e.Usrpwd)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("usrpwd")
+                    .HasComment("encrypted password");
+
+                entity.HasOne(d => d.Consol)
+                    .WithMany(p => p.TConsolUsrs)
+                    .HasForeignKey(d => d.ConsolId)
+                    .HasConstraintName("FK_tConsolUsr_tClient");
+
+                entity.HasOne(d => d.CreatedByNavigation)
+                    .WithMany(p => p.TConsolUsrs)
+                    .HasForeignKey(d => d.CreatedBy)
+                    .HasConstraintName("FK_tConsolUsr_tusr");
+            });
+
             modelBuilder.Entity<TCountryLookup>(entity =>
             {
                 entity.HasKey(e => e.CountryId)
@@ -716,6 +1110,58 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.UploadedToSage)
                     .HasColumnName("uploadedToSage")
                     .HasComment("flag determining if credit note has been uploaded to SAGE");
+            });
+
+            modelBuilder.Entity<TCurrencyLookup>(entity =>
+            {
+                entity.ToTable("tCurrencyLookup");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.CurrencyCode)
+                    .HasMaxLength(10)
+                    .IsUnicode(false)
+                    .HasColumnName("currencyCode")
+                    .HasComment("the acronym or code of the currency");
+
+                entity.Property(e => e.CurrencyDescription)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("currencyDescription")
+                    .HasComment("the description (or friendly name) of the currency");
+            });
+
+            modelBuilder.Entity<TD2dukDelivery>(entity =>
+            {
+                entity.ToTable("tD2DUkDelivery");
+
+                entity.Property(e => e.AdditionalB).HasColumnType("numeric(9, 2)");
+
+                entity.Property(e => e.B1).HasColumnType("numeric(9, 2)");
+
+                entity.Property(e => e.B2).HasColumnType("numeric(9, 2)");
+
+                entity.Property(e => e.B3).HasColumnType("numeric(9, 2)");
+
+                entity.Property(e => e.B4).HasColumnType("numeric(9, 2)");
+
+                entity.Property(e => e.DeliveryMethodId).HasColumnName("deliveryMethodID");
+
+                entity.Property(e => e.Duty)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("duty");
+
+                entity.Property(e => e.ZoneId).HasColumnName("zoneId");
+
+                entity.HasOne(d => d.DeliveryMethod)
+                    .WithMany(p => p.TD2dukDeliveries)
+                    .HasForeignKey(d => d.DeliveryMethodId)
+                    .HasConstraintName("FK_tD2DUkDelivery_tDeliveryMethod");
+
+                entity.HasOne(d => d.Zone)
+                    .WithMany(p => p.TD2dukDeliveries)
+                    .HasForeignKey(d => d.ZoneId)
+                    .HasConstraintName("FK_tD2DUkDelivery_tZone");
             });
 
             modelBuilder.Entity<TDeliveryCharge>(entity =>
@@ -1166,6 +1612,23 @@ namespace UserManagementAPI.Data
                     .HasConstraintName("FK_tPackagingStock_tPackagingItem");
             });
 
+            modelBuilder.Entity<TParish>(entity =>
+            {
+                entity.ToTable("tParish");
+
+                entity.Property(e => e.ParishName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("parishName");
+
+                entity.Property(e => e.ZoneId).HasColumnName("zoneId");
+
+                entity.HasOne(d => d.Zone)
+                    .WithMany(p => p.TParishes)
+                    .HasForeignKey(d => d.ZoneId)
+                    .HasConstraintName("FK_tParish_tZone");
+            });
+
             modelBuilder.Entity<TPaymentMethod>(entity =>
             {
                 entity.ToTable("tPaymentMethod");
@@ -1229,6 +1692,16 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("profileString")
                     .HasComment("profile string");
+            });
+
+            modelBuilder.Entity<TRateType>(entity =>
+            {
+                entity.ToTable("tRateType");
+
+                entity.Property(e => e.Describ)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("describ");
             });
 
             modelBuilder.Entity<TRegionLookup>(entity =>
@@ -1368,6 +1841,12 @@ namespace UserManagementAPI.Data
                     .HasColumnName("arrivalPortId")
                     .HasComment("id of the arrival port");
 
+                entity.Property(e => e.CargoDescr)
+                    .HasMaxLength(1000)
+                    .IsUnicode(false)
+                    .HasColumnName("cargoDescr")
+                    .HasComment("cargo description");
+
                 entity.Property(e => e.CompanyId)
                     .HasColumnName("companyId")
                     .HasComment("company id");
@@ -1381,6 +1860,12 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("consolidatorDescrib")
                     .HasComment("consolidator description");
+
+                entity.Property(e => e.ContactInstr)
+                    .HasMaxLength(1000)
+                    .IsUnicode(false)
+                    .HasColumnName("contactInstr")
+                    .HasComment("contact instruction for the order");
 
                 entity.Property(e => e.CreatedBy)
                     .HasColumnName("createdBy")
@@ -1410,6 +1895,21 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.NotifyPartyId)
                     .HasColumnName("notifyPartyId")
                     .HasComment("Id of the notify party");
+
+                entity.Property(e => e.OrderCreationDate)
+                    .HasColumnType("date")
+                    .HasColumnName("orderCreationDate")
+                    .HasComment("the date on which the order was created");
+
+                entity.Property(e => e.OrderNote)
+                    .HasMaxLength(1000)
+                    .IsUnicode(false)
+                    .HasColumnName("orderNote")
+                    .HasComment("note pertaining to the order (commonly called order note)");
+
+                entity.Property(e => e.OrderStatusId)
+                    .HasColumnName("orderStatusId")
+                    .HasComment("status of the shipping order. foreign key to the dbo.tshippingorderstatus table");
 
                 entity.Property(e => e.PayMethodId)
                     .HasColumnName("payMethodId")
@@ -1538,6 +2038,51 @@ namespace UserManagementAPI.Data
                     .HasComment("wrapping charge");
             });
 
+            modelBuilder.Entity<TShippingConsigneeItem>(entity =>
+            {
+                entity.ToTable("tShippingConsigneeItem");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Blfreight)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("BLFreight")
+                    .HasComment("bill of laden freight amount");
+
+                entity.Property(e => e.CustomerRef)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("customerRef")
+                    .HasComment("reference of the customer");
+
+                entity.Property(e => e.FreightPayableId)
+                    .HasColumnName("freightPayableID")
+                    .HasComment("Id determining freight payable status");
+
+                entity.Property(e => e.InputDate)
+                    .HasColumnType("date")
+                    .HasColumnName("inputDate")
+                    .HasComment("input date");
+
+                entity.Property(e => e.ItemValue)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("itemValue")
+                    .HasComment("value of item");
+
+                entity.Property(e => e.LatestshippingDate)
+                    .HasColumnType("date")
+                    .HasColumnName("latestshippingDate")
+                    .HasComment("ship by date. The date by which shipment should have been done");
+
+                entity.Property(e => e.SealNo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("sealNo")
+                    .HasComment("seal number");
+
+                entity.Property(e => e.ShippingOrderId).HasColumnName("shippingOrderId");
+            });
+
             modelBuilder.Entity<TShippingItem>(entity =>
             {
                 entity.ToTable("tShippingItem");
@@ -1601,6 +2146,82 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("route")
                     .HasComment("route to use (Air, Land, Sea, etc)");
+            });
+
+            modelBuilder.Entity<TShippingOrderCharge>(entity =>
+            {
+                entity.ToTable("tShippingOrderCharge");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ChargeAmt)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("chargeAmt")
+                    .HasComment("the amount being applied");
+
+                entity.Property(e => e.ChargeDescription)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("chargeDescription")
+                    .HasComment("the description of the charge");
+
+                entity.Property(e => e.ChargeId)
+                    .HasColumnName("chargeId")
+                    .HasComment("the Id of the charge being applied");
+
+                entity.Property(e => e.CurrencyId)
+                    .HasColumnName("currencyId")
+                    .HasComment("the Id of the currency of the charges..from the currency lookup");
+
+                entity.Property(e => e.ShippingOrderId)
+                    .HasColumnName("shippingOrderId")
+                    .HasComment("shipping order Id");
+            });
+
+            modelBuilder.Entity<TShippingOrderDriver>(entity =>
+            {
+                entity.ToTable("tShippingOrderDriver");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.DriverId)
+                    .HasColumnName("driverId")
+                    .HasComment("user Id of the driver");
+
+                entity.Property(e => e.DriverNote)
+                    .HasMaxLength(300)
+                    .IsUnicode(false)
+                    .HasColumnName("driverNote")
+                    .HasComment("note meant for driver to read");
+
+                entity.Property(e => e.Dte)
+                    .HasColumnType("date")
+                    .HasColumnName("dte")
+                    .HasComment("date of delivery or collection");
+
+                entity.Property(e => e.ShippingOrderId)
+                    .HasColumnName("shippingOrderId")
+                    .HasComment("shipping order id");
+            });
+
+            modelBuilder.Entity<TShippingOrderInsurance>(entity =>
+            {
+                entity.ToTable("tShippingOrderInsurance");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.InsuranceAmt)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("insuranceAmt")
+                    .HasComment("insurance amount");
+
+                entity.Property(e => e.InsuranceTypeId)
+                    .HasColumnName("insuranceTypeId")
+                    .HasComment("Id of insurance type");
+
+                entity.Property(e => e.ShippingOrderId)
+                    .HasColumnName("shippingOrderId")
+                    .HasComment("Id of shipping order");
             });
 
             modelBuilder.Entity<TShippingOrderItem>(entity =>
@@ -1670,6 +2291,100 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TShippingOrderItems)
                     .HasForeignKey(d => d.ItemId)
                     .HasConstraintName("FK_tShippingOrderItem_tShippingItem");
+            });
+
+            modelBuilder.Entity<TShippingOrderPackageItem>(entity =>
+            {
+                entity.ToTable("tShippingOrderPackageItem");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.AddedBy)
+                    .HasColumnName("addedBy")
+                    .HasComment("Id of user adding package item");
+
+                entity.Property(e => e.AddedDate)
+                    .HasColumnType("date")
+                    .HasColumnName("addedDate")
+                    .HasComment("the date the package item was added");
+
+                entity.Property(e => e.Describ)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("describ")
+                    .HasComment("description given");
+
+                entity.Property(e => e.ItemId)
+                    .HasColumnName("itemId")
+                    .HasComment("Id of item being packaged");
+
+                entity.Property(e => e.ItemPrice)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("itemPrice")
+                    .HasComment("price of item being packed (usually retail price)");
+
+                entity.Property(e => e.NomCode)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("nomCode")
+                    .HasComment("nomcode of item being packed");
+
+                entity.Property(e => e.Qty)
+                    .HasColumnName("qty")
+                    .HasComment("quantity of item being packed");
+
+                entity.Property(e => e.ShippingOrderId)
+                    .HasColumnName("shippingOrderId")
+                    .HasComment("Id of the shipping order");
+            });
+
+            modelBuilder.Entity<TShippingOrderPayment>(entity =>
+            {
+                entity.ToTable("tShippingOrderPayment");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.OutstandingAmt)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("outstandingAmt")
+                    .HasComment("outstanding amount left for payment");
+
+                entity.Property(e => e.PayAmt)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("payAmt")
+                    .HasComment("amount of payment");
+
+                entity.Property(e => e.PayDate)
+                    .HasColumnType("date")
+                    .HasColumnName("payDate")
+                    .HasComment("date of payment");
+
+                entity.Property(e => e.PayMethodId)
+                    .HasColumnName("payMethodId")
+                    .HasComment("method of payment (eg: CHEQUE, BANK TRANSFER, etc)");
+
+                entity.Property(e => e.PayReceiptNo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("payReceiptNo")
+                    .HasComment("receipt number associated with payment");
+
+                entity.Property(e => e.ShippingOrderId)
+                    .HasColumnName("shippingOrderId")
+                    .HasComment("Id of shipping order");
+            });
+
+            modelBuilder.Entity<TShippingOrderStatus>(entity =>
+            {
+                entity.ToTable("tShippingOrderStatus");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.StatusDescription)
+                    .HasMaxLength(60)
+                    .IsUnicode(false)
+                    .HasColumnName("statusDescription")
+                    .HasComment("description of the status");
             });
 
             modelBuilder.Entity<TSla>(entity =>
@@ -1797,6 +2512,23 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TVessels)
                     .HasForeignKey(d => d.ShippingLineId)
                     .HasConstraintName("FK_tVessel_tShippingLine");
+            });
+
+            modelBuilder.Entity<TZone>(entity =>
+            {
+                entity.ToTable("tZone");
+
+                entity.Property(e => e.CountryId).HasColumnName("countryId");
+
+                entity.Property(e => e.ZoneName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("zoneName");
+
+                entity.HasOne(d => d.Country)
+                    .WithMany(p => p.TZones)
+                    .HasForeignKey(d => d.CountryId)
+                    .HasConstraintName("FK_tZone_tCountryLookup");
             });
 
             modelBuilder.Entity<Tbranch>(entity =>

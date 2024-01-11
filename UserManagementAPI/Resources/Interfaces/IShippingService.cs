@@ -49,6 +49,7 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> CreateDeliveryZoneAsync(DeliveryZoneLookup payLoad);
         Task<UploadAPIResponse> UploadDeliveryZoneAsync(IEnumerable<DeliveryZoneLookup> payLoad);
 
+        Task<DefaultAPIResponse> GetZoneListAsync();
         #endregion
 
         #region HS-Codes

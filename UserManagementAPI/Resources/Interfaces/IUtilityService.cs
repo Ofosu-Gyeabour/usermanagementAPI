@@ -34,7 +34,9 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> getShippingOrderItemsAsync();
         Task<DefaultAPIResponse> getConsigneesAsync(consigneeParam payLoad);
 
-        
-
+        Task<DefaultAPIResponse> getTotalParishesAsync();
+        Task<DefaultAPIResponse> getZoneFromParishAsync(clsParish payLoad);
+        Task<DefaultAPIResponse> calculateFreightCostAsync(clsFreightInput payLoad);
+        Task<DefaultAPIResponse> getRateListAsync();
     }
 }

@@ -13,6 +13,7 @@ namespace UserManagementAPI.Models
             TDeliveryZones = new HashSet<TDeliveryZone>();
             TDialCodes = new HashSet<TDialCode>();
             TShippingItems = new HashSet<TShippingItem>();
+            TZones = new HashSet<TZone>();
             Tcompanies = new HashSet<Tcompany>();
             Tshippingports = new HashSet<Tshippingport>();
         }
@@ -41,6 +42,7 @@ namespace UserManagementAPI.Models
         public virtual ICollection<TDeliveryZone> TDeliveryZones { get; set; }
         public virtual ICollection<TDialCode> TDialCodes { get; set; }
         public virtual ICollection<TShippingItem> TShippingItems { get; set; }
+        public virtual ICollection<TZone> TZones { get; set; }
         public virtual ICollection<Tcompany> Tcompanies { get; set; }
         public virtual ICollection<Tshippingport> Tshippingports { get; set; }
     }

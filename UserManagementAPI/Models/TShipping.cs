@@ -79,6 +79,26 @@ namespace UserManagementAPI.Models
         /// id of the arrival port
         /// </summary>
         public int? ArrivalPortId { get; set; }
+        /// <summary>
+        /// contact instruction for the order
+        /// </summary>
+        public string? ContactInstr { get; set; }
+        /// <summary>
+        /// note pertaining to the order (commonly called order note)
+        /// </summary>
+        public string? OrderNote { get; set; }
+        /// <summary>
+        /// cargo description
+        /// </summary>
+        public string? CargoDescr { get; set; }
+        /// <summary>
+        /// the date on which the order was created
+        /// </summary>
+        public DateTime? OrderCreationDate { get; set; }
+        /// <summary>
+        /// status of the shipping order. foreign key to the dbo.tshippingorderstatus table
+        /// </summary>
+        public int? OrderStatusId { get; set; }
 
         public virtual ICollection<TOrderCharge> TOrderCharges { get; set; }
         public virtual ICollection<TOrderStatus> TOrderStatuses { get; set; }

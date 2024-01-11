@@ -93,7 +93,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> amendChargeListAsync(ChargeEngineLookup payLoad)
         {
             //amends a charge list record
@@ -176,8 +175,7 @@ namespace UserManagementAPI.Resources.Implementations
                     message = $"error: {x.Message}"
                 };
             }
-        }
-   
+        }   
         public async Task<DefaultAPIResponse> getChargeEngineLinesAsync(OrderTypeLookup payLoad)
         {
             //gets the charge engine lines
@@ -235,7 +233,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> getSalesTypeAsync()
         {
             DefaultAPIResponse rsp = null;
@@ -272,7 +269,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> getDeliveryTimeAsync()
         {
             DefaultAPIResponse rsp = null;
@@ -309,7 +305,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> addChargeOrTaxAsync(ChargeLookup payLoad)
         {
             DefaultAPIResponse r = null;
@@ -342,7 +337,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> getChargeOrTaxListAsync()
         {
             //TODO: get charge or tax list
@@ -370,7 +364,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> getOrderSummaryKeysAsync(OrderTypeLookup payLoad)
         {
             //TODO: gets keys for order summary
@@ -395,7 +388,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> updateAccountKeysAsync(OrderStat payLoad)
         {
             //TODO: update account keys for the given order
@@ -420,7 +412,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> getShippingItemsAsync()
         {
             //TODO: gets shipping items 
@@ -446,7 +437,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> getShippingOrderItemsAsync()
         {
             //TODO: gets shipping order items
@@ -472,7 +462,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> getConsigneesAsync(consigneeParam payLoad)
         {
             //TODO: gets consignees
@@ -498,8 +487,111 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
+        public async Task<DefaultAPIResponse> getTotalParishesAsync()
+        {
+            //TODO: fetches all the parishes in the data store
+            DefaultAPIResponse response = null;
 
-        
+            try
+            {
+                var obj = new clsParish();
+                var parishList = await obj.getAllParishesAsync();
+
+                return response = new DefaultAPIResponse()
+                {
+                    status = true,
+                    message = $"{parishList.Count()} records fetched",
+                    data = parishList.ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+        public async Task<DefaultAPIResponse> getZoneFromParishAsync(clsParish payLoad)
+        {
+            //TODO: gets a zone record using parish name
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                var obj = new clsZone();
+                var zoneRecord = await obj.getZoneAsync(payLoad);
+
+                return response = new DefaultAPIResponse()
+                {
+                    status = true,
+                    message = @"success",
+                    data = zoneRecord
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+        public async Task<DefaultAPIResponse> calculateFreightCostAsync(clsFreightInput payLoad)
+        {
+            //calculate freight
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                var objFreight = new clsFreight() { cubic = payLoad.cubic};
+
+                var freightParams = await objFreight.determineFreightBand(payLoad);
+
+                return response = new DefaultAPIResponse()
+                {
+                    status = true,
+                    message = @"success",
+                    data = freightParams
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> getRateListAsync()
+        {
+            //TODO: get list of rates in the data store
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var rates_data = await helper.getRateTypesAsync();
+
+                return response = new DefaultAPIResponse()
+                {
+                    status = rates_data.Count() > 0 ? true: false,
+                    message = rates_data.Count() > 0 ? $"{rates_data.Count()} records fetched successfully": @"No data",
+                    data = rates_data
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
 
     }
 }

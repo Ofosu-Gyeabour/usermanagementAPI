@@ -5,6 +5,7 @@ using UserManagementAPI.Resources.Interfaces;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using System.Diagnostics;
+using UserManagementAPI.utils;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -454,6 +455,33 @@ namespace UserManagementAPI.Resources.Implementations
                     status = false,
                     message = $"error: '{x.Message}'",
                     errorList = errorList
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> GetPackagePriceRecord(int companyId, int itemID)
+        {
+            //TODO: gets a packaging price record from stock...in a selected company with an itemID
+            DefaultAPIResponse response = null;
+            PackagepriceLookup pprice = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var presults = await helper.getPackagePriceRecordAsync(companyId, itemID);
+
+                return response = new DefaultAPIResponse() { 
+                    status = presults != null ? true: false,
+                    message = presults != null ? $"Packaging item data fetched for {presults.oPackageItem.name} with respect of {presults.oCompany.nameOfcompany} company": @"No data",
+                    data = presults
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
                 };
             }
         }

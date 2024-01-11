@@ -7,6 +7,8 @@ namespace UserManagementAPI.Models
     {
         public Tusr()
         {
+            TConsolOrders = new HashSet<TConsolOrder>();
+            TConsolUsrs = new HashSet<TConsolUsr>();
             TUsrDetails = new HashSet<TUsrDetail>();
         }
 
@@ -62,6 +64,8 @@ namespace UserManagementAPI.Models
         public virtual Tcompany? Company { get; set; }
         public virtual TDepartment? Department { get; set; }
         public virtual TProfile? Profile { get; set; }
+        public virtual ICollection<TConsolOrder> TConsolOrders { get; set; }
+        public virtual ICollection<TConsolUsr> TConsolUsrs { get; set; }
         public virtual ICollection<TUsrDetail> TUsrDetails { get; set; }
     }
 }

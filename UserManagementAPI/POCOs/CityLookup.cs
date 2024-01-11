@@ -237,6 +237,7 @@ namespace UserManagementAPI.POCOs
 
     public class OrderSummaryDetails
     {
+        public int id { get; set; }
         public string key { get; set; } = string.Empty;
         public decimal value { get; set; } = 0m;
     }

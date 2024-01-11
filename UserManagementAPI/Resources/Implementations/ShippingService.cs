@@ -1925,5 +1925,36 @@ namespace UserManagementAPI.Resources.Implementations
 
         #endregion
 
+        #region tZone
+
+        public async Task<DefaultAPIResponse> GetZoneListAsync()
+        {
+            //TODO: gets list of zones from the tZone table entity
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                var obj = new clsZone();
+                var zoneList = await obj.getZonesAsync();
+
+                return response = new DefaultAPIResponse()
+                {
+                    status = true,
+                    message = $"{zoneList.Count()} records fetched",
+                    data = zoneList.ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error {x.Message}"
+                };
+            }
+        }
+
+        #endregion
+
     }
 }
