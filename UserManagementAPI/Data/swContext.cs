@@ -107,7 +107,7 @@ namespace UserManagementAPI.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(utils.ConfigObject.LOCAL_CONN);
+                optionsBuilder.UseSqlServer(utils.ConfigObject.DB_CONN);
             }
         }
 
@@ -1833,9 +1833,7 @@ namespace UserManagementAPI.Data
             {
                 entity.ToTable("tShipping");
 
-                entity.Property(e => e.Id)
-                    .ValueGeneratedNever()
-                    .HasComment("primary key");
+                entity.Property(e => e.Id).HasComment("primary key");
 
                 entity.Property(e => e.ArrivalPortId)
                     .HasColumnName("arrivalPortId")
@@ -1931,6 +1929,16 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.SealQty)
                     .HasColumnName("sealQty")
                     .HasComment("seal quantity");
+
+                entity.HasOne(d => d.ArrivalPort)
+                    .WithMany(p => p.TShippings)
+                    .HasForeignKey(d => d.ArrivalPortId)
+                    .HasConstraintName("FK_tShipping_tshippingport");
+
+                entity.HasOne(d => d.OrderStatus)
+                    .WithMany(p => p.TShippings)
+                    .HasForeignKey(d => d.OrderStatusId)
+                    .HasConstraintName("FK_tShipping_tShippingOrderStatus");
             });
 
             modelBuilder.Entity<TShippingCharge>(entity =>
@@ -2176,6 +2184,11 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.ShippingOrderId)
                     .HasColumnName("shippingOrderId")
                     .HasComment("shipping order Id");
+
+                entity.HasOne(d => d.ShippingOrder)
+                    .WithMany(p => p.TShippingOrderCharges)
+                    .HasForeignKey(d => d.ShippingOrderId)
+                    .HasConstraintName("FK_tShippingOrderCharge_tShipping");
             });
 
             modelBuilder.Entity<TShippingOrderDriver>(entity =>
@@ -2222,15 +2235,18 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.ShippingOrderId)
                     .HasColumnName("shippingOrderId")
                     .HasComment("Id of shipping order");
+
+                entity.HasOne(d => d.ShippingOrder)
+                    .WithMany(p => p.TShippingOrderInsurances)
+                    .HasForeignKey(d => d.ShippingOrderId)
+                    .HasConstraintName("FK_tShippingOrderInsurance_tShipping");
             });
 
             modelBuilder.Entity<TShippingOrderItem>(entity =>
             {
                 entity.ToTable("tShippingOrderItem");
 
-                entity.Property(e => e.Id)
-                    .ValueGeneratedNever()
-                    .HasComment("primary key");
+                entity.Property(e => e.Id).HasComment("primary key");
 
                 entity.Property(e => e.Hscode)
                     .HasMaxLength(500)
@@ -2291,6 +2307,11 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TShippingOrderItems)
                     .HasForeignKey(d => d.ItemId)
                     .HasConstraintName("FK_tShippingOrderItem_tShippingItem");
+
+                entity.HasOne(d => d.Shippingorder)
+                    .WithMany(p => p.TShippingOrderItems)
+                    .HasForeignKey(d => d.ShippingorderId)
+                    .HasConstraintName("FkK_tShippingOrderItem_tShipping");
             });
 
             modelBuilder.Entity<TShippingOrderPackageItem>(entity =>
@@ -2336,6 +2357,11 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.ShippingOrderId)
                     .HasColumnName("shippingOrderId")
                     .HasComment("Id of the shipping order");
+
+                entity.HasOne(d => d.ShippingOrder)
+                    .WithMany(p => p.TShippingOrderPackageItems)
+                    .HasForeignKey(d => d.ShippingOrderId)
+                    .HasConstraintName("FK_tShippingOrderPackageItem_tShipping");
             });
 
             modelBuilder.Entity<TShippingOrderPayment>(entity =>
@@ -2372,6 +2398,11 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.ShippingOrderId)
                     .HasColumnName("shippingOrderId")
                     .HasComment("Id of shipping order");
+
+                entity.HasOne(d => d.ShippingOrder)
+                    .WithMany(p => p.TShippingOrderPayments)
+                    .HasForeignKey(d => d.ShippingOrderId)
+                    .HasConstraintName("FK_tShippingOrderPayment_tShipping");
             });
 
             modelBuilder.Entity<TShippingOrderStatus>(entity =>

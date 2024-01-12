@@ -13,5 +13,7 @@ namespace UserManagementAPI.Resources.Interfaces
 
         Task<DefaultAPIResponse> GetCountryShippingPortAsync(CountryLookup payLoad);
 
+        Task<DefaultAPIResponse> GetShippingPortRecordAsync(SingleParam payLoad);
+
     }
 }

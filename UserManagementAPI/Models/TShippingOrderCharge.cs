@@ -29,5 +29,7 @@ namespace UserManagementAPI.Models
         /// the Id of the currency of the charges..from the currency lookup
         /// </summary>
         public int? CurrencyId { get; set; }
+
+        public virtual TShipping? ShippingOrder { get; set; }
     }
 }

@@ -11,8 +11,10 @@ namespace UserManagementAPI.POCOs
 
         public clsShipping? oShipping { get; set; }  //main shipping order
         public  List<clsShippingOrderItem> oShippingOrderItems { get; set; } //items being shipped
+        public clsShippingOrderCharge[] oShippingOrderCharges { get; set; }
 
-        public List<clsShippingOrderCharge> oShippingOrderCharges { get; set; }
+        public clsConsigneeItem oConsigneeItem { get; set; }
+
         #endregion
 
         #region Methods

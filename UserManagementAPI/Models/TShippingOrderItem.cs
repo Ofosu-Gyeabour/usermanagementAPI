@@ -55,5 +55,6 @@ namespace UserManagementAPI.Models
         public string? ItemPicPath { get; set; }
 
         public virtual TShippingItem? Item { get; set; }
+        public virtual TShipping? Shippingorder { get; set; }
     }
 }

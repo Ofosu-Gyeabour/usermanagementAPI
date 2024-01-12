@@ -33,5 +33,7 @@ namespace UserManagementAPI.Models
         /// outstanding amount left for payment
         /// </summary>
         public decimal? OutstandingAmt { get; set; }
+
+        public virtual TShipping? ShippingOrder { get; set; }
     }
 }

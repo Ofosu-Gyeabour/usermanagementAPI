@@ -70,6 +70,20 @@ namespace UserManagementAPI.POCOs
             }
         }
 
+        public async Task<int> getID()
+        {
+            //get the id of the shipping item
+            try
+            {
+                var obj = await config.TShippingItems.Where(x => x.ItemName == this.name).FirstOrDefaultAsync();
+                return obj != null ? obj.Id : 0;
+            }
+            catch (Exception x)
+            {
+                return 0;
+            }
+        }
+
         #endregion
 
     }

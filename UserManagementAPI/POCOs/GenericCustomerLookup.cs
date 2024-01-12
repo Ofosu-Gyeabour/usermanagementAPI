@@ -124,6 +124,7 @@ namespace UserManagementAPI.POCOs
         public string? emailAddress { get; set; } = string.Empty;
         public CityLookup? oCity { get; set; }
         public CountryLookup? oCountry { get; set; }
+        public ReferralLookup? oReferral { get; set; }
     }
 
 }

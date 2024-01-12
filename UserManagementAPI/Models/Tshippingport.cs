@@ -8,6 +8,7 @@ namespace UserManagementAPI.Models
         public Tshippingport()
         {
             TAgencyRates = new HashSet<TAgencyRate>();
+            TShippings = new HashSet<TShipping>();
         }
 
         /// <summary>
@@ -33,5 +34,6 @@ namespace UserManagementAPI.Models
 
         public virtual TCountryLookup? Country { get; set; }
         public virtual ICollection<TAgencyRate> TAgencyRates { get; set; }
+        public virtual ICollection<TShipping> TShippings { get; set; }
     }
 }

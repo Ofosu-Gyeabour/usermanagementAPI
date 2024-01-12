@@ -30,14 +30,16 @@ namespace UserManagementAPI.POCOs
         public int? routingId { get; set; }
         public int? deliveryMethodId { get; set; }
         public int? payMethodId { get; set; }
-        public int? arrivalPortId { get; set; }
+        //public int? arrivalPortId { get; set; }
+        public ShippingPortLookup? oArrivalPort { get; set; }
 
         public string? contactInstruction { get; set; } = string.Empty;
         public string? orderNote { get; set; } = string.Empty;
         public string? cargoDescription { get; set; } = string.Empty;
         public DateTime? orderCreationDate { get; set; } = DateTime.Now;
         public clsShippingOrderStatus? oShippingStatus { get; set; }
-
+        public string? bolNumber { get; set; } = string.Empty;
+        
         #endregion
 
 

@@ -5,6 +5,11 @@ namespace UserManagementAPI.Models
 {
     public partial class TShippingOrderStatus
     {
+        public TShippingOrderStatus()
+        {
+            TShippings = new HashSet<TShipping>();
+        }
+
         /// <summary>
         /// primary key
         /// </summary>
@@ -13,5 +18,7 @@ namespace UserManagementAPI.Models
         /// description of the status
         /// </summary>
         public string? StatusDescription { get; set; }
+
+        public virtual ICollection<TShipping> TShippings { get; set; }
     }
 }

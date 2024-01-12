@@ -38,5 +38,8 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> getZoneFromParishAsync(clsParish payLoad);
         Task<DefaultAPIResponse> calculateFreightCostAsync(clsFreightInput payLoad);
         Task<DefaultAPIResponse> getRateListAsync();
+
+        Task<DefaultAPIResponse> createRecordAsync(clsShippingOrder payLoad);
+
     }
 }

@@ -41,5 +41,7 @@ namespace UserManagementAPI.Models
         /// the date the package item was added
         /// </summary>
         public DateTime? AddedDate { get; set; }
+
+        public virtual TShipping? ShippingOrder { get; set; }
     }
 }

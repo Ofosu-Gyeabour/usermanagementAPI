@@ -26,6 +26,8 @@ namespace UserManagementAPI.POCOs
         public string? hscode { get; set; }
         public string? picturePath { get; set; }
 
+        
+
         #endregion
 
         #region Methods

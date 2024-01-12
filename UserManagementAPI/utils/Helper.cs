@@ -249,6 +249,51 @@ namespace UserManagementAPI.utils
             }
         }
 
+        public async Task<string> formatShippingOrderNumber(string portCode)
+        {
+            //creates an order number
+            string result = string.Empty;
+            string prefix = portCode;
+            string suffix = string.Empty;
+
+            try
+            {
+                var newID = config.TShippings.Max(u => (int)u.Id);
+
+                switch (newID++.ToString().Length)
+                {
+                    case 1:
+                        suffix = string.Format("{0}{1}", @"000000", newID++.ToString());
+                        break;
+                    case 2:
+                        suffix = string.Format("{0}{1}", @"00000", newID++.ToString());
+                        break;
+                    case 3:
+                        suffix = string.Format("{0}{1}", @"0000", newID++.ToString());
+                        break;
+                    case 4:
+                        suffix = string.Format("{0}{1}", @"000", newID++.ToString());
+                        break;
+                    case 5:
+                        suffix = string.Format("{0}{1}", @"00", newID++.ToString());
+                        break;
+                    case 6:
+                        suffix = string.Format("{0}{1}", @"0", newID++.ToString());
+                        break;
+                    default:
+                        suffix = string.Format("{0}", newID++.ToString());
+                        break;
+                }
+
+                return result = $"{prefix}-{suffix}";
+            }
+            catch (Exception x)
+            {
+                Debug.Print(x.Message);
+                return result = string.Empty;
+            }
+        }
+
         public async Task<TAdhocType> getAdhocType(string adhocName)
         {
             //gets the unique ID of the adhoc object
@@ -600,6 +645,45 @@ namespace UserManagementAPI.utils
             }
         }
 
+        public async Task<ShippingPortLookup> getPortAsync(int portID)
+        {
+            try
+            {
+                var q = (from tsp in config.Tshippingports
+                         join cnt in config.TCountryLookups on tsp.CountryId equals cnt.CountryId
+                         where tsp.Id == portID
+                         select new
+                         {
+                             id = tsp.Id,
+                             portName = tsp.NameOfport,
+                             countryId = tsp.CountryId,
+                             nameOfcountry = cnt.CountryName,
+                             codeOfport = tsp.Portcode,
+                             sailingTime = tsp.TraveltimeInDays
+                         });
+
+                var qList = await q.ToListAsync().ConfigureAwait(false);
+
+                return qList
+                           .Select(a => new ShippingPortLookup()
+                           {
+                               id = a.id,
+                               nameOfport = a.portName,
+                               oCountry = new CountryLookup()
+                               {
+                                   id = (int) a.countryId,
+                                   nameOfcountry = a.nameOfcountry
+                               },
+                               codeOfport = a.codeOfport,
+                               sailingTimeInDays = (int) a.sailingTime
+                           }).FirstOrDefault();
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
         public async Task<clientCreatedRecord> createIndividualClientRecordAsync(IndividualCustomerLookup record)
         {
             //TODO: creates an individual client record in the data store
@@ -861,7 +945,7 @@ namespace UserManagementAPI.utils
             }
         }
 
-        public async Task<int> createShippingOrderRecordAsync(clsShippingOrder order)
+        public async Task<string> createShippingOrderRecordAsync(clsShippingOrder order)
         {
             //change returnvalue to string to return a properly formatted SHIPPING ORDER NUMBER
             //method creates shipping order record in the data store
@@ -895,12 +979,13 @@ namespace UserManagementAPI.utils
                         RoutingId = order.oShipping.routingId,
                         DelMethodId  = order.oShipping.deliveryMethodId,
                         PayMethodId = order.oShipping.payMethodId,
-                        ArrivalPortId = order.oShipping.arrivalPortId,
+                        ArrivalPortId = order.oShipping.oArrivalPort.id,
                         ContactInstr = order.oShipping.contactInstruction,
                         OrderNote = order.oShipping.orderNote,
                         CargoDescr = order.oShipping.cargoDescription,
                         OrderCreationDate = order.oShipping.orderCreationDate,
-                        OrderStatusId = await order.oShipping.oShippingStatus.getId()
+                        OrderStatusId = await order.oShipping.oShippingStatus.getId(),
+                        BolNo = await formatShippingOrderNumber(order.oShipping.oArrivalPort.codeOfport)
                     };
 
                     await config.AddAsync(shipping);
@@ -911,7 +996,7 @@ namespace UserManagementAPI.utils
                     {
                         TShippingOrderItem shippingItem = new TShippingOrderItem() { 
                             ShippingorderId = shipping.Id,
-                            ItemId = item.item.id,
+                            ItemId = await item.item.getID(),
                             Qty = item.quantity,
                             ItemDescription = item.itemDescription,
                             ItemWeight = item.itemWeight,
@@ -942,14 +1027,34 @@ namespace UserManagementAPI.utils
                         await config.SaveChangesAsync();
                     }
 
+                    //tshippingconsigneeitem
+                    TShippingConsigneeItem tconitem = new TShippingConsigneeItem()
+                    {
+                        ShippingOrderId = shipping.Id,
+                        ItemValue = order.oConsigneeItem.itemValue,
+                        SealNo = order.oConsigneeItem.sealNumber,
+                        CustomerRef = order.oConsigneeItem.customerRef,
+                        InputDate = order.oConsigneeItem.inputDate,
+                        LatestshippingDate = order.oConsigneeItem.shipByDate,
+                        Blfreight = order.oConsigneeItem.BLFreight,
+                        FreightPayableId = order.oConsigneeItem.freightPayable
+                    };
+
+                    await config.AddAsync(tconitem);
+                    await config.SaveChangesAsync();
+
+
+                    order.oShipping.shippingOrderId = shipping.Id;
+                    order.oShipping.bolNumber = shipping.BolNo;
+
                     //commit transaction asynchronously
                     await transaction.CommitAsync();
-                    return shipping.Id;
+                    return shipping.BolNo;
                 }
                 catch(Exception tex)
                 {
                     await transaction.RollbackAsync();
-                    return 0;
+                    return string.Empty;
                 }
             }
             catch(Exception ex)

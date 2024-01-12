@@ -238,5 +238,32 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
+    
+        public async Task<DefaultAPIResponse> GetShippingPortRecordAsync(SingleParam payLoad)
+        {
+            //TODO: gets an entire shipping port record from the data store
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var portRecord = await helper.getPortAsync(int.Parse(payLoad.stringValue));
+
+                return response = new DefaultAPIResponse() { 
+                    status = portRecord != null ? true: false,
+                    message = portRecord != null ? $"Record fetched successfully from datastore" : @"No data",
+                    data = portRecord
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
     }
 }

@@ -21,5 +21,7 @@ namespace UserManagementAPI.Models
         /// insurance amount
         /// </summary>
         public decimal? InsuranceAmt { get; set; }
+
+        public virtual TShipping? ShippingOrder { get; set; }
     }
 }

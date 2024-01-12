@@ -511,6 +511,15 @@ app.MapPost("/ShippingPort/Country/Fetch", async Task<IResult> (IShippingPortSer
     }
 }).WithTags("Shipping Port");
 
+app.MapPost("/ShippingPort/Get", async Task<IResult> (IShippingPortService service, SingleParam payLoad) =>
+{
+    if (payLoad.stringValue.Length == 0)
+        return Results.BadRequest("Parameter passed cannot have a length less than or equal to zero (0)");
+
+    var rec = await service.GetShippingPortRecordAsync(payLoad);
+    return Results.Ok(rec);
+}).WithTags("Shipping Port");
+
 #endregion
 
 #region Client - routes
@@ -3118,11 +3127,12 @@ app.MapGet("/ShippingOrder/GetItems", async Task<IResult> (IUtilityService servi
     }
 }).WithTags("Shipping Order");
 
-app.MapPost("/ShippingOrder/Create", async Task<IResult> (IUtilityService service) =>
+app.MapPost("/ShippingOrder/Create", async Task<IResult> (IUtilityService service, clsShippingOrder payLoad) =>
 {
     try
     {
-        return Results.Ok(true);
+        var recordStatus = await service.createRecordAsync(payLoad);
+        return Results.Ok(recordStatus);
     }
     catch(Exception x)
     {

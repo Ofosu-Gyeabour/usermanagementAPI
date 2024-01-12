@@ -311,7 +311,8 @@ namespace UserManagementAPI.Resources.Implementations
                             join cty in config.TCities on tc.ClientCityId equals cty.Id
 
                             join cnt in config.TCountryLookups on tc.ClientCountryId equals cnt.CountryId   //added
-                            
+                            join rf in config.Tclientreferralsources on tc.ReferralId equals rf.Id
+
                             where tc.ClientAccNo.StartsWith(param.stringValue)
 
                             select new
@@ -331,7 +332,9 @@ namespace UserManagementAPI.Resources.Implementations
 
                                 //added country
                                 countryId = tc.ClientCountryId,
-                                countryName = cnt.CountryName
+                                countryName = cnt.CountryName,
+                                referralId = tc.ReferralId,
+                                nameOfreferral = rf.ReferralSource
                             });
 
                     var accountCriteriaList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -366,6 +369,11 @@ namespace UserManagementAPI.Resources.Implementations
                                 {
                                     id = (int)q.countryId,
                                     nameOfcountry = q.countryName
+                                },
+                                oReferral = new ReferralLookup()
+                                {
+                                    id = (int) q.referralId,
+                                    sourceOfReferral = q.nameOfreferral
                                 }
                             };
 
@@ -380,6 +388,8 @@ namespace UserManagementAPI.Resources.Implementations
                             join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                             join tca in config.TClientAddresses on tc.Id equals tca.ClientId
                             join cty in config.TCities on tc.ClientCityId equals cty.Id
+                            join rf in config.Tclientreferralsources on tc.ReferralId equals rf.Id
+
                             where tc.Surname.StartsWith(param.stringValue) || tc.Firstname.StartsWith(param.stringValue) || tc.Middlenames.StartsWith(param.stringValue) ||
                                   tc.ClientBusinessName.StartsWith(param.stringValue)
 
@@ -395,7 +405,9 @@ namespace UserManagementAPI.Resources.Implementations
                                 address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
 
                                 cityid = cty.Id,
-                                cityName = cty.CityName
+                                cityName = cty.CityName,
+                                referralId = tc.ReferralId,
+                                nameOfreferral = rf.ReferralSource
                             });
 
                     var clientNameList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -422,6 +434,11 @@ namespace UserManagementAPI.Resources.Implementations
                                 {
                                     id = q.cityid,
                                     nameOfcity = q.cityName
+                                },
+                                oReferral = new ReferralLookup()
+                                {
+                                    id = (int) q.referralId,
+                                    sourceOfReferral = q.nameOfreferral
                                 }
                             };
 
@@ -436,6 +453,8 @@ namespace UserManagementAPI.Resources.Implementations
                             join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                             join tca in config.TClientAddresses on tc.Id equals tca.ClientId
                             join cty in config.TCities on tc.ClientCityId equals cty.Id
+                            join rf in config.Tclientreferralsources on tc.ReferralId equals rf.Id
+
                             where tc.MobileNo.StartsWith(param.stringValue) || tc.WhatsappNo.StartsWith(param.stringValue)
 
                             select new
@@ -450,7 +469,9 @@ namespace UserManagementAPI.Resources.Implementations
                                 address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
 
                                 cityid = cty.Id,
-                                cityName = cty.CityName
+                                cityName = cty.CityName,
+                                referralId = tc.ReferralId,
+                                nameOfreferral = rf.ReferralSource
                             });
 
                     var clientList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -477,6 +498,11 @@ namespace UserManagementAPI.Resources.Implementations
                                 {
                                     id = q.cityid,
                                     nameOfcity = q.cityName
+                                },
+                                oReferral = new ReferralLookup()
+                                {
+                                    id = (int) q.referralId,
+                                    sourceOfReferral = q.nameOfreferral
                                 }
                             };
 
@@ -491,6 +517,8 @@ namespace UserManagementAPI.Resources.Implementations
                             join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                             join tca in config.TClientAddresses on tc.Id equals tca.ClientId
                             join cty in config.TCities on tc.ClientCityId equals cty.Id
+                            join rf in config.Tclientreferralsources on tc.ReferralId equals rf.Id
+
                             where tc.HomeTelephone.StartsWith(param.stringValue) || tc.WorkTelephone.StartsWith(param.stringValue)
 
                             select new
@@ -505,7 +533,9 @@ namespace UserManagementAPI.Resources.Implementations
                                 address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
 
                                 cityid = cty.Id,
-                                cityName= cty.CityName
+                                cityName= cty.CityName,
+                                referralId = tc.ReferralId,
+                                nameOfreferral = rf.ReferralSource
                             });
 
                     var teleList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -532,6 +562,11 @@ namespace UserManagementAPI.Resources.Implementations
                                 {
                                     id = q.cityid,
                                     nameOfcity = q.cityName
+                                },
+                                oReferral = new ReferralLookup()
+                                {
+                                    id = (int) q.referralId,
+                                    sourceOfReferral = q.nameOfreferral
                                 }
                             };
 
@@ -546,6 +581,8 @@ namespace UserManagementAPI.Resources.Implementations
                             join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                             join tca in config.TClientAddresses on tc.Id equals tca.ClientId
                             join cty in config.TCities on tc.ClientCityId equals cty.Id
+                            join rf in config.Tclientreferralsources on tc.ReferralId equals rf.Id
+
                             where tc.ClientEmailAddr.StartsWith(param.stringValue) || tc.ClientEmailAddr2.StartsWith(param.stringValue)
 
                             select new
@@ -560,7 +597,9 @@ namespace UserManagementAPI.Resources.Implementations
                                 address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
 
                                 cityid = cty.Id,
-                                cityName = cty.CityName
+                                cityName = cty.CityName,
+                                referralId = tc.ReferralId,
+                                nameOfreferral = rf.ReferralSource
                             });
 
                     var genericCustomerList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -587,6 +626,11 @@ namespace UserManagementAPI.Resources.Implementations
                                 {
                                     id = q.cityid,
                                     nameOfcity = q.cityName
+                                },
+                                oReferral = new ReferralLookup()
+                                {
+                                    id = (int) q.referralId,
+                                    sourceOfReferral = q.nameOfreferral
                                 }
                             };
 
@@ -601,6 +645,8 @@ namespace UserManagementAPI.Resources.Implementations
                                         join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                                         join tca in config.TClientAddresses on tc.Id equals tca.ClientId
                                         join cty in config.TCities on tc.ClientCityId equals cty.Id
+                                        join rf in config.Tclientreferralsources on tc.ReferralId equals rf.Id
+
                                         where tc.ClientPostCode.StartsWith(param.stringValue)
 
                                         select new
@@ -615,7 +661,9 @@ namespace UserManagementAPI.Resources.Implementations
                                             address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
                                         
                                             cityid = cty.Id,
-                                            cityName = cty.CityName
+                                            cityName = cty.CityName,
+                                            referralId = tc.ReferralId,
+                                            nameOfreferral = rf.ReferralSource
                                         });
 
                     var postCodeList = await genericQuery.ToListAsync().ConfigureAwait(false);
@@ -641,6 +689,11 @@ namespace UserManagementAPI.Resources.Implementations
                                 {
                                     id = q.cityid,
                                     nameOfcity = q.cityName
+                                },
+                                oReferral = new ReferralLookup()
+                                {
+                                    id = (int) q.referralId,
+                                    sourceOfReferral = q.nameOfreferral
                                 }
                             };
 

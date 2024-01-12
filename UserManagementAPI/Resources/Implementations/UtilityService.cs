@@ -566,7 +566,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> getRateListAsync()
         {
             //TODO: get list of rates in the data store
@@ -587,6 +586,33 @@ namespace UserManagementAPI.Resources.Implementations
             catch(Exception x)
             {
                 return response = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> createRecordAsync(clsShippingOrder payLoad)
+        {
+            //TODO: creates a record
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var opStatus = await helper.createShippingOrderRecordAsync(payLoad);
+
+                return response = new DefaultAPIResponse()
+                {
+                    status = opStatus != string.Empty ? true: false,
+                    message = opStatus != string.Empty? $"Order saved successfully with order number {payLoad.oShipping.bolNumber}" : @"An error occured. Please see Administrator",
+                    data = payLoad
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
                     status = false,
                     message = $"error: {x.Message}"
                 };
