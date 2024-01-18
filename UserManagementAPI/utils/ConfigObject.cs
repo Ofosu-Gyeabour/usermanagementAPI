@@ -7,5 +7,6 @@
         public static string LOCAL_CONN { get; set; }
         public static string MAC_LOCAL_CONN { get; set; }
         public static string TEST_CONN { get; set; }
+        public static string IMG_FOLDER_PATH { get; set; }
     }
 }

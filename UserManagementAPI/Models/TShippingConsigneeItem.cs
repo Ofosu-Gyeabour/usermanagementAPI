@@ -38,5 +38,7 @@ namespace UserManagementAPI.Models
         /// Id determining freight payable status
         /// </summary>
         public int? FreightPayableId { get; set; }
+
+        public virtual TShipping? ShippingOrder { get; set; }
     }
 }

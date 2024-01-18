@@ -18,6 +18,8 @@ namespace UserManagementAPI.POCOs
         public string? name { get; set; }
         public string? description { get; set; }
         public decimal? price { get; set; }
+        public decimal? weight { get; set; }
+        public decimal volume { get; set; }
         public string? pluralName { get; set; }
         public CountryLookup? oCountry { get; set; }
 
@@ -43,6 +45,8 @@ namespace UserManagementAPI.POCOs
                                  countryId = ts.CountryId,
                                  countryName = cnt.CountryName,
                                  itemPrice = ts.ItemPrice,
+                                 itemWeight = ts.ItemWeight,
+                                 itemVolume = ts.ItemVolume,
                                  pluralName = ts.PluralName
                              });
 

@@ -9,6 +9,7 @@ namespace UserManagementAPI.Models
         {
             TOrderCharges = new HashSet<TOrderCharge>();
             TOrderStatuses = new HashSet<TOrderStatus>();
+            TShippingConsigneeItems = new HashSet<TShippingConsigneeItem>();
             TShippingOrderCharges = new HashSet<TShippingOrderCharge>();
             TShippingOrderInsurances = new HashSet<TShippingOrderInsurance>();
             TShippingOrderItems = new HashSet<TShippingOrderItem>();
@@ -104,12 +105,16 @@ namespace UserManagementAPI.Models
         /// status of the shipping order. foreign key to the dbo.tshippingorderstatus table
         /// </summary>
         public int? OrderStatusId { get; set; }
+        /// <summary>
+        /// Bill of Laden number
+        /// </summary>
         public string? BolNo { get; set; }
 
         public virtual Tshippingport? ArrivalPort { get; set; }
         public virtual TShippingOrderStatus? OrderStatus { get; set; }
         public virtual ICollection<TOrderCharge> TOrderCharges { get; set; }
         public virtual ICollection<TOrderStatus> TOrderStatuses { get; set; }
+        public virtual ICollection<TShippingConsigneeItem> TShippingConsigneeItems { get; set; }
         public virtual ICollection<TShippingOrderCharge> TShippingOrderCharges { get; set; }
         public virtual ICollection<TShippingOrderInsurance> TShippingOrderInsurances { get; set; }
         public virtual ICollection<TShippingOrderItem> TShippingOrderItems { get; set; }

@@ -7,6 +7,7 @@
         public string localConnString { get; set; } = string.Empty;
         public string macConnString { get; set; } = string.Empty;
         public string testConn { get; set; } = string.Empty;
+        public string imgPath { get; set; } = string.Empty;
 
     }
 }

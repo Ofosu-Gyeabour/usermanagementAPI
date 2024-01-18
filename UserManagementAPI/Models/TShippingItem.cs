@@ -15,6 +15,8 @@ namespace UserManagementAPI.Models
         public string? ItemDescription { get; set; }
         public int? CountryId { get; set; }
         public decimal? ItemPrice { get; set; }
+        public decimal? ItemWeight { get; set; }
+        public decimal? ItemVolume { get; set; }
         public string? PluralName { get; set; }
 
         public virtual TCountryLookup? Country { get; set; }

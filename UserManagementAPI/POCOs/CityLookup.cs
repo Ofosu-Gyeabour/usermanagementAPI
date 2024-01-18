@@ -240,6 +240,47 @@ namespace UserManagementAPI.POCOs
         public int id { get; set; }
         public string key { get; set; } = string.Empty;
         public decimal value { get; set; } = 0m;
+
+        private swContext config;
+
+        public async Task<OrderSummaryDetails> Get()
+        {
+
+            //gets a specified order charge with Id and Key
+            OrderSummaryDetails details = null;
+
+            try
+            {
+                using (config = new swContext())
+                {
+                    var query = (from ce in config.TChargeEngines
+                                 join ot in config.TOrderTypes on ce.OrdertypeId equals ot.Id
+                                 join ch in config.TChargeLookups on ce.ChargeId equals ch.Id
+                                 where ce.OrdertypeId == this.id && ch.Charge == this.key
+
+                                 select new
+                                 {
+                                     id = ce.Id,
+                                     chargeName = ch.Charge,
+                                     rate = ce.ChargeRate
+                                 });
+
+                    var qList = await query.ToListAsync().ConfigureAwait(false);
+                    details = qList.Select(x => new OrderSummaryDetails()
+                    {
+                        id = x.id,
+                        key = x.chargeName,
+                        value = (decimal)x.rate
+                    }).FirstOrDefault();
+
+                    return details;
+                }
+            }
+            catch(Exception x)
+            {
+                return details;
+            }
+        }
     }
 
     public class OrderStat
@@ -277,6 +318,7 @@ namespace UserManagementAPI.POCOs
         public decimal? thresholdAmt { get; set; } = 0m;
         public decimal? thresholdRate { get; set; } = 0m;
         public int? isLabel { get; set; } = 0;
+
     }
 
     public class ChargeLookup

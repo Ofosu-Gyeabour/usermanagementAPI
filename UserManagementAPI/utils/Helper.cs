@@ -8,6 +8,8 @@ using UserManagementAPI.Response;
 using Microsoft.JSInterop.Implementation;
 using System.Security.Cryptography;
 using System.Transactions;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace UserManagementAPI.utils
 {
@@ -419,7 +421,6 @@ namespace UserManagementAPI.utils
                 throw x;
             }
         }
-
         public async Task<IEnumerable<ChargeLookup>> getChargeLookupAsync()
         {
             //TODO: get charge lookups
@@ -1005,7 +1006,7 @@ namespace UserManagementAPI.utils
                             Marks = item.marks,
                             Hscode = item.hscode,
                             LpId = 0,
-                            ItemPicPath = string.Empty
+                            ItemPicPath = string.Format("{0}{1}_{2}.{3}",ConfigObject.IMG_FOLDER_PATH, shipping.BolNo, item.item.name,@"png")
                         };
 
                         await config.AddAsync(shippingItem);
@@ -1060,6 +1061,36 @@ namespace UserManagementAPI.utils
             catch(Exception ex)
             {
                 throw ex;
+            }
+        }
+
+        public async Task<bool> saveImageAsync(string uniqueIdentifier, string base64String)
+        {
+            //TODO: saves an image file to a specified directory, using the name of a unique identifier
+            //unique identifier can be order number or bill of laden
+            bool bln = false;
+            var filePath = string.Format("{0}{1}.{2}", ConfigObject.IMG_FOLDER_PATH, uniqueIdentifier,@"png");
+
+            try
+            {
+                base64String = base64String.Replace("data:image/png;base64,", "");
+                byte[] imageB = Convert.FromBase64String(base64String);
+
+                //creating an image from the byte array
+                using (MemoryStream ms = new MemoryStream(imageB))
+                {
+                    Image img = Image.FromStream(ms);
+
+                    //saving image on file directory
+                    img.Save(filePath);
+                    bln = true;
+                }
+
+                return bln;
+            }
+            catch(Exception ex)
+            {
+                return bln;
             }
         }
 

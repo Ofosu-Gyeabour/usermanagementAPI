@@ -1839,6 +1839,12 @@ namespace UserManagementAPI.Data
                     .HasColumnName("arrivalPortId")
                     .HasComment("id of the arrival port");
 
+                entity.Property(e => e.BolNo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("bolNo")
+                    .HasComment("Bill of Laden number");
+
                 entity.Property(e => e.CargoDescr)
                     .HasMaxLength(1000)
                     .IsUnicode(false)
@@ -2089,6 +2095,11 @@ namespace UserManagementAPI.Data
                     .HasComment("seal number");
 
                 entity.Property(e => e.ShippingOrderId).HasColumnName("shippingOrderId");
+
+                entity.HasOne(d => d.ShippingOrder)
+                    .WithMany(p => p.TShippingConsigneeItems)
+                    .HasForeignKey(d => d.ShippingOrderId)
+                    .HasConstraintName("FK_tShippingConsigneeItem_tShipping");
             });
 
             modelBuilder.Entity<TShippingItem>(entity =>

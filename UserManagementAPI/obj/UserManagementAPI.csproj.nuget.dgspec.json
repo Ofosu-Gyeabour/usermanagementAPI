@@ -89,6 +89,10 @@
               "target": "Package",
               "version": "[6.5.0, )"
             },
+            "System.Drawing.Common": {
+              "target": "Package",
+              "version": "[8.0.1, )"
+            },
             "System.Security.Cryptography.Algorithms": {
               "target": "Package",
               "version": "[4.3.1, )"

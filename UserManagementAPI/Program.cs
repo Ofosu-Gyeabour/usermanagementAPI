@@ -106,6 +106,7 @@ ConfigObject.DB_CONN = settings.dbConnectionString;
 ConfigObject.LOCAL_CONN = settings.localConnString;
 ConfigObject.MAC_LOCAL_CONN = settings.macConnString;
 ConfigObject.TEST_CONN = settings.testConn;
+ConfigObject.IMG_FOLDER_PATH = settings.imgPath;
 
 
 var eventSettings = builder.Configuration.GetSection("Events").Get<Events>();
