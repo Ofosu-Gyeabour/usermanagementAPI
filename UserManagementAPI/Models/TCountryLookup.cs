@@ -34,6 +34,7 @@ namespace UserManagementAPI.Models
         /// country code for country
         /// </summary>
         public string? CountryCode { get; set; }
+        public string? PreFix { get; set; }
 
         public virtual TRegionLookup? Region { get; set; }
         public virtual ICollection<TAirport> TAirports { get; set; }

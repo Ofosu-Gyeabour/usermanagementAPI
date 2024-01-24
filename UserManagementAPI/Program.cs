@@ -106,6 +106,7 @@ ConfigObject.DB_CONN = settings.dbConnectionString;
 ConfigObject.LOCAL_CONN = settings.localConnString;
 ConfigObject.MAC_LOCAL_CONN = settings.macConnString;
 ConfigObject.TEST_CONN = settings.testConn;
+ConfigObject.ROOT_PATH = settings.imgRoot;
 ConfigObject.IMG_FOLDER_PATH = settings.imgPath;
 
 
@@ -430,6 +431,21 @@ app.MapGet("/Country/Get", async (ICountryService service) => await Get(service)
 app.MapPost("/Country/CreateCountry", async (CountryLookup oCountry, ICountryService service) => await CreateCountryAsync(oCountry, service)).WithTags("Country");
 app.MapPut("/Country/UpdateCountry", async (CountryLookup oCountry, ICountryService service) => await UpdateCountryAsync(oCountry, service)).WithTags("Country");
 app.MapPost("/Country/Upload", async (List<CountryLookup> countryList, ICountryService service) => await UploadCountriesAsync(countryList, service)).WithTags("Country");
+
+app.MapGet("/Country/ListPrefixes", async Task<IResult> (ICountryService service) =>
+{
+    //gets all prefixes
+    try
+    {
+        var pfxData = await service.GetCountryPrefixAsync();
+        return Results.Ok(pfxData);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Country");
+
 #endregion
 
 #region Referral-routes

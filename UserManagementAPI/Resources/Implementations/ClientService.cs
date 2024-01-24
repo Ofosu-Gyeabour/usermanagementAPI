@@ -29,7 +29,7 @@ namespace UserManagementAPI.Resources.Implementations
 
             try
             {
-                var Query = (from tc in config.TClients 
+                var Query = (from tc in config.TClients
                              join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
                              join cmp in config.Tcompanies on tc.AssociatedCompanyId equals cmp.CompanyId
                              join chn in config.TChannelTypes on tc.ChannelTypeId equals chn.ChannelTypeId
@@ -38,7 +38,7 @@ namespace UserManagementAPI.Resources.Implementations
                              join rf in config.Tclientreferralsources on tc.ReferralId equals rf.Id
                              join crt in config.Tusrs on tc.CreatedBy equals crt.UsrId
                              join usr in config.Tusrs on tc.LastModifiedBy equals usr.UsrId
-                             
+
                              select new
                              {
                                  uniqueID = tc.Id,

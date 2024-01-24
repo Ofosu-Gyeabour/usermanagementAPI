@@ -19,6 +19,12 @@ namespace UserManagementAPI.utils
         public string acctNo { get; set; }
         public TClient clientObj { get; set; }
     }
+    public record countryPrefix
+    {
+        public int prefixId { get; set; }
+        public string prefix { get; set; }
+        public CountryLookup? oCountry { get; set; }
+    }
     public class Helper
     {
         swContext config;
@@ -1082,7 +1088,7 @@ namespace UserManagementAPI.utils
                     Image img = Image.FromStream(ms);
 
                     //saving image on file directory
-                    img.Save(filePath);
+                    img.Save(filePath,System.Drawing.Imaging.ImageFormat.Png);
                     bln = true;
                 }
 
@@ -1093,6 +1099,205 @@ namespace UserManagementAPI.utils
                 return bln;
             }
         }
+
+        public async Task<bool> SvImageAsync(string uniqueIdentifier, string base64String)
+        {
+            try
+            {
+                //var fileWriteTo = string.Format("{0}{1}.{2}", ConfigObject.IMG_FOLDER_PATH, uniqueIdentifier, @"png");
+                var fullPath = Path.Combine(Directory.GetCurrentDirectory(), ConfigObject.IMG_FOLDER_PATH, string.Format("{0}.{1}", uniqueIdentifier, "png"));
+
+                //base64String = base64String.Replace("data:image/png;base64,", "");
+                var str = base64String.Split(',');
+                byte[] imageB = Convert.FromBase64String(str[1]);
+
+                using (MemoryStream ms = new MemoryStream(imageB))
+                {
+                    using Stream streamWriteTo = File.Open(fullPath, FileMode.Create);
+                    ms.Position = 0;
+
+                    await ms.CopyToAsync(streamWriteTo);
+                }
+
+                return true;
+            }
+            catch(Exception ex)
+            {
+                return false;
+            }          
+        }
+
+        public async Task<IEnumerable<countryPrefix>> getAllCountryPrefixListAsync()
+        {
+            List<countryPrefix> cntPrefixes = new List<countryPrefix>();
+
+            try
+            {
+                var q = (from cnt in config.TCountryLookups
+                         where cnt.CountryId > 1 && cnt.CountryId < 10000
+                         select new
+                         {
+                             countryId = cnt.CountryId,
+                             countryName = cnt.CountryName,
+                             countryCode = cnt.CountryCode == null ? string.Empty: cnt.CountryCode,
+                             countryPrefix = cnt.PreFix
+                         });
+
+                var qList = await q.ToListAsync().ConfigureAwait(false);
+
+                var dtPrefixes = qList
+                                .Select(a => new countryPrefix()
+                                {
+                                    prefixId = a.countryId,
+                                    prefix = a.countryPrefix.Trim(),
+                                    oCountry = new CountryLookup()
+                                    {
+                                        id = a.countryId,
+                                        codeOfcountry = a.countryCode,
+                                        nameOfcountry = a.countryName
+                                    }
+                                }).ToList();
+
+                //loop over to find countries with 2 or more prefix
+                foreach(var d in dtPrefixes)
+                {
+                    if (d.prefix.Contains('|'))
+                    {
+                        var str = d.prefix.Split('|');
+                        foreach(var s in str)
+                        {
+                            var o = new countryPrefix()
+                            {
+                                prefixId = d.prefixId,
+                                prefix = s,
+                                oCountry = new CountryLookup()
+                                {
+                                    id = d.oCountry.id,
+                                    codeOfcountry = d.oCountry.codeOfcountry,
+                                    nameOfcountry = d.oCountry.nameOfcountry
+                                }
+                            };
+
+                            cntPrefixes.Add(o);
+                        }
+                    }
+                    else
+                    {
+                        cntPrefixes.Add(d);
+                    }
+                }
+
+                return cntPrefixes;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        #region client - get all
+
+        public async Task<IEnumerable<IndividualCustomerLookup>> getAllClientAsync()
+        {
+            //TODO: fetches all customers
+            //method has pagination features
+            List<IndividualCustomerLookup> customers = null;
+
+            try
+            {
+                var Query = (from tc in config.TClients
+                             join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
+                             join cmp in config.Tcompanies on tc.AssociatedCompanyId equals cmp.CompanyId
+                             join chn in config.TChannelTypes on tc.ChannelTypeId equals chn.ChannelTypeId
+                             join cty in config.TCities on tc.ClientCityId equals cty.Id
+                             join cntr in config.TCountryLookups on tc.ClientCountryId equals cntr.CountryId
+                             join rf in config.Tclientreferralsources on tc.ReferralId equals rf.Id
+                             join crt in config.Tusrs on tc.CreatedBy equals crt.UsrId
+                             join usr in config.Tusrs on tc.LastModifiedBy equals usr.UsrId
+
+                             select new
+                             {
+                                 uniqueID = tc.Id,
+                                 clientType = ct.Describ,
+                                 clientTypeId = ct.Id,
+                                 associatedCompany = cmp.Company,
+                                 associatedCompanyId = tc.AssociatedCompanyId,
+                                 channelType = chn.Channel,
+                                 channelTypeId = tc.ChannelTypeId,
+                                 firstname = tc.Firstname,
+                                 middlenames = tc.Middlenames,
+                                 surname = tc.Surname,
+                                 clientBusiness = tc.ClientBusinessName,
+                                 mobileNo = tc.MobileNo,
+                                 whatsappNo = tc.WhatsappNo,
+                                 homeTel = tc.HomeTelephone,
+                                 workTel = tc.WorkTelephone,
+                                 emailAddr = tc.ClientEmailAddr,
+                                 emailAddr2 = tc.ClientEmailAddr2,
+                                 accNo = tc.ClientAccNo,
+                                 cityId = tc.ClientCityId,
+                                 city = cty.CityName,
+                                 countryId = tc.ClientCountryId,
+                                 nameOfcountry = cntr.CountryName,
+                                 postCode = tc.ClientPostCode,
+                                 referralId = tc.ReferralId,
+                                 referral = rf.ReferralSource,
+                                 collectionInstruction = tc.CollectionInstruction
+                             });
+
+                var customerList = await Query.ToListAsync().ConfigureAwait(false);
+
+                //convert list to type genericcustomerlookup
+                return customers = customerList
+                        .Select(q => new IndividualCustomerLookup()
+                        {
+                            id = q.uniqueID,
+                            oClientType = new ClientTypeLookup()
+                            {
+                                id = (int)q.clientTypeId,
+                                clientTypeDescrib = q.clientType
+                            },
+                            accountNo = q.accNo,
+                            oCity = new CityLookup()
+                            {
+                                id = (int)q.cityId,
+                                nameOfcity = q.city
+                            },
+                            oCountry = new CountryLookup()
+                            {
+                                id = (int)q.countryId,
+                                nameOfcountry = q.nameOfcountry
+                            },
+                            oCompany = new CompanyLookup()
+                            {
+                                id = (int)q.associatedCompanyId,
+                                nameOfcompany = q.associatedCompany
+                            },
+                            oChannelType = new ChannelTypeLookup()
+                            {
+                                id = (int)q.channelTypeId,
+                                nameOfchannel = q.channelType
+                            },
+                            oReferral = new ReferralLookup()
+                            {
+                                id = (int)q.referralId,
+                                sourceOfReferral = q.referral
+                            },
+                            postCode = q.postCode,
+                            mobileNo = q.mobileNo,
+                            whatsappNo = q.whatsappNo,
+                            homeTelephone = q.homeTel,
+                            workTelephone = q.workTel,
+                            clientEmail = q.emailAddr
+                        }).ToList();
+            }
+            catch(Exception x)
+            {
+                throw x;
+            }
+        }
+
+        #endregion
 
     }
 }

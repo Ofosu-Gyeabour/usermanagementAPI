@@ -4,6 +4,7 @@ using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
 using System.Runtime.CompilerServices;
+using UserManagementAPI.utils;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -289,6 +290,33 @@ namespace UserManagementAPI.Resources.Implementations
                     status = false,
                     message = $"error: {x.Message}",
                     errorList = errorList
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> GetCountryPrefixAsync()
+        {
+            //TODO: gets the prefix of all countries in the data store
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var countryPrefixDta = await helper.getAllCountryPrefixListAsync();
+
+                return response = new DefaultAPIResponse()
+                {
+                    status = countryPrefixDta.Count() > 0 ? true: false,
+                    message = countryPrefixDta.Count() > 0 ? $"{countryPrefixDta.Count()} records fetched from datastore": @"No data found",
+                    data = countryPrefixDta
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
                 };
             }
         }

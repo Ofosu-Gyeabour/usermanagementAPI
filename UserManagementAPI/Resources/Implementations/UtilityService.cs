@@ -605,7 +605,7 @@ namespace UserManagementAPI.Resources.Implementations
                 //save uploaded image
                 foreach(var item in payLoad.oShippingOrderItems)
                 {
-                    await helper.saveImageAsync(string.Format("{0}_{1}",payLoad.oShipping.bolNumber,item.item.name), item.picturePath);
+                    await helper.SvImageAsync(string.Format("{0}_{1}",payLoad.oShipping.bolNumber,item.item.name), item.picturePath);
                 }
 
                 return response = new DefaultAPIResponse()

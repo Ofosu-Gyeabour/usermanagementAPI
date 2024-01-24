@@ -112,6 +112,11 @@ namespace UserManagementAPI.POCOs
                             xresult = xresult > agencyObj.barrelOne ? xresult : agencyObj.barrelOne;
                         }
 
+                        if (xresult < (decimal)agencyObj.freightOne)
+                        {
+                            xresult = (decimal)agencyObj.freightOne;
+                        }
+
                         //if ()
                         break;
                     case 2:
@@ -155,6 +160,11 @@ namespace UserManagementAPI.POCOs
                             {
                                 xresult = decimal.Multiply((decimal)cubic, (decimal)agencyObj.freightThree);
                                 xresult = xresult > agencyObj.barrelOne ? xresult : agencyObj.barrelOne;
+                            }
+
+                            if (xresult < (decimal)agencyObj.freightOne)
+                            {
+                                xresult = (decimal)agencyObj.freightOne;
                             }
                         }
                         else
@@ -211,11 +221,15 @@ namespace UserManagementAPI.POCOs
                                 xresult = xresult > agencyObj.minimum ? xresult : agencyObj.minimum;
                             }
 
-                            if (cubic < barrelObj.volume)
+                            if (xresult < agencyObj.minimum)
                             {
-                                xresult = decimal.Multiply(decimal.Divide((decimal)agencyObj.freightOne, barrelObj.volume), (decimal)cubic);
-                                xresult = xresult > agencyObj.minimum ? xresult : agencyObj.minimum;
+                                if (cubic < barrelObj.volume)
+                                {
+                                    xresult = decimal.Multiply(decimal.Divide((decimal)agencyObj.freightOne, barrelObj.volume), (decimal)cubic);
+                                    xresult = xresult > agencyObj.minimum ? xresult : agencyObj.minimum;
+                                }
                             }
+                            
                         }
                         break;
                     default:
@@ -259,6 +273,11 @@ namespace UserManagementAPI.POCOs
                             {
                                 xresult = decimal.Multiply((decimal)cubic, (decimal)agencyObj.freightThree);
                                 xresult = xresult > agencyObj.barrelOne ? xresult : agencyObj.barrelOne;
+                            }
+
+                            if (xresult < (decimal)agencyObj.freightOne)
+                            {
+                                xresult = (decimal)agencyObj.freightOne;
                             }
                         }
                         else
@@ -314,11 +333,14 @@ namespace UserManagementAPI.POCOs
                                 xresult = decimal.Multiply((decimal)cubic, (decimal)agencyObj.freightFour);
                                 xresult = xresult > agencyObj.minimum ? xresult : agencyObj.minimum;
                             }
-
-                            if (cubic < barrelObj.volume)
+                                                       
+                            if (xresult < agencyObj.minimum)
                             {
-                                xresult = decimal.Multiply(decimal.Divide((decimal)agencyObj.freightOne, barrelObj.volume), (decimal)cubic);
-                                xresult = xresult > agencyObj.minimum ? xresult : agencyObj.minimum;
+                                if (cubic < barrelObj.volume)
+                                {
+                                    xresult = decimal.Multiply(decimal.Divide((decimal)agencyObj.freightOne, barrelObj.volume), (decimal)cubic);
+                                    xresult = xresult > agencyObj.minimum ? xresult : agencyObj.minimum;
+                                }
                             }
                         }
 
