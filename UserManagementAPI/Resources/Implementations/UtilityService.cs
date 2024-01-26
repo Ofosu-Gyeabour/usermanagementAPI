@@ -236,29 +236,18 @@ namespace UserManagementAPI.Resources.Implementations
         public async Task<DefaultAPIResponse> getSalesTypeAsync()
         {
             DefaultAPIResponse rsp = null;
-            List<GenericLookup> saleTypeList = null;
 
             try
             {
-                var sList = await config.TSaleTypeLookups.ToListAsync();
-                if (sList != null)
+                Helper helper = new Helper();
+                var dictSaleType = await helper.GetSalesTypeAsync();
+
+                return rsp = new DefaultAPIResponse()
                 {
-                    saleTypeList = new List<GenericLookup>();
-                    foreach(var s in sList)
-                    {
-                        var obj = new GenericLookup() { id = s.Id, idValue = s.SaleTypeDescrib };
-                        saleTypeList.Add(obj);
-                    }
-
-                    rsp = new DefaultAPIResponse()
-                    {
-                        status = true,
-                        message = $"{saleTypeList.Count()} records fetched from datastore",
-                        data = saleTypeList
-                    };
-                }
-
-                return rsp;
+                    status = dictSaleType.Count() > 0 ? true : false,
+                    message = dictSaleType.Count() > 0 ? $"{dictSaleType.Count()} records fetched" : @"No data",
+                    data = dictSaleType
+                };
             }
             catch(Exception x)
             {
@@ -605,7 +594,10 @@ namespace UserManagementAPI.Resources.Implementations
                 //save uploaded image
                 foreach(var item in payLoad.oShippingOrderItems)
                 {
-                    await helper.SvImageAsync(string.Format("{0}_{1}",payLoad.oShipping.bolNumber,item.item.name), item.picturePath);
+                    if (item.picturePath != null)
+                    {
+                        await helper.SvImageAsync(string.Format("{0}_{1}", payLoad.oShipping.bolNumber, item.item.name), item.picturePath);
+                    }                   
                 }
 
                 return response = new DefaultAPIResponse()

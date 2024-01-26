@@ -154,5 +154,31 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<DefaultAPIResponse> CreatePackageAsync(Package payLoad)
+        {
+            //TODO: creates a packaging order
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var opResponse = await helper.createPackagingOrderRecordAsync(payLoad);
+
+                payLoad.orderNumber = opResponse;
+
+                return response = new DefaultAPIResponse() { 
+                    status = opResponse.Length > 0 ? true: false,
+                    message = opResponse.Length > 0? $"Packaging order created successfully with ID: {opResponse}": @"An error occured. Please contact Administrator",
+                    data = payLoad
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
     }
 }

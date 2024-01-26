@@ -257,6 +257,37 @@ namespace UserManagementAPI.utils
             }
         }
 
+        private async Task<string> formatString(int newID)
+        {
+            string result = string.Empty;
+
+            switch (newID++.ToString().Length)
+            {
+                case 1:
+                    result = string.Format("{0}{1}", @"000000", newID++.ToString());
+                    break;
+                case 2:
+                    result = string.Format("{0}{1}", @"00000", newID++.ToString());
+                    break;
+                case 3:
+                    result = string.Format("{0}{1}", @"0000", newID++.ToString());
+                    break;
+                case 4:
+                    result = string.Format("{0}{1}", @"000", newID++.ToString());
+                    break;
+                case 5:
+                    result = string.Format("{0}{1}", @"00", newID++.ToString());
+                    break;
+                case 6:
+                    result = string.Format("{0}{1}", @"0", newID++.ToString());
+                    break;
+                default:
+                    result = string.Format("{0}", newID++.ToString());
+                    break;
+            }
+
+            return result;
+        }
         public async Task<string> formatShippingOrderNumber(string portCode)
         {
             //creates an order number
@@ -268,32 +299,34 @@ namespace UserManagementAPI.utils
             {
                 var newID = config.TShippings.Max(u => (int)u.Id);
 
-                switch (newID++.ToString().Length)
-                {
-                    case 1:
-                        suffix = string.Format("{0}{1}", @"000000", newID++.ToString());
-                        break;
-                    case 2:
-                        suffix = string.Format("{0}{1}", @"00000", newID++.ToString());
-                        break;
-                    case 3:
-                        suffix = string.Format("{0}{1}", @"0000", newID++.ToString());
-                        break;
-                    case 4:
-                        suffix = string.Format("{0}{1}", @"000", newID++.ToString());
-                        break;
-                    case 5:
-                        suffix = string.Format("{0}{1}", @"00", newID++.ToString());
-                        break;
-                    case 6:
-                        suffix = string.Format("{0}{1}", @"0", newID++.ToString());
-                        break;
-                    default:
-                        suffix = string.Format("{0}", newID++.ToString());
-                        break;
-                }
+                var formatted = await formatString(newID);
 
-                return result = $"{prefix}-{suffix}";
+                //switch (newID++.ToString().Length)
+                //{
+                //    case 1:
+                //        suffix = string.Format("{0}{1}", @"000000", newID++.ToString());
+                //        break;
+                //    case 2:
+                //        suffix = string.Format("{0}{1}", @"00000", newID++.ToString());
+                //        break;
+                //    case 3:
+                //        suffix = string.Format("{0}{1}", @"0000", newID++.ToString());
+                //        break;
+                //    case 4:
+                //        suffix = string.Format("{0}{1}", @"000", newID++.ToString());
+                //        break;
+                //    case 5:
+                //        suffix = string.Format("{0}{1}", @"00", newID++.ToString());
+                //        break;
+                //    case 6:
+                //        suffix = string.Format("{0}{1}", @"0", newID++.ToString());
+                //        break;
+                //    default:
+                //        suffix = string.Format("{0}", newID++.ToString());
+                //        break;
+                //}
+
+                return result = $"{prefix}-{formatted}";
             }
             catch (Exception x)
             {
@@ -302,6 +335,23 @@ namespace UserManagementAPI.utils
             }
         }
 
+        private async Task<string> formatPackageOrder()
+        {
+            string result = string.Empty;
+            
+            try
+            {
+                var newID = config.TpackagingOrders.Max(u => (int)u.Id); // TpackagingOrders.Max(u => (int)u.Id);
+
+                var formatted = await formatString((int)newID);
+
+                return result = $"PCO-{formatted}";
+            }
+            catch(Exception x)
+            {
+                return result = $"PCO-0000001";
+            }
+        }
         public async Task<TAdhocType> getAdhocType(string adhocName)
         {
             //gets the unique ID of the adhoc object
@@ -954,17 +1004,10 @@ namespace UserManagementAPI.utils
 
         public async Task<string> createShippingOrderRecordAsync(clsShippingOrder order)
         {
-            //change returnvalue to string to return a properly formatted SHIPPING ORDER NUMBER
-            //method creates shipping order record in the data store
-            //int shippingID = 0;
+            //TODO: method creates shipping order record in the data store
 
             try
-            {
-                //using (var cfg = new swContext())
-                //{
-                //    shippingID = config.TShippings.Max(u => (int)u.Id);
-                //}
-                    
+            {                   
                 using var transaction = await config.Database.BeginTransactionAsync();
 
                 try
@@ -1003,7 +1046,7 @@ namespace UserManagementAPI.utils
                     {
                         TShippingOrderItem shippingItem = new TShippingOrderItem() { 
                             ShippingorderId = shipping.Id,
-                            ItemId = await item.item.getID(),
+                            ItemId = await item.item.getShippingItemID(),
                             Qty = item.quantity,
                             ItemDescription = item.itemDescription,
                             ItemWeight = item.itemWeight,
@@ -1012,7 +1055,7 @@ namespace UserManagementAPI.utils
                             Marks = item.marks,
                             Hscode = item.hscode,
                             LpId = 0,
-                            ItemPicPath = string.Format("{0}{1}_{2}.{3}",ConfigObject.IMG_FOLDER_PATH, shipping.BolNo, item.item.name,@"png")
+                            ItemPicPath = item.picturePath != null ? string.Format("{0}{1}_{2}.{3}",ConfigObject.IMG_FOLDER_PATH, shipping.BolNo, item.item.name,@"png") : string.Empty
                         };
 
                         await config.AddAsync(shippingItem);
@@ -1070,6 +1113,104 @@ namespace UserManagementAPI.utils
             }
         }
 
+        public async Task<string> createPackagingOrderRecordAsync(Package package)
+        {
+            try
+            {
+                using var transaction = await config.Database.BeginTransactionAsync();
+                //config.Database.SetCommandTimeout(90);
+
+                try
+                {
+                    //tpackagingorder first
+                    TpackagingOrder tp = new TpackagingOrder() { 
+                        ClientId = package.clientId,
+                        Isinvoiced = package.isInvoiced,
+                        InvoiceDate = package.invoiceDate,
+                        CreatedBy = package.createdBy,
+                        DeliveryNote = package.deliveryNote,
+                        CompanyId = package.companyId,
+                        SaletypeId = package.saletypeId,
+                        DriverName = package.nameOfDriver,
+                        DeliveryDate = package.deliveryDate,
+                        DeliveryTimeId = package.deliveryTimeID,
+                        Contact = package.primaryContact,
+                        Whatsapp = package.secondaryContact,
+                        Addr1 = package.address1,
+                        Addr2 = package.address2,
+                        Addr3 = package.address3,
+                        OrderNo = await formatPackageOrder(),
+                        StatusId = 1
+                    };
+
+                    await config.AddAsync(tp);
+                    await config.SaveChangesAsync();
+
+                    //tpackagingitems
+                    foreach(var tpi in package.packageItems)
+                    {
+                        TpackagingOrderItem tpackagingorderItem = new TpackagingOrderItem() { 
+                            PackageOrderId = tp.Id,
+                            ItemId = await tpi.item.getPackageItemID(),
+                            Qty = tpi.quantity,
+                            ItemDescription = tpi.itemDescription,
+                            ItemPrice = tpi.itemPrice,
+                            NomCode = tpi.nomCode
+                        };
+
+                        await config.AddAsync(tpackagingorderItem);
+                        await config.SaveChangesAsync();
+                    }
+
+                    //tpackageordercharges
+                    foreach(var ch in package.packageCharges)
+                    {
+                        TpackagingOrderCharge tpackagingordercharge = new TpackagingOrderCharge() { 
+                            PackageOrderId = tp.Id,
+                            ChargeId = ch.oCharge.id,
+                            ChargeAmt = ch.chargeAmt,
+                            ChargeDescription = ch.chargeDescription,
+                            CurrencyId = await ch.oCurrency.getID()
+                        };
+
+                        await config.AddAsync(tpackagingordercharge);
+                        await config.SaveChangesAsync();
+                    }
+
+                    //tpackageorderpayment
+                    foreach(var pay in package.packagePayments)
+                    {
+                        TpackagingOrderPayment tpackagingorderpayment = new TpackagingOrderPayment() { 
+                            PackageOrderId = tp.Id,
+                            PayDate = pay.paymentDate,
+                            PayAmt = pay.paymentAmt,
+                            PayMethodId = await pay.getID(),
+                            PayReceiptNo = pay.paymentReceiptNo,
+                            OutstandingAmt = pay.outstandingAmt
+                        };
+
+                        await config.AddAsync(tpackagingorderpayment);
+                        await config.SaveChangesAsync();
+                    }
+
+                    package.orderNumber = tp.OrderNo;
+
+                    //commit async
+                    await transaction.CommitAsync();
+                    return package.orderNumber;
+
+                }
+                catch(Exception tex)
+                {
+                    await transaction.RollbackAsync();
+                    return string.Empty;
+                }
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
         public async Task<bool> saveImageAsync(string uniqueIdentifier, string base64String)
         {
             //TODO: saves an image file to a specified directory, using the name of a unique identifier
@@ -1298,6 +1439,31 @@ namespace UserManagementAPI.utils
         }
 
         #endregion
+
+        public async Task<IEnumerable<GenericLookup>> GetSalesTypeAsync()
+        {
+            List<GenericLookup> saletypeList = null;
+
+            try
+            {
+                var dt = await config.TSaleTypeLookups.ToListAsync();
+
+                if (dt != null)
+                {
+                    saletypeList = dt.Select(a => new GenericLookup()
+                    {
+                        id = a.Id,
+                        idValue = a.SaleTypeDescrib
+                    }).ToList();
+                }
+
+                return saletypeList;
+            }
+            catch(Exception x)
+            {
+                throw x;
+            }
+        }
 
     }
 }

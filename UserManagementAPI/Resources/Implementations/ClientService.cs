@@ -23,103 +23,26 @@ namespace UserManagementAPI.Resources.Implementations
             config = new swContext();
         }
 
-        public async Task<DefaultAPIResponse> GetClientInformationAsync()
+        public async Task<DefaultAPIResponse> GetClientInformationAsync(int page = 1, int pageSize = 10)
         {
             DefaultAPIResponse response = null;
 
             try
             {
-                var Query = (from tc in config.TClients
-                             join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
-                             join cmp in config.Tcompanies on tc.AssociatedCompanyId equals cmp.CompanyId
-                             join chn in config.TChannelTypes on tc.ChannelTypeId equals chn.ChannelTypeId
-                             join cty in config.TCities on tc.ClientCityId equals cty.Id
-                             join cntr in config.TCountryLookups on tc.ClientCountryId equals cntr.CountryId
-                             join rf in config.Tclientreferralsources on tc.ReferralId equals rf.Id
-                             join crt in config.Tusrs on tc.CreatedBy equals crt.UsrId
-                             join usr in config.Tusrs on tc.LastModifiedBy equals usr.UsrId
+                Helper helper = new Helper();
+                var customerData = await helper.getAllClientAsync();
 
-                             select new
-                             {
-                                 uniqueID = tc.Id,
-                                 clientType = ct.Describ,
-                                 clientTypeId = ct.Id,
-                                 associatedCompany = cmp.Company,
-                                 associatedCompanyId = tc.AssociatedCompanyId,
-                                 channelType = chn.Channel,
-                                 channelTypeId = tc.ChannelTypeId,
-                                 firstname = tc.Firstname,
-                                 middlenames = tc.Middlenames,
-                                 surname = tc.Surname,
-                                 clientBusiness = tc.ClientBusinessName,
-                                 mobileNo = tc.MobileNo,
-                                 whatsappNo = tc.WhatsappNo,
-                                 homeTel = tc.HomeTelephone,
-                                 workTel = tc.WorkTelephone,
-                                 emailAddr = tc.ClientEmailAddr,
-                                 emailAddr2 = tc.ClientEmailAddr2,
-                                 accNo = tc.ClientAccNo,
-                                 cityId = tc.ClientCityId,
-                                 city = cty.CityName,
-                                 countryId = tc.ClientCountryId,
-                                 nameOfcountry = cntr.CountryName,
-                                 postCode = tc.ClientPostCode,
-                                 referralId = tc.ReferralId,
-                                 referral = rf.ReferralSource,
-                                 collectionInstruction = tc.CollectionInstruction
-                             });
-
-
-                    var customerList = await Query.ToListAsync().ConfigureAwait(false);
-
-                //convert list to type genericcustomerlookup
-                customerList
-                .Select(q => new IndividualCustomerLookup()
-                    {
-                        id = q.uniqueID,
-                        oClientType = new ClientTypeLookup()
-                        {
-                            id = (int)q.clientTypeId,
-                            clientTypeDescrib = q.clientType
-                        },
-                        accountNo = q.accNo,
-                        oCity = new CityLookup()
-                        {
-                            id = (int)q.cityId,
-                            nameOfcity = q.city
-                        },
-                        oCountry = new CountryLookup()
-                        {
-                            id = (int)q.countryId,
-                            nameOfcountry = q.nameOfcountry
-                        },
-                        oCompany = new CompanyLookup()
-                        {
-                            id = (int)q.associatedCompanyId,
-                            nameOfcompany = q.associatedCompany
-                        },
-                        oChannelType = new ChannelTypeLookup()
-                        {
-                            id = (int)q.channelTypeId,
-                            nameOfchannel = q.channelType
-                        },
-                        oReferral = new ReferralLookup()
-                        {
-                            id = (int)q.referralId,
-                            sourceOfReferral = q.referral
-                        },
-                        postCode = q.postCode,
-                        mobileNo = q.mobileNo,
-                        whatsappNo = q.whatsappNo,
-                        homeTelephone = q.homeTel,
-                        workTelephone = q.workTel,
-                        clientEmail = q.emailAddr
-                    }).ToList();
-
+                //paginating data
+                var totalCount = customerData.Count();
+                var totalPages =  (int)Math.Ceiling((decimal)totalCount / pageSize);
+                
                 return response = new DefaultAPIResponse() { 
-                    status = true,
-                    message = @"success",
-                    data = customerList
+                    status = customerData.Count() > 0 ? true: false,
+                    message = customerData.Count() > 0 ? $"{customerData.Count()} records fetched successfully" : @"No data fetched",
+                    data = customerData
+                                .Skip((page - 1) * pageSize)
+                                .Take(pageSize)
+                                .ToList()
                 };
             }
             catch(Exception x)

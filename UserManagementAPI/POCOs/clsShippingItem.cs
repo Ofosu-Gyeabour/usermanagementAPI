@@ -74,15 +74,28 @@ namespace UserManagementAPI.POCOs
             }
         }
 
-        public async Task<int> getID()
+        public async Task<int> getPackageItemID()
         {
-            //get the id of the shipping item
+            //get the id of the packaging item
+            try
+            {
+                var obj = await config.TPackagingItems.Where(x => x.PackagingItem == this.name).FirstOrDefaultAsync();
+                return obj != null ? obj.Id : 0;
+            }
+            catch (Exception x)
+            {
+                return 0;
+            }
+        }
+
+        public async Task<int> getShippingItemID()
+        {
             try
             {
                 var obj = await config.TShippingItems.Where(x => x.ItemName == this.name).FirstOrDefaultAsync();
                 return obj != null ? obj.Id : 0;
             }
-            catch (Exception x)
+            catch(Exception x)
             {
                 return 0;
             }

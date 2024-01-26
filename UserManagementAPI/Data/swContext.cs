@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using UserManagementAPI.utils;
+using UserManagementAPI.Procs;
 
 namespace UserManagementAPI.Data
 {
@@ -18,6 +19,14 @@ namespace UserManagementAPI.Data
             : base(options)
         {
         }
+
+        #region stored procedure
+
+        public virtual DbSet<pShippingOrder> PShippingOrders { get; set; }
+        public virtual DbSet<pPackagingOrder> PPackagingOrders { get; set; }
+        public virtual DbSet<pSalesOrder> PSalesOrders { get; set; }
+
+        #endregion
 
         public virtual DbSet<SaleTypeLookup> SaleTypeLookups { get; set; } = null!;
         public virtual DbSet<TAdhoc> TAdhocs { get; set; } = null!;
@@ -100,6 +109,10 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TemailConfig> TemailConfigs { get; set; } = null!;
         public virtual DbSet<Thscode> Thscodes { get; set; } = null!;
         public virtual DbSet<Tpackaging> Tpackagings { get; set; } = null!;
+        public virtual DbSet<TpackagingOrder> TpackagingOrders { get; set; } = null!;
+        public virtual DbSet<TpackagingOrderCharge> TpackagingOrderCharges { get; set; } = null!;
+        public virtual DbSet<TpackagingOrderItem> TpackagingOrderItems { get; set; } = null!;
+        public virtual DbSet<TpackagingOrderPayment> TpackagingOrderPayments { get; set; } = null!;
         public virtual DbSet<Tshippingport> Tshippingports { get; set; } = null!;
         public virtual DbSet<Tusr> Tusrs { get; set; } = null!;
 
@@ -113,6 +126,14 @@ namespace UserManagementAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            #region stored procedure
+
+            modelBuilder.Entity<pShippingOrder>(entity => entity.HasNoKey());
+            modelBuilder.Entity<pPackagingOrder>(entity => entity.HasNoKey());
+            modelBuilder.Entity<pSalesOrder>(entity => entity.HasNoKey());
+
+            #endregion
+
             modelBuilder.Entity<SaleTypeLookup>(entity =>
             {
                 entity.ToTable("SaleTypeLookup");
@@ -1058,6 +1079,12 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("countryName")
                     .HasComment("the name of the country");
+
+                entity.Property(e => e.PreFix)
+                    .HasMaxLength(30)
+                    .IsUnicode(false)
+                    .HasColumnName("preFix")
+                    .IsFixedLength();
 
                 entity.Property(e => e.RegionId)
                     .HasColumnName("regionId")
@@ -2124,6 +2151,14 @@ namespace UserManagementAPI.Data
                     .HasColumnType("numeric(9, 2)")
                     .HasColumnName("itemPrice");
 
+                entity.Property(e => e.ItemVolume)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("itemVolume");
+
+                entity.Property(e => e.ItemWeight)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("itemWeight");
+
                 entity.Property(e => e.PluralName)
                     .HasMaxLength(50)
                     .IsUnicode(false)
@@ -2842,6 +2877,166 @@ namespace UserManagementAPI.Data
                     .HasColumnType("numeric(9, 2)")
                     .HasColumnName("wholesaleprice")
                     .HasComment("wholesale price for packaging item");
+            });
+
+            modelBuilder.Entity<TpackagingOrder>(entity =>
+            {
+                entity.ToTable("tpackagingOrder");
+
+                entity.Property(e => e.Addr1)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("addr1");
+
+                entity.Property(e => e.Addr2)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("addr2");
+
+                entity.Property(e => e.Addr3)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("addr3");
+
+                entity.Property(e => e.ClientId).HasColumnName("clientId");
+
+                entity.Property(e => e.CompanyId).HasColumnName("companyId");
+
+                entity.Property(e => e.Contact)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("contact");
+
+                entity.Property(e => e.CreatedBy).HasColumnName("createdBy");
+
+                entity.Property(e => e.DeliveryDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("deliveryDate");
+
+                entity.Property(e => e.DeliveryNote)
+                    .HasMaxLength(1000)
+                    .IsUnicode(false)
+                    .HasColumnName("deliveryNote");
+
+                entity.Property(e => e.DeliveryTimeId).HasColumnName("deliveryTimeId");
+
+                entity.Property(e => e.DriverName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("driverName");
+
+                entity.Property(e => e.InvoiceDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("invoiceDate");
+
+                entity.Property(e => e.Isinvoiced).HasColumnName("isinvoiced");
+
+                entity.Property(e => e.OrderNo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("orderNo");
+
+                entity.Property(e => e.SaletypeId).HasColumnName("saletypeId");
+
+                entity.Property(e => e.StatusId).HasColumnName("statusId");
+
+                entity.Property(e => e.Whatsapp)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("whatsapp");
+
+                entity.HasOne(d => d.Saletype)
+                    .WithMany(p => p.TpackagingOrders)
+                    .HasForeignKey(d => d.SaletypeId)
+                    .HasConstraintName("FK_tpackagingOrder_tSaleTypeLookup");
+            });
+
+            modelBuilder.Entity<TpackagingOrderCharge>(entity =>
+            {
+                entity.ToTable("tpackagingOrderCharge");
+
+                entity.Property(e => e.ChargeAmt)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("chargeAmt");
+
+                entity.Property(e => e.ChargeDescription)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("chargeDescription");
+
+                entity.Property(e => e.ChargeId).HasColumnName("chargeId");
+
+                entity.Property(e => e.CurrencyId).HasColumnName("currencyId");
+
+                entity.Property(e => e.PackageOrderId).HasColumnName("packageOrderId");
+
+                entity.HasOne(d => d.PackageOrder)
+                    .WithMany(p => p.TpackagingOrderCharges)
+                    .HasForeignKey(d => d.PackageOrderId)
+                    .HasConstraintName("FK_tpackagingOrderCharge_tpackagingOrder");
+            });
+
+            modelBuilder.Entity<TpackagingOrderItem>(entity =>
+            {
+                entity.ToTable("tpackagingOrderItem");
+
+                entity.Property(e => e.ItemDescription)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("itemDescription");
+
+                entity.Property(e => e.ItemId).HasColumnName("itemId");
+
+                entity.Property(e => e.ItemPrice)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("itemPrice");
+
+                entity.Property(e => e.NomCode)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("nomCode");
+
+                entity.Property(e => e.PackageOrderId)
+                    .HasColumnName("packageOrderId")
+                    .HasComment("foreign key to packaging order table");
+
+                entity.Property(e => e.Qty).HasColumnName("qty");
+
+                entity.HasOne(d => d.PackageOrder)
+                    .WithMany(p => p.TpackagingOrderItems)
+                    .HasForeignKey(d => d.PackageOrderId)
+                    .HasConstraintName("FK_tpackagingOrderItem_tpackagingOrder");
+            });
+
+            modelBuilder.Entity<TpackagingOrderPayment>(entity =>
+            {
+                entity.ToTable("tpackagingOrderPayment");
+
+                entity.Property(e => e.OutstandingAmt)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("outstandingAmt");
+
+                entity.Property(e => e.PackageOrderId).HasColumnName("packageOrderId");
+
+                entity.Property(e => e.PayAmt)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("payAmt");
+
+                entity.Property(e => e.PayDate)
+                    .HasColumnType("date")
+                    .HasColumnName("payDate");
+
+                entity.Property(e => e.PayMethodId).HasColumnName("payMethodId");
+
+                entity.Property(e => e.PayReceiptNo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("payReceiptNo");
+
+                entity.HasOne(d => d.PackageOrder)
+                    .WithMany(p => p.TpackagingOrderPayments)
+                    .HasForeignKey(d => d.PackageOrderId)
+                    .HasConstraintName("FK_tpackagingOrderPayment_tpackagingOrder");
             });
 
             modelBuilder.Entity<Tshippingport>(entity =>

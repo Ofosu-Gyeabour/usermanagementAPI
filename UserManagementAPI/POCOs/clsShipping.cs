@@ -111,7 +111,8 @@ namespace UserManagementAPI.POCOs
                 {
                     oCustomer = new GenericCustomerLookup()
                     {
-                        id = x.recordId,
+                        //id = x.recordId,
+                        id = x.uniqueId,
                         nameOrcompany = x.fullName,
                         postCode = x.postCode,
                         address = x.address,

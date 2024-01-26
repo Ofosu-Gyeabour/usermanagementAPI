@@ -8,7 +8,7 @@ namespace UserManagementAPI.Resources.Interfaces
 {
     public interface IClientService
     {
-        Task<DefaultAPIResponse> GetClientInformationAsync();
+        Task<DefaultAPIResponse> GetClientInformationAsync(int page, int pageSize);
 
         Task<DefaultAPIResponse> GetCorporateClientAsync();
         Task<DefaultAPIResponse> GetIndividualClientAsync();

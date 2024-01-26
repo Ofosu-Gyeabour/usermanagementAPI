@@ -9,5 +9,8 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> GetPaymentMethodAsync();
 
         Task<DefaultAPIResponse> CreateSalesAsync(Sale adhocPayLoad);
+
+        Task<DefaultAPIResponse> CreatePackageAsync(Package payLoad);
+
     }
 }

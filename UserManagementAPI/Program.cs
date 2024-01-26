@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http;
 using Newtonsoft.Json;
+using UserManagementAPI.Procs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +61,7 @@ builder.Services.AddSingleton<IPaymentTermService, PaymentTermService>();
 builder.Services.AddSingleton<ISalesService, SalesService>();
 builder.Services.AddSingleton<IUtilityService, UtilityService>();
 builder.Services.AddSingleton<IConsolidatorService, ConsolidatorService>();
+builder.Services.AddSingleton<IDataService, DataService>();
 
 #endregion
 
@@ -296,6 +298,26 @@ app.MapPost("/Sales/Create", async Task<IResult> (ISalesService service, Sale pa
         return Results.BadRequest(x.Message);
     }
 }).WithTags("Sales");
+
+#endregion
+
+#region Package
+
+app.MapPost("/Package/Create", async Task<IResult> (ISalesService service, Package payLoad) =>
+{
+    if (payLoad.clientId <= 0)
+        return Results.BadRequest(@"ID of client cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var status = await service.CreatePackageAsync(payLoad);
+        return Results.Ok(status);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Package");
 
 #endregion
 
@@ -541,7 +563,7 @@ app.MapPost("/ShippingPort/Get", async Task<IResult> (IShippingPortService servi
 
 #region Client - routes
 
-app.MapGet("/Client/List", async (IClientService service) => await GetClientListAsync(service)).WithTags("Client");
+app.MapGet("/Client/List", async (IClientService service, int pageNumber, int pageSize) => await GetClientListAsync(service, pageNumber, pageSize)).WithTags("Client");
 app.MapGet("/Client/CorporateList", async (IClientService service) => await GetCorporateClientAsync(service)).WithTags("Client");
 app.MapGet("/Client/IndividualList", async (IClientService service) => await GetIndividualClientAsync(service)).WithTags("Client");
 
@@ -698,11 +720,17 @@ async Task<IResult> TestPagination([FromBody] PaginationFilter filter, IClientSe
     var dta = await service.PaginationTestAsync(filter.PageNumber, filter.PageSize);
     return Results.Ok(dta);
 }
-async Task<IResult> GetClientListAsync(IClientService service)
+async Task<IResult> GetClientListAsync(IClientService service, int pageNumber, int pageSize)
 {
+    if (pageNumber <= 0)
+        return Results.BadRequest("Page number cannot be less than or equal to zero (0)");
+
+    if (pageSize <= 0)
+        return Results.BadRequest("Page size cannot be less than or equal to zero (0)");
+
     try
     {
-        var opStatus = await service.GetClientInformationAsync();
+        var opStatus = await service.GetClientInformationAsync(pageNumber, pageSize);
         return Results.Ok(opStatus);
     }
     catch(Exception x)
@@ -3159,6 +3187,25 @@ app.MapPost("/ShippingOrder/Create", async Task<IResult> (IUtilityService servic
 
 #endregion
 
+#region Data
+
+app.MapPost("/Data/Company/ShippingOrder", async Task<IResult> (IDataService service, shippingOrderRec payLoad) =>
+{
+    if (payLoad.customerID <= 0)
+        return Results.BadRequest("ID cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var shipping_order_data = await service.getCustomerShippingOrder(payLoad.customerID,payLoad.page,payLoad.pageSize,Convert.ToDateTime(payLoad.df), Convert.ToDateTime(payLoad.dt));
+        return Results.Ok(shipping_order_data);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Data");
+
+#endregion
 
 #endregion
 
