@@ -141,4 +141,67 @@ namespace UserManagementAPI.POCOs
             }
         }
     }
+
+    public class clsCalculatorZone
+    {
+        private swContext config;
+
+        public clsCalculatorZone()
+        {
+            //config = new swContext();
+        }
+
+        public int Id { get; set; }
+        public int PortId { get; set; }
+        public int ZoneId { get; set; }
+        public decimal? freightBar1 { get; set; }
+        public decimal? freightBar2 { get; set; }
+        public decimal? freightBar3 { get; set; }
+        public decimal? freightBar4 { get; set; }
+        public decimal? freightBar5 { get; set; }
+        public decimal? minimumCharge { get; set; }
+        public decimal? duty { get; set; }
+
+
+        public async Task<clsCalculatorZone> getCalculatorRecord()
+        {
+            //TODO: uses the port and zone IDs to get a record to use for the computation
+            clsCalculatorZone obj = null;
+
+            try
+            {
+                config = new swContext();
+                var query = (from calc in config.TCalculators
+                             where calc.PId == this.PortId && calc.ZId == this.ZoneId
+                             select new
+                             {
+                                 id = calc.Id,
+                                 f1 = calc.Frgtbar1,
+                                 f2 = calc.Frgtbar2,
+                                 f3 = calc.Frgtbar3,
+                                 f4 = calc.Frgtbar4,
+                                 f5 = calc.Frgtbar5
+                             });
+
+                var queryList = await query.ToListAsync().ConfigureAwait(false);
+
+                obj = queryList
+                            .Select(a => new clsCalculatorZone()
+                            {
+                                Id = a.id,
+                                freightBar1 = a.f1,
+                                freightBar2 = a.f2,
+                                freightBar3 = a.f3,
+                                freightBar4 = a.f4,
+                                freightBar5 = a.f5
+                            }).FirstOrDefault();
+
+                return obj;
+            }
+            catch(Exception x)
+            {
+                throw x;
+            }
+        }
+    }
 }

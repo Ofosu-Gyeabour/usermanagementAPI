@@ -538,6 +538,7 @@ namespace UserManagementAPI.Resources.Implementations
                 var objFreight = new clsFreight() { cubic = payLoad.cubic};
 
                 var freightParams = await objFreight.determineFreightBand(payLoad);
+                //var CnD = await objFreight.determineClearanceAndDelivery(payLoad);
 
                 return response = new DefaultAPIResponse()
                 {

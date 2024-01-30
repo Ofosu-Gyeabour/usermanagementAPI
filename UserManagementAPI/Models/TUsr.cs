@@ -60,6 +60,8 @@ namespace UserManagementAPI.Models
         /// the Id of the profile
         /// </summary>
         public int? ProfileId { get; set; }
+        public int? Lockattempt { get; set; }
+        public int? Invalidattempt { get; set; }
 
         public virtual Tcompany? Company { get; set; }
         public virtual TDepartment? Department { get; set; }

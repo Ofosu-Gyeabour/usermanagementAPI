@@ -11,6 +11,9 @@ namespace UserManagementAPI.POCOs
         public CountryLookup? oCountry { get; set; }
         public ReferralLookup oReference { get; set; }
         public decimal? cubic { get; set; }
+        public int deliveryMethodId { get; set; }
+        public int parishId { get; set; }
+        public int zoneId { get; set; }
         public int sysuserId { get; set; }
     }
     public class clsFreight
@@ -32,6 +35,119 @@ namespace UserManagementAPI.POCOs
             config = new swContext();
         }
 
+        public async Task<OrderSummaryDetails> determineClearanceAndDelivery(clsFreightInput input)
+        {
+            //TODO: computes clearance and delivery
+            clsCalculatorZone calcObj = null;
+            clsShippingItem barrelObj = null;
+            decimal? xresult = 0m;
+
+            try
+            {
+                barrelObj = await this.getVolumeForBarrelAsync();
+                calcObj = await new clsCalculatorZone() { PortId = input.portId, ZoneId = input.zoneId }.getCalculatorRecord();
+
+                if (barrelObj.volume == input.cubic)
+                    xresult = calcObj.freightBar1;
+
+                if (decimal.Multiply(barrelObj.volume, 2) == input.cubic)
+                    xresult = calcObj.freightBar2;
+
+                if (decimal.Multiply(barrelObj.volume, 3) == input.cubic)
+                    xresult = calcObj.freightBar3;
+
+                if (decimal.Multiply(barrelObj.volume, 4) == input.cubic)
+                    xresult = calcObj.freightBar4;
+
+                //conditions
+                if (input.deliveryMethodId == 8)
+                {
+                    if ((input.cubic > barrelObj.volume) && (input.cubic < decimal.Multiply(barrelObj.volume, 2)))
+                    {
+                        if ((input.cubic > decimal.Multiply(barrelObj.volume, 1)) && (input.cubic <= 0.4m))
+                        {
+                            xresult = decimal.Add((decimal)calcObj.freightBar1, decimal.Divide(decimal.Subtract((decimal)calcObj.freightBar2, (decimal)calcObj.freightBar1), 3));
+                        }
+                        else if ((input.cubic > 0.4m) && (input.cubic <= 0.5m))
+                        {
+                            xresult = decimal.Add((decimal)calcObj.freightBar1, decimal.Multiply(decimal.Divide(decimal.Subtract((decimal)calcObj.freightBar2, (decimal)calcObj.freightBar1), 3), 2));
+                        }
+                        else if ((input.cubic > 0.5m) && (input.cubic < 0.6m))
+                        {
+                            xresult = decimal.Add((decimal)calcObj.freightBar1, decimal.Add(decimal.Multiply(decimal.Divide(decimal.Subtract((decimal)calcObj.freightBar2, (decimal)calcObj.freightBar1), 3), 2), 12));
+                        }
+
+                        xresult = xresult > (decimal)calcObj.freightBar1 ? xresult : (decimal)calcObj.freightBar1;
+                    }
+
+                    if ((input.cubic > decimal.Multiply(barrelObj.volume, 2)) && (input.cubic < decimal.Multiply(barrelObj.volume, 3)))
+                    {
+                        //point by point
+                        if ((input.cubic > decimal.Multiply(barrelObj.volume, 2)) && (input.cubic <= 0.7m))
+                        {
+                            xresult = decimal.Add((decimal)calcObj.freightBar2, decimal.Divide(decimal.Subtract((decimal)calcObj.freightBar3, (decimal)calcObj.freightBar2), 3));
+                        }
+                        else if ((input.cubic > 0.7m) && (input.cubic <= 0.8m))
+                        {
+                            xresult = decimal.Add((decimal)calcObj.freightBar2, decimal.Multiply(decimal.Divide(decimal.Subtract((decimal)calcObj.freightBar3, (decimal)calcObj.freightBar2), 3), 2));
+                        }
+                        else if ((input.cubic > 0.8m) && (input.cubic < 0.9m))
+                        {
+                            xresult = decimal.Add((decimal)calcObj.freightBar2, decimal.Add(decimal.Multiply(decimal.Divide(decimal.Subtract((decimal)calcObj.freightBar3, (decimal)calcObj.freightBar2), 3), 2), 12));
+                        }
+
+                        xresult = xresult > calcObj.freightBar4 ? calcObj.freightBar4 : xresult;
+                        xresult = xresult > calcObj.freightBar1 ? xresult : calcObj.freightBar1;
+                    }
+
+                    //0.9 to 1.2
+                    if ((input.cubic > decimal.Multiply(barrelObj.volume, 3)) && (input.cubic < decimal.Multiply(barrelObj.volume, 4)))
+                    {
+                        //1.0
+                        if ((input.cubic > decimal.Multiply(barrelObj.volume, 3)) && (input.cubic <= 1.0m))
+                        {
+                            xresult = decimal.Add((decimal)calcObj.freightBar3, decimal.Divide(decimal.Subtract((decimal)calcObj.freightBar4, (decimal)calcObj.freightBar3), 3));
+                        }
+                        else if ((input.cubic > 1.0m) && (input.cubic <= 1.1m))
+                        {
+                            xresult = decimal.Add((decimal)calcObj.freightBar3, decimal.Multiply(decimal.Divide(decimal.Subtract((decimal)calcObj.freightBar4, (decimal)calcObj.freightBar3), 3), 2));
+                        }
+                        else if ((input.cubic > 1.1m) && (input.cubic <= 1.19m))
+                        {
+                            xresult = decimal.Add((decimal)calcObj.freightBar3, decimal.Add(decimal.Multiply(decimal.Divide(decimal.Subtract((decimal)calcObj.freightBar4, (decimal)calcObj.freightBar3), 3), 2), 12));
+                        }
+
+                        xresult = xresult > calcObj.freightBar1 ? xresult : calcObj.freightBar1;
+
+                    }
+
+                    //over 1.2
+                    if (input.cubic > decimal.Multiply(barrelObj.volume, 4))
+                    {
+                        decimal d1 = decimal.Subtract((decimal)input.cubic, decimal.Multiply(barrelObj.volume, 4));
+                        decimal d2 = decimal.Divide((decimal)calcObj.freightBar5, barrelObj.volume);
+
+                        xresult = decimal.Add(decimal.Multiply(d1, d2), (decimal)calcObj.freightBar4);
+
+                        xresult = xresult > calcObj.freightBar1 ? xresult : calcObj.freightBar1;
+                    }
+
+                    //catch-all
+                    xresult = xresult < calcObj.freightBar1 ? calcObj.freightBar1 : xresult;
+                }
+                else if (input.deliveryMethodId == 9)
+                {
+
+                }
+
+                return new OrderSummaryDetails() { }; //default...change later
+                
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
         public async Task<OrderSummaryDetails> determineFreightBand(clsFreightInput input)
         {
             //determines which band to use in calculation of freight cost

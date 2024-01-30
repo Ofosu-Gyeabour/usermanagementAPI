@@ -42,6 +42,8 @@
         public int? isAdmin { get; set; }
         public int? isLogged { get; set; }
         public int? isActive { get; set; }
+        public int? lockAttempt { get; set; }
+        public int? invalidLogAttempt { get; set; }
 
     }
 

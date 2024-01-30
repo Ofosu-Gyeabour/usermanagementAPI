@@ -35,6 +35,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TAdhocType> TAdhocTypes { get; set; } = null!;
         public virtual DbSet<TAgencyRate> TAgencyRates { get; set; } = null!;
         public virtual DbSet<TAirport> TAirports { get; set; } = null!;
+        public virtual DbSet<TCalculator> TCalculators { get; set; } = null!;
         public virtual DbSet<TChannelType> TChannelTypes { get; set; } = null!;
         public virtual DbSet<TChargeEngine> TChargeEngines { get; set; } = null!;
         public virtual DbSet<TChargeLookup> TChargeLookups { get; set; } = null!;
@@ -120,7 +121,7 @@ namespace UserManagementAPI.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(utils.ConfigObject.DB_CONN);
+                optionsBuilder.UseSqlServer("Server=NANA\\WIF;Database=sw;User Id=sa;Password=excalibur@33;");
             }
         }
 
@@ -410,6 +411,43 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TAirports)
                     .HasForeignKey(d => d.CountryId)
                     .HasConstraintName("FK_tAirport_tCountryLookup");
+            });
+
+            modelBuilder.Entity<TCalculator>(entity =>
+            {
+                entity.ToTable("tCalculator");
+
+                entity.Property(e => e.Duty)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("duty");
+
+                entity.Property(e => e.Frgtbar1)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar1");
+
+                entity.Property(e => e.Frgtbar2)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar2");
+
+                entity.Property(e => e.Frgtbar3)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar3");
+
+                entity.Property(e => e.Frgtbar4)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar4");
+
+                entity.Property(e => e.Frgtbar5)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar5");
+
+                entity.Property(e => e.Minimum)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("minimum");
+
+                entity.Property(e => e.PId).HasColumnName("pId");
+
+                entity.Property(e => e.ZId).HasColumnName("zId");
             });
 
             modelBuilder.Entity<TChannelType>(entity =>
@@ -3097,6 +3135,8 @@ namespace UserManagementAPI.Data
                     .HasColumnName("firstname")
                     .HasComment("first name of the user");
 
+                entity.Property(e => e.Invalidattempt).HasColumnName("invalidattempt");
+
                 entity.Property(e => e.IsActive)
                     .HasColumnName("isActive")
                     .HasComment("determines if user is active or has been de-activated");
@@ -3108,6 +3148,8 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.IsLogged)
                     .HasColumnName("isLogged")
                     .HasComment("flag determining if user is logged");
+
+                entity.Property(e => e.Lockattempt).HasColumnName("lockattempt");
 
                 entity.Property(e => e.Othernames)
                     .HasMaxLength(70)

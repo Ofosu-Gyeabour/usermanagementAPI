@@ -1901,6 +1901,16 @@ async Task<IResult> AuthenticateUserAsync(UserInfo userCredential, IUserService 
             userCredential.password = hashed.data.ToString();
 
             var results = await usrservice.GetUserAsync(userCredential);
+
+            //log invalid attempts
+            if (results.status)
+            {
+                bool bn = await userCredential.clearInvalidLoginAttemptsAsync();
+            }
+            else
+            {
+                bool bn = await userCredential.logInvalidLogingAttemptAsync();
+            }
             return Results.Ok(results);
         }
         else

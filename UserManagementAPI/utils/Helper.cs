@@ -334,7 +334,6 @@ namespace UserManagementAPI.utils
                 return result = string.Empty;
             }
         }
-
         private async Task<string> formatPackageOrder()
         {
             string result = string.Empty;
@@ -366,7 +365,6 @@ namespace UserManagementAPI.utils
                 return null;
             }
         }
-
         public async Task<TPaymentMethod> getPaymentMethod(string _method)
         {
             //gets a payment method record
@@ -382,7 +380,6 @@ namespace UserManagementAPI.utils
                 return obj;
             }
         }
-
         public async Task<IEnumerable<ChargeEngineLookup>> getAllChargesAsync()
         {
             //gets all charges in the data store
@@ -429,7 +426,6 @@ namespace UserManagementAPI.utils
                 throw x;
             }
         }
-
         public async Task<IEnumerable<ChargeEngineLookup>> getChargesAsync(OrderTypeLookup _orderType)
         {
             //method gets all charges for an order type
@@ -658,7 +654,6 @@ namespace UserManagementAPI.utils
                 return results;
             }
         }
-
         public async Task<IEnumerable<ShippingPortLookup>> getCountryPortsAsync(int countryId)
         {
             //gets ports for a specific country
@@ -701,7 +696,6 @@ namespace UserManagementAPI.utils
                 throw ex;
             }
         }
-
         public async Task<ShippingPortLookup> getPortAsync(int portID)
         {
             try
@@ -740,7 +734,6 @@ namespace UserManagementAPI.utils
                 throw ex;
             }
         }
-
         public async Task<clientCreatedRecord> createIndividualClientRecordAsync(IndividualCustomerLookup record)
         {
             //TODO: creates an individual client record in the data store
@@ -832,7 +825,6 @@ namespace UserManagementAPI.utils
                 throw ex;
             }
         }
-
         public async Task<clientCreatedRecord> createCorporateClientRecordAsync(CorporateCustomerLookup record)
         {
             //TODO: creates a corporate account in the tclient table data store
@@ -915,7 +907,7 @@ namespace UserManagementAPI.utils
                 throw ex;
             }
         }
-    
+   
         public async Task<PackagepriceLookup> getPackagePriceRecordAsync(int companyID, int itemID)
         {
             PackagepriceLookup result = null;
@@ -1001,7 +993,6 @@ namespace UserManagementAPI.utils
                 throw ex;
             }
         }
-
         public async Task<string> createShippingOrderRecordAsync(clsShippingOrder order)
         {
             //TODO: method creates shipping order record in the data store
@@ -1112,7 +1103,6 @@ namespace UserManagementAPI.utils
                 throw ex;
             }
         }
-
         public async Task<string> createPackagingOrderRecordAsync(Package package)
         {
             try
@@ -1240,7 +1230,6 @@ namespace UserManagementAPI.utils
                 return bln;
             }
         }
-
         public async Task<bool> SvImageAsync(string uniqueIdentifier, string base64String)
         {
             try
@@ -1267,7 +1256,6 @@ namespace UserManagementAPI.utils
                 return false;
             }          
         }
-
         public async Task<IEnumerable<countryPrefix>> getAllCountryPrefixListAsync()
         {
             List<countryPrefix> cntPrefixes = new List<countryPrefix>();
@@ -1439,7 +1427,6 @@ namespace UserManagementAPI.utils
         }
 
         #endregion
-
         public async Task<IEnumerable<GenericLookup>> GetSalesTypeAsync()
         {
             List<GenericLookup> saletypeList = null;
@@ -1462,6 +1449,101 @@ namespace UserManagementAPI.utils
             catch(Exception x)
             {
                 throw x;
+            }
+        }
+
+        public async Task<UserAPIResponse> authenticateUserAsync(UserInfo usr)
+        {
+            //TODO: authenticates user against the database
+            UserAPIResponse obj = null;
+
+            try
+            {
+                var q = (from u in config.Tusrs
+                         join p in config.TProfiles on u.ProfileId equals p.ProfileId
+                         join c in config.Tcompanies on u.CompanyId equals c.CompanyId
+                         join d in config.TDepartments on u.DepartmentId equals d.Id
+                         where u.Usrname == usr.username && u.Usrpassword == usr.password
+                         select new
+                         {
+                             uid = u.UsrId,
+                             sname = u.Surname.Trim(),
+                             fname = u.Firstname.Trim(),
+                             onames = u.Othernames.Trim(),
+                             usrn = u.Usrname,
+                             usrp = u.Usrpassword,
+                             isadm = u.IsAdmin,
+                             islog = u.IsLogged,
+                             isact = u.IsActive,
+                             lockA = u.Lockattempt,
+                             invalidA = u.Invalidattempt,
+
+                             cid = c.CompanyId,
+                             company = c.Company,
+                             cAddress = c.CompanyAddress,
+                             incDate = c.IncorporationDate,
+
+                             pid = p.ProfileId,
+                             pstring = p.ProfileString.Trim(),
+                             inuse = p.InUse,
+                             dateAdded = p.DteAdded,
+
+                             did = d.Id,
+                             dname = d.DepartmentName.Trim(),
+                             ddescrib = d.Describ
+                         });
+
+                var qList = await q.ToListAsync().ConfigureAwait(false);
+
+                obj = qList
+                          .Select(a => new UserAPIResponse()
+                          {
+                              status = qList != null ? true: false,
+                              message = qList != null ? @"success": @"An error occured. Please see Administrator",
+                              user = new User()
+                              {
+                                  id = a.uid,
+                                  surname = a.sname,
+                                  firstname = a.fname,
+                                  othernames = a.onames,
+                                  usrname = a.usrn,
+                                  usrpassword = a.usrp,
+                                  isAdmin = a.isadm,
+                                  isLogged = a.islog,
+                                  isActive = a.isact,
+                                  lockAttempt = a.lockA,
+                                  invalidLogAttempt = a.invalidA
+                              },
+                              company = new Company()
+                              {
+                                  id = a.cid,
+                                  company = a.company,
+                                  companyAddress = a.cAddress,
+                                  incorporationDate = a.incDate
+                              },
+                              profile = new Profile()
+                              {
+                                  id = a.pid,
+                                  profileString = a.pstring,
+                                  inUse = a.inuse,
+                                  dateAdded = a.dateAdded
+                              },
+                              department = new Department()
+                              {
+                                  id = a.did,
+                                  departmentName = a.dname,
+                                  departmentDescription = a.ddescrib
+                              }
+                          }).FirstOrDefault();
+
+                return obj;
+            }
+            catch (Exception x)
+            {
+                return obj = new UserAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
             }
         }
 
