@@ -299,6 +299,22 @@ app.MapPost("/Sales/Create", async Task<IResult> (ISalesService service, Sale pa
     }
 }).WithTags("Sales");
 
+app.MapGet("/Sales/GetOrder", async Task<IResult> (ISalesService service, string salesOrderNo) =>
+{
+    if (salesOrderNo.Length < 1)
+        return Results.BadRequest(@"Order number cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var dta = await service.GetSalesRecordAsync(salesOrderNo);
+        return Results.Ok(dta);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Sales");
+
 #endregion
 
 #region Package
@@ -312,6 +328,22 @@ app.MapPost("/Package/Create", async Task<IResult> (ISalesService service, Packa
     {
         var status = await service.CreatePackageAsync(payLoad);
         return Results.Ok(status);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Package");
+
+app.MapGet("/Package/GetOrder", async Task<IResult> (ISalesService service, string packageOrderNo) =>
+{
+    if (packageOrderNo.Length < 1)
+        return Results.BadRequest(@"Order number cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var package_dta = await service.GetPackageRecordAsync(packageOrderNo);
+        return Results.Ok(package_dta);
     }
     catch(Exception x)
     {
@@ -3213,6 +3245,7 @@ app.MapPost("/Data/Company/ShippingOrder", async Task<IResult> (IDataService ser
     {
         return Results.BadRequest(x.Message);
     }
+
 }).WithTags("Data");
 
 #endregion

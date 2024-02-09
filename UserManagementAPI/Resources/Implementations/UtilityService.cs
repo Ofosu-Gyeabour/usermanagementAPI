@@ -532,19 +532,46 @@ namespace UserManagementAPI.Resources.Implementations
         {
             //calculate freight
             DefaultAPIResponse response = null;
+            List<OrderSummaryDetails> results = new List<OrderSummaryDetails>();
 
             try
             {
                 var objFreight = new clsFreight() { cubic = payLoad.cubic};
 
                 var freightParams = await objFreight.determineFreightBand(payLoad);
-                //var CnD = await objFreight.determineClearanceAndDelivery(payLoad);
+                var CnD = await objFreight.determineClearanceAndDelivery(payLoad);
+
+                var jTS = await objFreight.determineJTSClearanceAndDelivery(payLoad);
+
+                results.Add(freightParams);
+                results.Add(CnD);
+
+                if (jTS != null)
+                {
+                    OrderSummaryDetails jcd = new OrderSummaryDetails()
+                    {
+                        id = 31,
+                        key = @"jTS",
+                        value = (decimal) jTS.jtscd
+                    };
+
+                    OrderSummaryDetails jdt = new OrderSummaryDetails()
+                    {
+                        id = 32,
+                        key = @"jTSDuty",
+                        value = (decimal)jTS.jtsduty
+                    };
+
+                    results.Add(jcd);
+                    results.Add(jdt);
+                }
 
                 return response = new DefaultAPIResponse()
                 {
                     status = true,
                     message = @"success",
-                    data = freightParams
+                    //data = freightParams
+                    data = results.ToList()
                 };
             }
             catch(Exception x)
@@ -581,7 +608,6 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
-
         public async Task<DefaultAPIResponse> createRecordAsync(clsShippingOrder payLoad)
         {
             //TODO: creates a record

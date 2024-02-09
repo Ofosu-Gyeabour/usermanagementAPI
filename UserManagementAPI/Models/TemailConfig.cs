@@ -42,6 +42,7 @@ namespace UserManagementAPI.Models
         /// receipient of mail
         /// </summary>
         public string? MTo { get; set; }
+        public string? SubjectColor { get; set; }
         /// <summary>
         /// mail copied to
         /// </summary>

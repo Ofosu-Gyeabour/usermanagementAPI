@@ -56,71 +56,19 @@ namespace UserManagementAPI.Resources.Implementations
                 {
                     if (response.user != null)
                     {
-                        response.status = response.user.invalidLogAttempt == response.user.lockAttempt ? false : true;
-                        response.message = response.user.invalidLogAttempt == response.user.lockAttempt ? $"account locked for {response.user.usrname}. Login attempt exceeded" : @"success";
+                        response.status = response.user.invalidLogAttempt < response.user.lockAttempt ? true : false;
+                        response.message = response.user.invalidLogAttempt < response.user.lockAttempt ? $"{response.user.usrname} logged in successfully!!!": $"account locked for {response.user.usrname}. Login attempt exceeded";
                     }
                 }
                 else
                 {
                     response = new UserAPIResponse() { 
                         status = false,
-                        message = @"No data"
+                        message = @"Invalid user credentials"
                     };
                 }
 
                 return response;
-                //var user_info = await config.Tusrs.Where(x => x.Usrname == userCredential.username).Where(x=>x.Usrpassword == userCredential.password)
-                //    .Include(m => m.Profile)
-                //    .Include(m=>m.Company)
-                //    .Include(m=>m.Department)
-                //    .FirstOrDefaultAsync();
-
-                //if (user_info.UsrId > 0)
-                //{
-                //        response = new UserAPIResponse()
-                //        {
-                //            status = true,
-                //            message = @"success",
-                //            user = new User()
-                //            {
-                //                id = user_info.UsrId,
-                //                surname = user_info.Surname,
-                //                firstname = user_info.Firstname,
-                //                othernames = user_info.Othernames,
-                //                usrname = user_info.Usrname,
-                //                usrpassword = user_info.Usrpassword,
-                //                isAdmin = user_info.IsAdmin,
-                //                isLogged = user_info.IsLogged,
-                //                isActive = user_info.IsActive
-                //            },
-                //            company = new Company()
-                //            {
-                //                id = user_info.Company.CompanyId,
-                //                company = user_info.Company.Company,
-                //                companyAddress = user_info.Company.CompanyAddress,
-                //                incorporationDate = user_info.Company.IncorporationDate
-                //            },
-                //            profile = new Profile()
-                //            {
-                //                id = user_info.Profile.ProfileId,
-                //                profileString = user_info.Profile.ProfileString,
-                //                inUse = user_info.Profile.InUse,
-                //                dateAdded = user_info.Profile.DteAdded
-                //            },
-                //            department = new Department()
-                //            {
-                //                id = user_info.Department.Id,
-                //                departmentName = user_info.Department.DepartmentName,
-                //                departmentDescription = user_info.Department.Describ
-                //            }
-                //        };
-
-                //        return response;
-                //}
-                //else
-                //{
-                //    return new UserAPIResponse() { status =false,message = @"No data found" };
-                //}
             }
             catch(Exception x)
             {

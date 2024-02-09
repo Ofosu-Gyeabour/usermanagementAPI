@@ -62,6 +62,7 @@
         public string? profileString { get; set; }
         public int? inUse { get; set; }
         public DateTime? dateAdded { get; set; }
+        public List<Company> associatedCompanies { get; set; }
     }
 
     public class Department

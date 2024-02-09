@@ -33,4 +33,37 @@ namespace UserManagementAPI.Procs
         public string? sageStatus { get; set; } = string.Empty;
     }
 
+    public class pClient
+    {
+        public int uniqueID { get; set; }
+        public int? clientTypeId { get; set; } = 0;
+        public string? clientType { get; set; } = string.Empty;
+        public string? associatedCompany { get; set; } = string.Empty;
+        public int? associatedCompanyId { get; set; } = 0;
+        public string? channelType { get; set; } = string.Empty;
+        public int? channelTypeId { get; set; } = 0;
+        public string? firstname { get; set; } = string.Empty;
+        public string? middlenames { get; set; } = string.Empty;
+        public string? surname { get; set; } = string.Empty;
+        public string? clientBusiness { get; set; } = string.Empty;
+        public string? mobileNo { get; set; } = string.Empty;
+        public string? whatsappNo { get; set; } = string.Empty;
+        public string? homeTel { get; set; } = string.Empty;
+        public string? workTel { get; set; } = string.Empty;
+        public string? emailAddr { get; set; } = string.Empty;
+        public string? emailAddr2 { get; set; } = string.Empty;
+        public string? accNo { get; set; } = string.Empty;
+        public int? cityId { get; set; } = 10000;
+        public string? city { get; set; } = string.Empty;
+        public int? countryId { get; set; } = 10000;
+        public string? nameOfcountry { get; set; } = string.Empty;
+        public string? postCode { get; set; } = string.Empty;
+        public int? referralId { get; set; } = 0;
+        public string? referral { get; set; } = string.Empty;
+        public string? collectionInstruction { get; set; } = string.Empty;
+        
+    }
+
+    
+
 }

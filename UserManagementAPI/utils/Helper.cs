@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Transactions;
 using System.Drawing;
 using System.Drawing.Imaging;
+using UserManagementAPI.Procs;
 
 namespace UserManagementAPI.utils
 {
@@ -993,6 +994,7 @@ namespace UserManagementAPI.utils
                 throw ex;
             }
         }
+        
         public async Task<string> createShippingOrderRecordAsync(clsShippingOrder order)
         {
             //TODO: method creates shipping order record in the data store
@@ -1026,7 +1028,25 @@ namespace UserManagementAPI.utils
                         CargoDescr = order.oShipping.cargoDescription,
                         OrderCreationDate = order.oShipping.orderCreationDate,
                         OrderStatusId = await order.oShipping.oShippingStatus.getId(),
-                        BolNo = await formatShippingOrderNumber(order.oShipping.oArrivalPort.codeOfport)
+                        BolNo = await formatShippingOrderNumber(order.oShipping.oArrivalPort.codeOfport),
+
+                        TransporttypeId = order.transportTypeId,
+                        DriveruserId = order.driveruserId,
+                        DriveruserName = order.driverName == null ? string.Empty: order.driverName,
+                        Driverdeliverydate = order.driverdeliverydte == null ? DateTime.Now : order.driverdeliverydte,
+                        Driverdeliverytime = order.driverdeliveryTime,
+                        Drivernote = order.driverNote == null? string.Empty: order.driverNote,
+
+                        Agencycompany = order.agencycompany == null ? string.Empty: order.agencycompany,
+                        Agencytime = order.agencytime,
+                        Agencydeliverydate = order.agencydeliveryDate == null ? DateTime.Now: order.agencydeliveryDate,
+                        Agencydeliverynote = order.agencydeliveryNote == null ? string.Empty: order.agencydeliveryNote,
+
+                        DropoffrecievedBy = order.dropoffreceivedBy == null ? 10000: order.dropoffreceivedBy,
+                        DropoffrecievedDate = order.dropoffreceiveddte == null? DateTime.Now: order.dropoffreceiveddte,
+
+                        WarehouseNote = order.warehouseNote == null ? string.Empty: order.warehouseNote
+
                     };
 
                     await config.AddAsync(shipping);
@@ -1068,6 +1088,23 @@ namespace UserManagementAPI.utils
                         await config.SaveChangesAsync();
                     }
 
+                    //tshippingorderpayments
+                    foreach(var py in order.oShippingOrderPayments)
+                    {
+                        TShippingOrderPayment shippingPayment = new TShippingOrderPayment() { 
+                            ShippingOrderId = shipping.Id,
+                            PayDate = py.payDate,
+                            PayAmt = py.payAmt,
+                            PayMethodId =  await py.getID(),
+                            PayReceiptNo = py.payReceiptNo,
+                            OutstandingAmt = py.outstandingAmt
+                        };
+
+                        await config.AddAsync(shippingPayment);
+                        await config.SaveChangesAsync();
+                    }
+
+
                     //tshippingconsigneeitem
                     TShippingConsigneeItem tconitem = new TShippingConsigneeItem()
                     {
@@ -1081,6 +1118,7 @@ namespace UserManagementAPI.utils
                         FreightPayableId = order.oConsigneeItem.freightPayable
                     };
 
+                    
                     await config.AddAsync(tconitem);
                     await config.SaveChangesAsync();
 
@@ -1526,7 +1564,17 @@ namespace UserManagementAPI.utils
                                   id = a.pid,
                                   profileString = a.pstring,
                                   inUse = a.inuse,
-                                  dateAdded = a.dateAdded
+                                  dateAdded = a.dateAdded,
+                                  associatedCompanies = new List<Company>()
+                                  {
+                                      new Company()
+                                      {
+                                          id = a.cid,
+                                          company = a.company,
+                                          companyAddress = a.cAddress,
+                                          incorporationDate = a.incDate
+                                      }
+                                  }
                               },
                               department = new Department()
                               {
@@ -1544,6 +1592,130 @@ namespace UserManagementAPI.utils
                     status = false,
                     message = $"error: {x.Message}"
                 };
+            }
+        }
+
+        public async Task<object> getClientUsingParamAsync(SearchParam param)
+        {
+            //uses stored procedure to fetch a client record
+            //result = await config.PShippingOrders.FromSqlRaw("exec proc_getshipping_orders {0}, {1}, {2};", customerId, df, dt).ToListAsync();
+            //return result;
+            pClient obj = null;
+            object customer = null;
+
+            int paramValue = int.Parse(param.stringValue);
+            try
+            {
+                obj =  config.pClients.FromSqlRaw("exec proc_getcustomerbyID {0}", paramValue).AsEnumerable().FirstOrDefault();
+
+                if ((obj != null) && (obj.clientTypeId == 1))
+                {
+                    customer = new IndividualCustomerLookup()
+                    {
+                        id = obj.uniqueID,
+                        oClientType = new ClientTypeLookup()
+                        {
+                            id = (int) obj.clientTypeId,
+                            clientTypeDescrib = obj.clientType
+                        },
+                        oCompany = new CompanyLookup()
+                        {
+                            id = (int)obj.associatedCompanyId,
+                            nameOfcompany = obj.associatedCompany
+                        },
+                        oChannelType = new ChannelTypeLookup()
+                        {
+                            id = (int)obj.channelTypeId,
+                            nameOfchannel = obj.channelType
+                        },
+                        firstname = obj.firstname.Trim().ToUpper(),
+                        middlenames = obj.middlenames.Trim().ToUpper(),
+                        surname = obj.surname.Trim().ToUpper(),
+                        mobileNo = obj.mobileNo.Trim(),
+                        whatsappNo = obj.whatsappNo.Trim(),
+                        homeTelephone = obj.homeTel.Trim(),
+                        workTelephone = obj.workTel.Trim(),
+                        clientEmail = obj.emailAddr.Trim(),
+                        clientEmail2 = obj.emailAddr2.Trim(),
+                        oCity = new CityLookup()
+                        {
+                            id = (int)obj.cityId,
+                            nameOfcity = obj.city.Trim().ToUpper()
+                        },
+                        oCountry = new CountryLookup()
+                        {
+                            id = (int)obj.countryId,
+                            nameOfcountry = obj.nameOfcountry.Trim().ToUpper()
+                        },
+                        postCode = obj.postCode.Trim().ToUpper(),
+                        oReferral = new ReferralLookup()
+                        {
+                            id = (int)obj.referralId,
+                            sourceOfReferral = obj.referral.Trim().ToUpper()
+                        },
+                        collectionInstruction = obj.collectionInstruction,
+                        accountNo = obj.accNo != string.Empty ? obj.accNo.Trim().ToUpper() : string.Empty,
+                        clientBusiness = obj.clientBusiness == string.Empty ? string.Empty : obj.clientBusiness.Trim().ToUpper(),
+
+                        //add the address via a different object call
+                        oAddress = await getClientAddressAsync(obj.uniqueID)
+                    };
+                }
+
+                if ((obj != null) && (obj.clientTypeId == 2))
+                {
+                    customer = new CorporateCustomerLookup() {
+                        id = obj.uniqueID,
+                        oClientType = new ClientTypeLookup()
+                        {
+                            id = (int)obj.clientTypeId,
+                            clientTypeDescrib = obj.clientType.Trim().ToUpper()
+                        },
+                        oCompany = new CompanyLookup()
+                        {
+                            id = (int)obj.associatedCompanyId,
+                            nameOfcompany = obj.associatedCompany.Trim().ToUpper()
+                        },
+                        oChannelType = new ChannelTypeLookup()
+                        {
+                            id = (int)obj.channelTypeId,
+                            nameOfchannel = obj.channelType.Trim().ToUpper()
+                        },
+                        clientBusiness = obj.clientBusiness == string.Empty ? string.Empty : obj.clientBusiness.Trim().ToUpper(),
+                        mobileNo = obj.mobileNo.Trim(),
+                        whatsappNo = obj.whatsappNo.Trim(),
+                        homeTelephone = obj.homeTel.Trim(),
+                        workTelephone = obj.workTel.Trim(),
+                        clientEmail = obj.emailAddr.Trim(),
+                        clientEmail2 = obj.emailAddr2.Trim(),
+                        oCity = new CityLookup()
+                        {
+                            id = (int)obj.cityId,
+                            nameOfcity = obj.city.Trim().ToUpper()
+                        },
+                        oCountry = new CountryLookup()
+                        {
+                            id = (int)obj.countryId,
+                            nameOfcountry = obj.nameOfcountry.Trim().ToUpper()
+                        },
+                        postCode = obj.postCode.Trim().ToUpper(),
+                        oReferral = new ReferralLookup()
+                        {
+                            id = (int)obj.referralId,
+                            sourceOfReferral = obj.referral.Trim().ToUpper()
+                        },
+                        collectionInstruction = obj.collectionInstruction,
+                        accountNo = obj.accNo == string.Empty ? string.Empty : obj.accNo.Trim().ToUpper(),
+
+                        oAddress = await getClientAddressAsync(obj.uniqueID)
+                    };
+                }
+
+                return customer;
+            }
+            catch(Exception x)
+            {
+                throw x;
             }
         }
 

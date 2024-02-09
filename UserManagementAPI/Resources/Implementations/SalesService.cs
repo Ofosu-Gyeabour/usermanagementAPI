@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.Internal;
 using UserManagementAPI.utils;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.ComponentModel.DataAnnotations;
+using UserManagementAPI.Procs;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -180,5 +181,92 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
+    
+        public async Task<DefaultAPIResponse> GetSalesRecordAsync(string saleOrderNo)
+        {
+            //TODO: gets sales record data
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                dtStore dt = new dtStore();
+                pSalesOrderData dta = new pSalesOrderData();
+
+                //get sale order record
+                dta.saleRecord =  dt.GetSaleRecord(saleOrderNo);
+                int adId = (int)dta.saleRecord.id;
+
+                //get sale items
+                var r = await dt.GetSaleItems(adId);
+                dta.saleItems = r.ToList();
+
+                //get sale payments
+                var p = await dt.GetSaleOrderPayments(adId);
+                dta.salePayments = p.ToList();
+
+                response = new DefaultAPIResponse()
+                {
+                    status = dta != null ? true: false,
+                    message = dta != null ? @"success": @"failed",
+                    data = dta
+                };
+
+                return response;
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> GetPackageRecordAsync(string packageOrderNo)
+        {
+            //TODO: fetch packaging order record
+            DefaultAPIResponse rsp = null;
+            pPackageOrderData dta = new pPackageOrderData();
+
+            try
+            {
+                dtStore dt = new dtStore();
+                Helper helper = new Helper();
+
+                dta.pPackageRecord = dt.GetPackageOrder(packageOrderNo);
+                int pID = (int)dta.pPackageRecord.Id;
+                int clientID = (int)dta.pPackageRecord.clientId;
+
+                var pitems = await dt.GetPackageOrderItems(pID);
+                dta.pPackageItems = pitems.ToList();
+
+                var pcharges = await dt.GetPackageOrderCharges(pID);
+                dta.pPackageCharges = pcharges.ToList();
+
+                var ppayments = await dt.GetPackageOrderPayments(pID);
+                dta.pPackageOrderPayments = ppayments.ToList();
+
+                var packageClient = await helper.getClientUsingParamAsync(new SearchParam() { stringValue = clientID.ToString() });
+
+                dta.pPackager = packageClient;
+
+                rsp = new DefaultAPIResponse() {
+                    status = dta != null ? true : false,
+                    message = dta != null ? @"success" : @"failed",
+                    data = dta
+                };
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
     }
 }

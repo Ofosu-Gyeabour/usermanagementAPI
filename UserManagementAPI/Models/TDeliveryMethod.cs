@@ -7,6 +7,7 @@ namespace UserManagementAPI.Models
     {
         public TDeliveryMethod()
         {
+            TD2djamaicaDeliveries = new HashSet<TD2djamaicaDelivery>();
             TD2dukDeliveries = new HashSet<TD2dukDelivery>();
         }
 
@@ -20,6 +21,7 @@ namespace UserManagementAPI.Models
         /// </summary>
         public string? Description { get; set; }
 
+        public virtual ICollection<TD2djamaicaDelivery> TD2djamaicaDeliveries { get; set; }
         public virtual ICollection<TD2dukDelivery> TD2dukDeliveries { get; set; }
     }
 }

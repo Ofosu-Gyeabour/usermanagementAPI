@@ -65,7 +65,7 @@ namespace UserManagementAPI.POCOs
                                         portId = (int) a.portId,
                                         trade = a.tradeRate,
                                         retail = a.retailRate,
-                                        freightOne = a.freightRateTwo,
+                                        freightOne = a.freightRateOne,
                                         freightTwo = a.freightRateTwo,
                                         freightThree = a.freightRateThree,
                                         freightFour = a.freightRateFour,
@@ -152,7 +152,7 @@ namespace UserManagementAPI.POCOs
         }
 
         public int Id { get; set; }
-        public int PortId { get; set; }
+        public int ParishId { get; set; }
         public int ZoneId { get; set; }
         public decimal? freightBar1 { get; set; }
         public decimal? freightBar2 { get; set; }
@@ -161,9 +161,13 @@ namespace UserManagementAPI.POCOs
         public decimal? freightBar5 { get; set; }
         public decimal? minimumCharge { get; set; }
         public decimal? duty { get; set; }
+        public decimal? m1 { get; set; }
+        public decimal? m2 { get; set; }
+        public decimal? m3 { get; set; }
+        public decimal? m4 { get; set; }
+        public decimal? m5 { get; set; }
 
-
-        public async Task<clsCalculatorZone> getCalculatorRecord()
+        public async Task<clsCalculatorZone> getCalculatorZoneRecordAsync()
         {
             //TODO: uses the port and zone IDs to get a record to use for the computation
             clsCalculatorZone obj = null;
@@ -171,16 +175,22 @@ namespace UserManagementAPI.POCOs
             try
             {
                 config = new swContext();
-                var query = (from calc in config.TCalculators
-                             where calc.PId == this.PortId && calc.ZId == this.ZoneId
+                var query = (from calc in config.TD2dukDeliveries
+                             where calc.PId == this.ParishId && calc.ZoneId == this.ZoneId
                              select new
                              {
                                  id = calc.Id,
-                                 f1 = calc.Frgtbar1,
-                                 f2 = calc.Frgtbar2,
-                                 f3 = calc.Frgtbar3,
-                                 f4 = calc.Frgtbar4,
-                                 f5 = calc.Frgtbar5
+                                 f1 = calc.Fb1,
+                                 f2 = calc.Fb2,
+                                 f3 = calc.Fb3,
+                                 f4 = calc.Fb4,
+                                 f5 = calc.Additionalfb,
+                                 min = calc.Minimum,
+                                 m1 = calc.M1,
+                                 m2 = calc.M2,
+                                 m3 = calc.M3,
+                                 m4 = calc.M4,
+                                 m5 = calc.M5
                              });
 
                 var queryList = await query.ToListAsync().ConfigureAwait(false);
@@ -193,7 +203,14 @@ namespace UserManagementAPI.POCOs
                                 freightBar2 = a.f2,
                                 freightBar3 = a.f3,
                                 freightBar4 = a.f4,
-                                freightBar5 = a.f5
+                                freightBar5 = a.f5, 
+
+                                minimumCharge = a.min,
+                                m1 = a.m1,
+                                m2 = a.m2,
+                                m3 = a.m3,
+                                m4 = a.m4,
+                                m5 = a.m5
                             }).FirstOrDefault();
 
                 return obj;
@@ -203,5 +220,59 @@ namespace UserManagementAPI.POCOs
                 throw x;
             }
         }
+
+        public async Task<clsCalculatorZone> getJTSZoneRecordAsync()
+        {
+            //TODO: uses the port and zone IDs to get a record to use for the JTS computation
+            clsCalculatorZone obj = null;
+            try
+            {
+                config = new swContext();
+                var query = (from calc in config.TD2djamaicaDeliveries
+                             where calc.PId == this.ParishId && calc.ZoneId == this.ZoneId
+                             select new
+                             {
+                                 id = calc.Id,
+                                 f1 = calc.Fb1,
+                                 f2 = calc.Fb2,
+                                 f3 = calc.Fb3,
+                                 f4 = calc.Fb4,
+                                 f5 = calc.Additionalfb,
+                                 min = calc.Minimum,
+                                 m1 = calc.M1,
+                                 m2 = calc.M2,
+                                 m3 = calc.M3,
+                                 m4 = calc.M4,
+                                 m5 = calc.M5
+                             });
+
+                var queryList = await query.ToListAsync().ConfigureAwait(false);
+
+                obj = queryList
+                            .Select(a => new clsCalculatorZone()
+                            {
+                                Id = a.id,
+                                freightBar1 = a.f1,
+                                freightBar2 = a.f2,
+                                freightBar3 = a.f3,
+                                freightBar4 = a.f4,
+                                freightBar5 = a.f5,
+
+                                minimumCharge = a.min,
+                                m1 = a.m1,
+                                m2 = a.m2,
+                                m3 = a.m3,
+                                m4 = a.m4,
+                                m5 = a.m5
+                            }).FirstOrDefault();
+
+                return obj;
+            }
+            catch (Exception x)
+            {
+                throw x;
+            }
+        }
+
     }
 }

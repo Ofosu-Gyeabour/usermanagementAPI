@@ -25,6 +25,14 @@ namespace UserManagementAPI.Data
         public virtual DbSet<pShippingOrder> PShippingOrders { get; set; }
         public virtual DbSet<pPackagingOrder> PPackagingOrders { get; set; }
         public virtual DbSet<pSalesOrder> PSalesOrders { get; set; }
+        public virtual DbSet<pClient> pClients { get; set; }
+
+        public virtual DbSet<psaleRecord> PsaleRecords { get; set; }   //gets a single record for sale or adhoc record
+        public virtual DbSet<pSaleItem> PSaleItems { get; set; }  //adhoc or sale items associated with the record
+        public virtual DbSet<pSalePayment> PSalePayments { get; set; } //adhoc or sale payments associated with the record
+
+        public virtual DbSet<pPackageOrder> PPackageOrderRecord { get; set; }
+        public virtual DbSet<pPackageOrderItem> PPackageOrderItems { get; set; }
 
         #endregion
 
@@ -53,6 +61,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TCountryLookup> TCountryLookups { get; set; } = null!;
         public virtual DbSet<TCreditNote> TCreditNotes { get; set; } = null!;
         public virtual DbSet<TCurrencyLookup> TCurrencyLookups { get; set; } = null!;
+        public virtual DbSet<TD2djamaicaDelivery> TD2djamaicaDeliveries { get; set; } = null!;
         public virtual DbSet<TD2dukDelivery> TD2dukDeliveries { get; set; } = null!;
         public virtual DbSet<TDeliveryCharge> TDeliveryCharges { get; set; } = null!;
         public virtual DbSet<TDeliveryMethod> TDeliveryMethods { get; set; } = null!;
@@ -107,6 +116,8 @@ namespace UserManagementAPI.Data
         public virtual DbSet<Tcompany> Tcompanies { get; set; } = null!;
         public virtual DbSet<Tcompanytype> Tcompanytypes { get; set; } = null!;
         public virtual DbSet<TcontainerType> TcontainerTypes { get; set; } = null!;
+        public virtual DbSet<Tduty> Tduties { get; set; } = null!;
+        public virtual DbSet<Tdutyjt> Tdutyjts { get; set; } = null!;
         public virtual DbSet<TemailConfig> TemailConfigs { get; set; } = null!;
         public virtual DbSet<Thscode> Thscodes { get; set; } = null!;
         public virtual DbSet<Tpackaging> Tpackagings { get; set; } = null!;
@@ -114,6 +125,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TpackagingOrderCharge> TpackagingOrderCharges { get; set; } = null!;
         public virtual DbSet<TpackagingOrderItem> TpackagingOrderItems { get; set; } = null!;
         public virtual DbSet<TpackagingOrderPayment> TpackagingOrderPayments { get; set; } = null!;
+        public virtual DbSet<Tshippingordercommission> Tshippingordercommissions { get; set; } = null!;
         public virtual DbSet<Tshippingport> Tshippingports { get; set; } = null!;
         public virtual DbSet<Tusr> Tusrs { get; set; } = null!;
 
@@ -121,17 +133,34 @@ namespace UserManagementAPI.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Server=NANA\\WIF;Database=sw;User Id=sa;Password=excalibur@33;");
+                optionsBuilder.UseSqlServer(utils.ConfigObject.DB_CONN);
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             #region stored procedure
 
             modelBuilder.Entity<pShippingOrder>(entity => entity.HasNoKey());
             modelBuilder.Entity<pPackagingOrder>(entity => entity.HasNoKey());
             modelBuilder.Entity<pSalesOrder>(entity => entity.HasNoKey());
+            modelBuilder.Entity<pClient>(entity => entity.HasNoKey());
+
+            #region adhoc or sale records
+
+            modelBuilder.Entity<psaleRecord>(entity => entity.HasNoKey());
+            modelBuilder.Entity<pSaleItem>(entity => entity.HasNoKey());
+            modelBuilder.Entity<pSalePayment>(entity => entity.HasNoKey());
+
+            #endregion
+
+            #region package orders
+
+            modelBuilder.Entity<pPackageOrder>(entity => entity.HasNoKey());
+            modelBuilder.Entity<pPackageOrderItem>(entity => entity.HasNoKey());
+
+            #endregion
 
             #endregion
 
@@ -1196,25 +1225,130 @@ namespace UserManagementAPI.Data
                     .HasComment("the description (or friendly name) of the currency");
             });
 
-            modelBuilder.Entity<TD2dukDelivery>(entity =>
+            modelBuilder.Entity<TD2djamaicaDelivery>(entity =>
             {
-                entity.ToTable("tD2DUkDelivery");
+                entity.ToTable("tD2DJamaicaDelivery");
 
-                entity.Property(e => e.AdditionalB).HasColumnType("numeric(9, 2)");
-
-                entity.Property(e => e.B1).HasColumnType("numeric(9, 2)");
-
-                entity.Property(e => e.B2).HasColumnType("numeric(9, 2)");
-
-                entity.Property(e => e.B3).HasColumnType("numeric(9, 2)");
-
-                entity.Property(e => e.B4).HasColumnType("numeric(9, 2)");
+                entity.Property(e => e.Additionalfb).HasColumnType("numeric(9, 2)");
 
                 entity.Property(e => e.DeliveryMethodId).HasColumnName("deliveryMethodID");
 
                 entity.Property(e => e.Duty)
                     .HasColumnType("numeric(9, 2)")
                     .HasColumnName("duty");
+
+                entity.Property(e => e.Fb1)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("fb1");
+
+                entity.Property(e => e.Fb2)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("fb2");
+
+                entity.Property(e => e.Fb3)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("fb3");
+
+                entity.Property(e => e.Fb4)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("fb4");
+
+                entity.Property(e => e.M1)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("m1")
+                    .HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.M2)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("m2")
+                    .HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.M3)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("m3")
+                    .HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.M4)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("m4")
+                    .HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.M5)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("m5")
+                    .HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.Minimum)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("minimum");
+
+                entity.Property(e => e.PId).HasColumnName("pId");
+
+                entity.Property(e => e.Type).HasColumnName("type");
+
+                entity.Property(e => e.ZoneId).HasColumnName("zoneId");
+
+                entity.HasOne(d => d.DeliveryMethod)
+                    .WithMany(p => p.TD2djamaicaDeliveries)
+                    .HasForeignKey(d => d.DeliveryMethodId)
+                    .HasConstraintName("FK_tD2DJamaicaDelivery_tDeliveryMethod");
+            });
+
+            modelBuilder.Entity<TD2dukDelivery>(entity =>
+            {
+                entity.ToTable("tD2DUkDelivery");
+
+                entity.Property(e => e.Additionalfb).HasColumnType("numeric(9, 2)");
+
+                entity.Property(e => e.DeliveryMethodId).HasColumnName("deliveryMethodID");
+
+                entity.Property(e => e.Duty)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("duty");
+
+                entity.Property(e => e.Fb1)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("fb1");
+
+                entity.Property(e => e.Fb2)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("fb2");
+
+                entity.Property(e => e.Fb3)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("fb3");
+
+                entity.Property(e => e.Fb4)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("fb4");
+
+                entity.Property(e => e.M1)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("m1");
+
+                entity.Property(e => e.M2)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("m2");
+
+                entity.Property(e => e.M3)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("m3");
+
+                entity.Property(e => e.M4)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("m4");
+
+                entity.Property(e => e.M5)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("m5");
+
+                entity.Property(e => e.Minimum)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("minimum");
+
+                entity.Property(e => e.PId).HasColumnName("pId");
+
+                entity.Property(e => e.Type).HasColumnName("type");
 
                 entity.Property(e => e.ZoneId).HasColumnName("zoneId");
 
@@ -1900,6 +2034,27 @@ namespace UserManagementAPI.Data
 
                 entity.Property(e => e.Id).HasComment("primary key");
 
+                entity.Property(e => e.Agencycompany)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("agencycompany")
+                    .HasComment("agency delivery...company Id");
+
+                entity.Property(e => e.Agencydeliverydate)
+                    .HasColumnType("date")
+                    .HasColumnName("agencydeliverydate")
+                    .HasComment("delivery date for agency");
+
+                entity.Property(e => e.Agencydeliverynote)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("agencydeliverynote")
+                    .HasComment("agency delivery note");
+
+                entity.Property(e => e.Agencytime)
+                    .HasColumnName("agencytime")
+                    .HasComment("delivery time for agency");
+
                 entity.Property(e => e.ArrivalPortId)
                     .HasColumnName("arrivalPortId")
                     .HasComment("id of the arrival port");
@@ -1947,6 +2102,41 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.DelMethodId)
                     .HasColumnName("delMethodId")
                     .HasComment("id of the delivery method");
+
+                entity.Property(e => e.Driverdeliverydate)
+                    .HasColumnType("date")
+                    .HasColumnName("driverdeliverydate")
+                    .HasComment("delivery date for driver");
+
+                entity.Property(e => e.Driverdeliverytime)
+                    .HasColumnName("driverdeliverytime")
+                    .HasComment("delivery time for driver");
+
+                entity.Property(e => e.Drivernote)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("drivernote")
+                    .HasComment("note for driver");
+
+                entity.Property(e => e.DriveruserId)
+                    .HasColumnName("driveruserId")
+                    .HasComment("Id of driver making delivery");
+
+                entity.Property(e => e.DriveruserName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("driveruserName")
+                    .HasDefaultValueSql("('')")
+                    .HasComment("name of driver");
+
+                entity.Property(e => e.DropoffrecievedBy)
+                    .HasColumnName("dropoffrecievedBy")
+                    .HasComment("Id of system user receiving drop off");
+
+                entity.Property(e => e.DropoffrecievedDate)
+                    .HasColumnType("date")
+                    .HasColumnName("dropoffrecievedDate")
+                    .HasComment("received date for drop off");
 
                 entity.Property(e => e.InvoiceDate)
                     .HasColumnType("date")
@@ -2000,6 +2190,16 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.SealQty)
                     .HasColumnName("sealQty")
                     .HasComment("seal quantity");
+
+                entity.Property(e => e.TransporttypeId)
+                    .HasColumnName("transporttypeId")
+                    .HasDefaultValueSql("((1))")
+                    .HasComment("type of transportation (driver delivery, agency delivery or drop off)");
+
+                entity.Property(e => e.WarehouseNote)
+                    .IsUnicode(false)
+                    .HasColumnName("warehouseNote")
+                    .HasComment("the note left for the warehouse");
 
                 entity.HasOne(d => d.ArrivalPort)
                     .WithMany(p => p.TShippings)
@@ -2756,19 +2956,69 @@ namespace UserManagementAPI.Data
                     .HasComment("container volume");
             });
 
+            modelBuilder.Entity<Tduty>(entity =>
+            {
+                entity.ToTable("tduty");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Frgtbar1)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar1");
+
+                entity.Property(e => e.Frgtbar2)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar2");
+
+                entity.Property(e => e.Frgtbar3)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar3");
+
+                entity.Property(e => e.Frgtbar4)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar4");
+
+                entity.Property(e => e.Frgtbar5)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar5");
+            });
+
+            modelBuilder.Entity<Tdutyjt>(entity =>
+            {
+                entity.ToTable("tdutyjts");
+
+                entity.Property(e => e.Frgtbar1)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar1");
+
+                entity.Property(e => e.Frgtbar2)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar2");
+
+                entity.Property(e => e.Frgtbar3)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar3");
+
+                entity.Property(e => e.Frgtbar4)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar4");
+
+                entity.Property(e => e.Frgtbar5)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("frgtbar5");
+            });
+
             modelBuilder.Entity<TemailConfig>(entity =>
             {
                 entity.ToTable("temailConfig");
 
                 entity.Property(e => e.BifaSign)
-                    .HasMaxLength(100)
-                    .IsUnicode(false)
+                    .HasMaxLength(500)
                     .HasColumnName("bifaSign")
                     .HasComment("signature of BIFA");
 
                 entity.Property(e => e.BifaUrl)
-                    .HasMaxLength(100)
-                    .IsUnicode(false)
+                    .HasMaxLength(500)
                     .HasColumnName("bifaURL")
                     .HasComment("bifa URL");
 
@@ -2778,7 +3028,6 @@ namespace UserManagementAPI.Data
 
                 entity.Property(e => e.Host)
                     .HasMaxLength(50)
-                    .IsUnicode(false)
                     .HasColumnName("host")
                     .HasComment("mail host");
 
@@ -2787,32 +3036,27 @@ namespace UserManagementAPI.Data
                     .HasComment("flag determining if mail account is active");
 
                 entity.Property(e => e.LogoUrl)
-                    .HasMaxLength(100)
-                    .IsUnicode(false)
+                    .HasMaxLength(500)
                     .HasColumnName("logoURL")
                     .HasComment("logo for the URL");
 
                 entity.Property(e => e.MBcc)
-                    .HasMaxLength(100)
-                    .IsUnicode(false)
+                    .HasMaxLength(50)
                     .HasColumnName("mBCC")
                     .HasComment("mail blind copied to");
 
                 entity.Property(e => e.MCc)
-                    .HasMaxLength(100)
-                    .IsUnicode(false)
+                    .HasMaxLength(50)
                     .HasColumnName("mCC")
                     .HasComment("mail copied to");
 
                 entity.Property(e => e.MTo)
                     .HasMaxLength(50)
-                    .IsUnicode(false)
                     .HasColumnName("mTo")
                     .HasComment("receipient of mail");
 
                 entity.Property(e => e.Mfrom)
                     .HasMaxLength(50)
-                    .IsUnicode(false)
                     .HasColumnName("mfrom")
                     .HasComment("mail originator");
 
@@ -2820,15 +3064,17 @@ namespace UserManagementAPI.Data
                     .HasColumnName("port")
                     .HasComment("mail port");
 
+                entity.Property(e => e.SubjectColor)
+                    .HasMaxLength(50)
+                    .HasColumnName("subjectColor");
+
                 entity.Property(e => e.UsrCredential)
                     .HasMaxLength(50)
-                    .IsUnicode(false)
                     .HasColumnName("usrCredential")
                     .HasComment("user credentail for mail");
 
                 entity.Property(e => e.UsrPassword)
                     .HasMaxLength(50)
-                    .IsUnicode(false)
                     .HasColumnName("usrPassword")
                     .HasComment("user password for mail");
 
@@ -3075,6 +3321,41 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TpackagingOrderPayments)
                     .HasForeignKey(d => d.PackageOrderId)
                     .HasConstraintName("FK_tpackagingOrderPayment_tpackagingOrder");
+            });
+
+            modelBuilder.Entity<Tshippingordercommission>(entity =>
+            {
+                entity.ToTable("tshippingordercommission");
+
+                entity.Property(e => e.Cbm)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("cbm");
+
+                entity.Property(e => e.Earningsoncd)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("earningsoncd");
+
+                entity.Property(e => e.Earningsonduties)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("earningsonduties");
+
+                entity.Property(e => e.Jtscd)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("jtscd");
+
+                entity.Property(e => e.Jtsduties)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("jtsduties");
+
+                entity.Property(e => e.Orderid).HasColumnName("orderid");
+
+                entity.Property(e => e.Wifcd)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("wifcd");
+
+                entity.Property(e => e.Wifduties)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("wifduties");
             });
 
             modelBuilder.Entity<Tshippingport>(entity =>

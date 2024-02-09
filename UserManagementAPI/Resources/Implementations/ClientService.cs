@@ -765,161 +765,168 @@ namespace UserManagementAPI.Resources.Implementations
 
             try
             {
-                if (param.searchCriteria == @"ID")
-                {
-                    var Query = (from tc in config.TClients
-                                 join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
-                                 join cmp in config.Tcompanies on tc.AssociatedCompanyId equals cmp.CompanyId
-                                 join chn in config.TChannelTypes on tc.ChannelTypeId equals chn.ChannelTypeId
-                                 join cty in config.TCities on tc.ClientCityId equals cty.Id
-                                 join cntr in config.TCountryLookups on tc.ClientCountryId equals cntr.CountryId
-                                 join rf in config.Tclientreferralsources on tc.ReferralId equals rf.Id
-                                 join crt in config.Tusrs on tc.CreatedBy equals crt.UsrId
-                                 join usr in config.Tusrs on tc.LastModifiedBy equals usr.UsrId
-                                 where tc.Id == int.Parse(param.stringValue)
 
-                                 select new
-                                 {
-                                     uniqueID = tc.Id,
-                                     clientType = ct.Describ,
-                                     clientTypeId = ct.Id,
-                                     associatedCompany = cmp.Company,
-                                     associatedCompanyId = tc.AssociatedCompanyId,
-                                     channelType = chn.Channel,
-                                     channelTypeId = tc.ChannelTypeId,
-                                     firstname = tc.Firstname,
-                                     middlenames = tc.Middlenames,
-                                     surname = tc.Surname,
-                                     clientBusiness = tc.ClientBusinessName,
-                                     mobileNo = tc.MobileNo,
-                                     whatsappNo = tc.WhatsappNo,
-                                     homeTel = tc.HomeTelephone,
-                                     workTel = tc.WorkTelephone,
-                                     emailAddr = tc.ClientEmailAddr,
-                                     emailAddr2 = tc.ClientEmailAddr2,
-                                     accNo = tc.ClientAccNo,
-                                     cityId = tc.ClientCityId,
-                                     city = cty.CityName,
-                                     countryId = tc.ClientCountryId,
-                                     nameOfcountry = cntr.CountryName,
-                                     postCode = tc.ClientPostCode,
-                                     referralId = tc.ReferralId,
-                                     referral = rf.ReferralSource,
-                                     collectionInstruction = tc.CollectionInstruction
-                                 });
+                //if (param.searchCriteria == @"ID")
+                //{
+                //    var Query = (from tc in config.TClients
+                //                 join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
+                //                 join cmp in config.Tcompanies on tc.AssociatedCompanyId equals cmp.CompanyId
+                //                 join chn in config.TChannelTypes on tc.ChannelTypeId equals chn.ChannelTypeId
+                //                 join cty in config.TCities on tc.ClientCityId equals cty.Id
+                //                 join cntr in config.TCountryLookups on tc.ClientCountryId equals cntr.CountryId
+                //                 join rf in config.Tclientreferralsources on tc.ReferralId equals rf.Id
+                //                 join crt in config.Tusrs on tc.CreatedBy equals crt.UsrId
+                //                 join usr in config.Tusrs on tc.LastModifiedBy equals usr.UsrId
+                //                 where tc.Id == int.Parse(param.stringValue)
 
-                    var obj = await Query.FirstOrDefaultAsync().ConfigureAwait(false);
-                    if ((obj != null) && (obj.clientTypeId == 1))
-                    {
-                        dta = new IndividualCustomerLookup()
-                        {
-                            id = obj.uniqueID,
-                            oClientType = new ClientTypeLookup()
-                            {
-                                id = obj.clientTypeId,
-                                clientTypeDescrib = obj.clientType
-                            },
-                            oCompany = new CompanyLookup()
-                            {
-                                id = (int)obj.associatedCompanyId,
-                                nameOfcompany = obj.associatedCompany
-                            },
-                            oChannelType = new ChannelTypeLookup()
-                            {
-                                id = (int)obj.channelTypeId,
-                                nameOfchannel = obj.channelType
-                            },
-                            firstname = obj.firstname.Trim().ToUpper(),
-                            middlenames = obj.middlenames.Trim().ToUpper(),
-                            surname = obj.surname.Trim().ToUpper(),
-                            mobileNo = obj.mobileNo.Trim(),
-                            whatsappNo = obj.whatsappNo.Trim(),
-                            homeTelephone = obj.homeTel.Trim(),
-                            workTelephone = obj.workTel.Trim(),
-                            clientEmail = obj.emailAddr.Trim(),
-                            clientEmail2 = obj.emailAddr2.Trim(),
-                            oCity = new CityLookup()
-                            {
-                                id = (int)obj.cityId,
-                                nameOfcity = obj.city.Trim().ToUpper()
-                            },
-                            oCountry = new CountryLookup()
-                            {
-                                id = (int)obj.countryId,
-                                nameOfcountry = obj.nameOfcountry.Trim().ToUpper()
-                            },
-                            postCode = obj.postCode.Trim().ToUpper(),
-                            oReferral = new ReferralLookup()
-                            {
-                                id = (int)obj.referralId,
-                                sourceOfReferral = obj.referral.Trim().ToUpper()
-                            },
-                            collectionInstruction = obj.collectionInstruction,
-                            accountNo = obj.accNo != string.Empty ? obj.accNo.Trim().ToUpper() : string.Empty,
-                            clientBusiness = obj.clientBusiness == string.Empty ? string.Empty : obj.clientBusiness.Trim().ToUpper(),
+                //                 select new
+                //                 {
+                //                     uniqueID = tc.Id,
+                //                     clientType = ct.Describ,
+                //                     clientTypeId = ct.Id,
+                //                     associatedCompany = cmp.Company,
+                //                     associatedCompanyId = tc.AssociatedCompanyId,
+                //                     channelType = chn.Channel,
+                //                     channelTypeId = tc.ChannelTypeId,
+                //                     firstname = tc.Firstname,
+                //                     middlenames = tc.Middlenames,
+                //                     surname = tc.Surname,
+                //                     clientBusiness = tc.ClientBusinessName,
+                //                     mobileNo = tc.MobileNo,
+                //                     whatsappNo = tc.WhatsappNo,
+                //                     homeTel = tc.HomeTelephone,
+                //                     workTel = tc.WorkTelephone,
+                //                     emailAddr = tc.ClientEmailAddr,
+                //                     emailAddr2 = tc.ClientEmailAddr2,
+                //                     accNo = tc.ClientAccNo,
+                //                     cityId = tc.ClientCityId,
+                //                     city = cty.CityName,
+                //                     countryId = tc.ClientCountryId,
+                //                     nameOfcountry = cntr.CountryName,
+                //                     postCode = tc.ClientPostCode,
+                //                     referralId = tc.ReferralId,
+                //                     referral = rf.ReferralSource,
+                //                     collectionInstruction = tc.CollectionInstruction
+                //                 });
 
-                            //add the address via a different object call
-                            oAddress = await helper.getClientAddressAsync(obj.uniqueID)
-                        };
-                    }
+                //    var obj = await Query.FirstOrDefaultAsync().ConfigureAwait(false);
+                //    if ((obj != null) && (obj.clientTypeId == 1))
+                //    {
+                //        dta = new IndividualCustomerLookup()
+                //        {
+                //            id = obj.uniqueID,
+                //            oClientType = new ClientTypeLookup()
+                //            {
+                //                id = obj.clientTypeId,
+                //                clientTypeDescrib = obj.clientType
+                //            },
+                //            oCompany = new CompanyLookup()
+                //            {
+                //                id = (int)obj.associatedCompanyId,
+                //                nameOfcompany = obj.associatedCompany
+                //            },
+                //            oChannelType = new ChannelTypeLookup()
+                //            {
+                //                id = (int)obj.channelTypeId,
+                //                nameOfchannel = obj.channelType
+                //            },
+                //            firstname = obj.firstname.Trim().ToUpper(),
+                //            middlenames = obj.middlenames.Trim().ToUpper(),
+                //            surname = obj.surname.Trim().ToUpper(),
+                //            mobileNo = obj.mobileNo.Trim(),
+                //            whatsappNo = obj.whatsappNo.Trim(),
+                //            homeTelephone = obj.homeTel.Trim(),
+                //            workTelephone = obj.workTel.Trim(),
+                //            clientEmail = obj.emailAddr.Trim(),
+                //            clientEmail2 = obj.emailAddr2.Trim(),
+                //            oCity = new CityLookup()
+                //            {
+                //                id = (int)obj.cityId,
+                //                nameOfcity = obj.city.Trim().ToUpper()
+                //            },
+                //            oCountry = new CountryLookup()
+                //            {
+                //                id = (int)obj.countryId,
+                //                nameOfcountry = obj.nameOfcountry.Trim().ToUpper()
+                //            },
+                //            postCode = obj.postCode.Trim().ToUpper(),
+                //            oReferral = new ReferralLookup()
+                //            {
+                //                id = (int)obj.referralId,
+                //                sourceOfReferral = obj.referral.Trim().ToUpper()
+                //            },
+                //            collectionInstruction = obj.collectionInstruction,
+                //            accountNo = obj.accNo != string.Empty ? obj.accNo.Trim().ToUpper() : string.Empty,
+                //            clientBusiness = obj.clientBusiness == string.Empty ? string.Empty : obj.clientBusiness.Trim().ToUpper(),
 
-                    if ((obj != null) && (obj.clientTypeId == 2))
-                    {
-                        dta = new CorporateCustomerLookup() {
-                            id = obj.uniqueID,
-                            oClientType = new ClientTypeLookup()
-                            {
-                                id = obj.clientTypeId,
-                                clientTypeDescrib = obj.clientType.Trim().ToUpper()
-                            },
-                            oCompany = new CompanyLookup()
-                            {
-                                id = (int)obj.associatedCompanyId,
-                                nameOfcompany = obj.associatedCompany.Trim().ToUpper()
-                            },
-                            oChannelType = new ChannelTypeLookup()
-                            {
-                                id = (int)obj.channelTypeId,
-                                nameOfchannel = obj.channelType.Trim().ToUpper()
-                            },
-                            clientBusiness = obj.clientBusiness == string.Empty ? string.Empty : obj.clientBusiness.Trim().ToUpper(),
-                            mobileNo = obj.mobileNo.Trim(),
-                            whatsappNo = obj.whatsappNo.Trim(),
-                            homeTelephone = obj.homeTel.Trim(),
-                            workTelephone = obj.workTel.Trim(),
-                            clientEmail = obj.emailAddr.Trim(),
-                            clientEmail2 = obj.emailAddr2.Trim(),
-                            oCity = new CityLookup()
-                            {
-                                id = (int)obj.cityId,
-                                nameOfcity = obj.city.Trim().ToUpper()
-                            },
-                            oCountry = new CountryLookup()
-                            {
-                                id = (int)obj.countryId,
-                                nameOfcountry = obj.nameOfcountry.Trim().ToUpper()
-                            },
-                            postCode = obj.postCode.Trim().ToUpper(),
-                            oReferral = new ReferralLookup()
-                            {
-                                id = (int)obj.referralId,
-                                sourceOfReferral = obj.referral.Trim().ToUpper()
-                            },
-                            collectionInstruction = obj.collectionInstruction,
-                            accountNo = obj.accNo == string.Empty ? string.Empty : obj.accNo.Trim().ToUpper(),
+                //            //add the address via a different object call
+                //            oAddress = await helper.getClientAddressAsync(obj.uniqueID)
+                //        };
+                //    }
 
-                            oAddress = await helper.getClientAddressAsync(obj.uniqueID)
-                        };
-                    }
+                //    if ((obj != null) && (obj.clientTypeId == 2))
+                //    {
+                //        dta = new CorporateCustomerLookup() {
+                //            id = obj.uniqueID,
+                //            oClientType = new ClientTypeLookup()
+                //            {
+                //                id = obj.clientTypeId,
+                //                clientTypeDescrib = obj.clientType.Trim().ToUpper()
+                //            },
+                //            oCompany = new CompanyLookup()
+                //            {
+                //                id = (int)obj.associatedCompanyId,
+                //                nameOfcompany = obj.associatedCompany.Trim().ToUpper()
+                //            },
+                //            oChannelType = new ChannelTypeLookup()
+                //            {
+                //                id = (int)obj.channelTypeId,
+                //                nameOfchannel = obj.channelType.Trim().ToUpper()
+                //            },
+                //            clientBusiness = obj.clientBusiness == string.Empty ? string.Empty : obj.clientBusiness.Trim().ToUpper(),
+                //            mobileNo = obj.mobileNo.Trim(),
+                //            whatsappNo = obj.whatsappNo.Trim(),
+                //            homeTelephone = obj.homeTel.Trim(),
+                //            workTelephone = obj.workTel.Trim(),
+                //            clientEmail = obj.emailAddr.Trim(),
+                //            clientEmail2 = obj.emailAddr2.Trim(),
+                //            oCity = new CityLookup()
+                //            {
+                //                id = (int)obj.cityId,
+                //                nameOfcity = obj.city.Trim().ToUpper()
+                //            },
+                //            oCountry = new CountryLookup()
+                //            {
+                //                id = (int)obj.countryId,
+                //                nameOfcountry = obj.nameOfcountry.Trim().ToUpper()
+                //            },
+                //            postCode = obj.postCode.Trim().ToUpper(),
+                //            oReferral = new ReferralLookup()
+                //            {
+                //                id = (int)obj.referralId,
+                //                sourceOfReferral = obj.referral.Trim().ToUpper()
+                //            },
+                //            collectionInstruction = obj.collectionInstruction,
+                //            accountNo = obj.accNo == string.Empty ? string.Empty : obj.accNo.Trim().ToUpper(),
 
-                    response = new DefaultAPIResponse() { 
-                        status = true,
-                        message = @"success",
-                        data = dta
-                    };
+                //            oAddress = await helper.getClientAddressAsync(obj.uniqueID)
+                //        };
+                //    }
 
-                }
+                //    response = new DefaultAPIResponse() { 
+                //        status = true,
+                //        message = @"success",
+                //        data = dta
+                //    };
 
+                //}
+
+                dta = await helper.getClientUsingParamAsync(param);
+                response = new DefaultAPIResponse() {
+                    status = dta != null ? true : false,
+                    message = dta != null ? @"success" : @"An error occured. Please see the administrator",
+                    data = dta
+                };
                 return response;
             }
             catch(Exception x)

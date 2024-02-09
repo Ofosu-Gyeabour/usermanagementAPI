@@ -109,6 +109,58 @@ namespace UserManagementAPI.Models
         /// Bill of Laden number
         /// </summary>
         public string? BolNo { get; set; }
+        /// <summary>
+        /// type of transportation (driver delivery, agency delivery or drop off)
+        /// </summary>
+        public int? TransporttypeId { get; set; }
+        /// <summary>
+        /// Id of driver making delivery
+        /// </summary>
+        public int? DriveruserId { get; set; }
+        /// <summary>
+        /// name of driver
+        /// </summary>
+        public string? DriveruserName { get; set; }
+        /// <summary>
+        /// delivery date for driver
+        /// </summary>
+        public DateTime? Driverdeliverydate { get; set; }
+        /// <summary>
+        /// delivery time for driver
+        /// </summary>
+        public int? Driverdeliverytime { get; set; }
+        /// <summary>
+        /// note for driver
+        /// </summary>
+        public string? Drivernote { get; set; }
+        /// <summary>
+        /// agency delivery...company Id
+        /// </summary>
+        public string? Agencycompany { get; set; }
+        /// <summary>
+        /// delivery date for agency
+        /// </summary>
+        public DateTime? Agencydeliverydate { get; set; }
+        /// <summary>
+        /// delivery time for agency
+        /// </summary>
+        public int? Agencytime { get; set; }
+        /// <summary>
+        /// agency delivery note
+        /// </summary>
+        public string? Agencydeliverynote { get; set; }
+        /// <summary>
+        /// Id of system user receiving drop off
+        /// </summary>
+        public int? DropoffrecievedBy { get; set; }
+        /// <summary>
+        /// received date for drop off
+        /// </summary>
+        public DateTime? DropoffrecievedDate { get; set; }
+        /// <summary>
+        /// the note left for the warehouse
+        /// </summary>
+        public string? WarehouseNote { get; set; }
 
         public virtual Tshippingport? ArrivalPort { get; set; }
         public virtual TShippingOrderStatus? OrderStatus { get; set; }

@@ -12,5 +12,8 @@ namespace UserManagementAPI.Resources.Interfaces
 
         Task<DefaultAPIResponse> CreatePackageAsync(Package payLoad);
 
+        Task<DefaultAPIResponse> GetSalesRecordAsync(string saleOrderNo);
+
+        Task<DefaultAPIResponse> GetPackageRecordAsync(string packageOrderNo);
     }
 }
