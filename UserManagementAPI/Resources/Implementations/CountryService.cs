@@ -294,7 +294,7 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
-        public async Task<DefaultAPIResponse> GetCountryPrefixAsync()
+        public async Task<DefaultAPIResponse> ListCountryPrefixAsync()
         {
             //TODO: gets the prefix of all countries in the data store
             DefaultAPIResponse response = null;
@@ -308,6 +308,35 @@ namespace UserManagementAPI.Resources.Implementations
                 {
                     status = countryPrefixDta.Count() > 0 ? true: false,
                     message = countryPrefixDta.Count() > 0 ? $"{countryPrefixDta.Count()} records fetched from datastore": @"No data found",
+                    data = countryPrefixDta
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> GetCountryPrefixAsync(int countryID)
+        {
+            //TODO: gets the prefix of a country, given the country id
+            DefaultAPIResponse response = null;
+
+            try
+            {
+                var payLoadObj = new CountryLookup() { id = countryID };
+                Helper helper = new Helper();
+
+                var countryPrefixDta = await helper.getCountryPrefixAsync(payLoadObj);
+
+                return response = new DefaultAPIResponse()
+                {
+                    status = countryPrefixDta.Count() > 0 ? true: false,
+                    message = countryPrefixDta.Count() > 0 ? $"{countryPrefixDta.Count()} records fetched from datastore" : @"No data found",
                     data = countryPrefixDta
                 };
             }

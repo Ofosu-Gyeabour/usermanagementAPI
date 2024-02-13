@@ -13,6 +13,7 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> UpdateCountryAsync(CountryLookup payLoad);
 
         Task<UploadAPIResponse> UploadCountryAsync(IEnumerable<CountryLookup> payLoad);
-        Task<DefaultAPIResponse> GetCountryPrefixAsync();
+        Task<DefaultAPIResponse> ListCountryPrefixAsync();
+        Task<DefaultAPIResponse> GetCountryPrefixAsync(int countryID);
     }
 }

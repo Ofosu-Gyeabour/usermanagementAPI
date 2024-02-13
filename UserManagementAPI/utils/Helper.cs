@@ -767,10 +767,10 @@ namespace UserManagementAPI.utils
                             Surname = record.surname.Trim().ToUpper(),
 
                             ClientBusinessName = record.clientBusiness.Trim().ToUpper(),
-                            MobileNo = record.mobileNo.Trim(),
-                            WhatsappNo = record.whatsappNo.Trim(),
-                            HomeTelephone = record.homeTelephone.Trim(),
-                            WorkTelephone = record.workTelephone.Trim(),
+                            MobileNo = record.mobileNo.Replace(@"+",string.Empty).Trim(),
+                            WhatsappNo = record.whatsappNo.Replace(@"+", string.Empty).Trim(),
+                            HomeTelephone = record.homeTelephone.Replace(@"+", string.Empty).Trim(),
+                            WorkTelephone = record.workTelephone.Replace(@"+", string.Empty).Trim(),
                             ClientEmailAddr = record.clientEmail.Trim(),
                             ClientEmailAddr2 = record.clientEmail2.Trim(),
                             ClientCityId = record.oCity.id,
@@ -1301,13 +1301,14 @@ namespace UserManagementAPI.utils
             try
             {
                 var q = (from cnt in config.TCountryLookups
+                         join td in config.TDialCodes on cnt.CountryId equals td.CountryId
                          where cnt.CountryId > 1 && cnt.CountryId < 10000
                          select new
                          {
                              countryId = cnt.CountryId,
                              countryName = cnt.CountryName,
                              countryCode = cnt.CountryCode == null ? string.Empty: cnt.CountryCode,
-                             countryPrefix = cnt.PreFix
+                             countryPrefix = td.Code
                          });
 
                 var qList = await q.ToListAsync().ConfigureAwait(false);
@@ -1359,6 +1360,76 @@ namespace UserManagementAPI.utils
             catch(Exception ex)
             {
                 throw ex;
+            }
+        }
+
+        public async Task<IEnumerable<countryPrefix>> getCountryPrefixAsync(CountryLookup oCountry)
+        {
+            //TODO: gets the prefix(es) for a selected country
+            List<countryPrefix> cntPrefixes = new List<countryPrefix>();
+
+            try
+            {
+                var q = (from cnt in config.TCountryLookups
+                         join td in config.TDialCodes on cnt.CountryId equals td.CountryId
+                         where cnt.CountryId == oCountry.id
+                         select new
+                         {
+                             countryId = cnt.CountryId,
+                             countryName = cnt.CountryName,
+                             countryCode = cnt.CountryCode == null ? string.Empty : cnt.CountryCode,
+                             countryPrefix = td.Code
+                         });
+
+                var qList = await q.ToListAsync().ConfigureAwait(false);
+
+                var dtPrefixes = qList
+                                .Select(a => new countryPrefix()
+                                {
+                                    prefixId = a.countryId,
+                                    prefix = a.countryPrefix.Trim(),
+                                    oCountry = new CountryLookup()
+                                    {
+                                        id = a.countryId,
+                                        codeOfcountry = a.countryCode,
+                                        nameOfcountry = a.countryName
+                                    }
+                                }).ToList();
+
+                //loop over to find countries with 2 or more prefix
+                foreach (var d in dtPrefixes)
+                {
+                    if (d.prefix.Contains('|'))
+                    {
+                        var str = d.prefix.Split('|');
+                        foreach (var s in str)
+                        {
+                            var o = new countryPrefix()
+                            {
+                                prefixId = d.prefixId,
+                                prefix = s,
+                                oCountry = new CountryLookup()
+                                {
+                                    id = d.oCountry.id,
+                                    codeOfcountry = d.oCountry.codeOfcountry,
+                                    nameOfcountry = d.oCountry.nameOfcountry
+                                }
+                            };
+
+                            cntPrefixes.Add(o);
+                        }
+                    }
+                    else
+                    {
+                        cntPrefixes.Add(d);
+                    }
+                }
+
+                return cntPrefixes;
+            }
+            catch(Exception x)
+            {
+                throw x;
             }
         }
 

@@ -491,7 +491,7 @@ app.MapGet("/Country/ListPrefixes", async Task<IResult> (ICountryService service
     //gets all prefixes
     try
     {
-        var pfxData = await service.GetCountryPrefixAsync();
+        var pfxData = await service.ListCountryPrefixAsync();
         return Results.Ok(pfxData);
     }
     catch(Exception x)
@@ -500,6 +500,20 @@ app.MapGet("/Country/ListPrefixes", async Task<IResult> (ICountryService service
     }
 }).WithTags("Country");
 
+app.MapGet("/Country/GetPrefixes", async Task<IResult> (ICountryService service, int countryID) =>
+{
+    if (countryID < 1)
+        return Results.BadRequest(@"ID of country cannot be less than or equal to zero (0)");
+    try
+    {
+        var countryPfxRecord = await service.GetCountryPrefixAsync(countryID);
+        return Results.Ok(countryPfxRecord);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Country");
 #endregion
 
 #region Referral-routes
