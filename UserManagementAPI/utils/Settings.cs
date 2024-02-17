@@ -9,6 +9,8 @@
         public string testConn { get; set; } = string.Empty;
         public string imgRoot { get; set; } = string.Empty; 
         public string imgPath { get; set; } = string.Empty;
+        public string fxKey { get; set; } = string.Empty;
+        public string fxLive { get; set; } = string.Empty;
 
     }
 }

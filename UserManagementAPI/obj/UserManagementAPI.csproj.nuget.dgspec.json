@@ -96,6 +96,14 @@
             "System.Security.Cryptography.Algorithms": {
               "target": "Package",
               "version": "[4.3.1, )"
+            },
+            "Xero.NetStandard.OAuth2": {
+              "target": "Package",
+              "version": "[4.0.1, )"
+            },
+            "Xero.NetStandard.OAuth2Client": {
+              "target": "Package",
+              "version": "[1.6.0, )"
             }
           },
           "imports": [

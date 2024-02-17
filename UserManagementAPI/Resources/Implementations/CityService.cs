@@ -20,56 +20,35 @@ namespace UserManagementAPI.Resources.Implementations
 
         #region implementations
 
-        public async Task<DefaultAPIResponse> GetCitiesAsync()
+        public async Task<PaginationAPIResponse> GetCitiesAsync(int page, int pageSize)
         {
-            DefaultAPIResponse response = null;
+            PaginationAPIResponse response = null;
             List<CityLookup> data = new List<CityLookup>();
 
             try
             {
-                var result =  (from c in config_.TCities
-                              join ct in config_.TCountryLookups
-                              on c.CountryId equals ct.CountryId
+                Helper helper = new Helper();
+                var dt = await helper.getActiveCitiesAsync();
+                data = dt.ToList();
 
-                              select new
-                              {
-                                   Id = c.Id,
-                                  CityName = c.CityName,
-                                  CountryName = ct.CountryName
-                              }).ToList();
+                //paginating data
+                var totalCount = dt.Count();
+                var totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
 
-                //iterate over linq object
-                if (result != null)
-                {
-                    foreach(var item in result)
-                    {
-                        var obj = new CityLookup()
-                        {
-                            id = item.Id,
-                            nameOfcity = item.CityName,
-                            oCountry = new CountryLookup()
-                            {
-                                nameOfcountry = item.CountryName
-                            }
-                        };
-
-                        data.Add(obj);
-                    }
-
-                    response = new DefaultAPIResponse()
-                    {
-                        status = true,
-                        message = @"success",
-                        data = data
-                    };
-                }
-                else { return response = new DefaultAPIResponse() { status = false, message = @"No data" }; }
+                response = new PaginationAPIResponse() {
+                    status = dt.Count() > 0 ? true : false,
+                    message = dt.Count() > 0 ? @"success" : @"failed",
+                    data = dt.Skip((page - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToList(),
+                    total = totalCount
+                };
 
                 return response;
             }
             catch(Exception ex)
             {
-                return response = new DefaultAPIResponse()
+                return response = new PaginationAPIResponse()
                 {
                     status = false,
                     message = $"error: {ex.Message}"

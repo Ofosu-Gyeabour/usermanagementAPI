@@ -7,6 +7,11 @@
         public object data { get; set; }
     }
 
+    public class PaginationAPIResponse : DefaultAPIResponse
+    {
+        public int total { get; set; }
+    }
+
     public class UploadAPIResponse
     {
         public bool status { get; set; } = false;
@@ -30,6 +35,65 @@
         public Profile profile { get; set; }
         public Department department { get; set; }
     }
+
+    public class FxAPIResponse
+    {
+        public bool success { get; set; } = false;
+        public string terms { get; set; } = string.Empty;
+        public string privacy { get; set; } = string.Empty;
+        public long timestamp { get; set; } = 0;
+        public string source { get; set; } = string.Empty;
+        public Quotation quotes { get; set; }
+        public FxError? error { get; set; }
+    }
+
+    
+    public class FxError
+    {
+        public string? code { get; set; } = string.Empty;
+        public string? info { get; set; } = string.Empty;
+
+    }
+    public class Quotation { 
+    
+        //public decimal USDAED { get; set; }
+        //public decimal USDAFN { get; set; }
+        //public decimal USDALL { get; set; }
+        //public decimal USDAMD { get; set; }
+        //public decimal USDANG { get; set; }
+        //public decimal USDAOA { get; set; }
+        //public decimal USDARS { get; set; }
+        //public decimal USDAUD { get; set; }
+        //public decimal USDAWG { get; set; }
+        //public decimal USDAZN { get; set; }
+        //public decimal USDBAM { get; set; }
+        //public decimal USDBBD { get; set; }
+        //public decimal USDBDT { get; set; }
+        //public decimal USDBGN { get; set; }
+        //public decimal USDBHD { get; set; }
+        //public decimal USDBIF { get; set; }
+        //public decimal USDBMD { get; set; }
+        //public decimal USDBND { get; set; }
+        //public decimal USDBOB { get; set; }
+        //public decimal USDBRL { get; set; }
+        //public decimal USDBSD { get; set; }
+        //public decimal USDBTC { get; set; }
+        //public decimal USDBTN { get; set; }
+        //public decimal USDBWP { get; set; }
+        //public decimal USDBYN { get; set; }
+        //public decimal USDBYR { get; set; }
+        //public decimal USDBZD { get; set; }
+        //public decimal USDCAD { get; set; }
+        //public decimal USDCDF { get; set; }
+        //public decimal USDCHF { get; set; }
+        //public decimal USDCLF { get; set; }
+        //public decimal USDCLP { get; set; }
+        //public decimal USDCNY { get; set; }
+        //public decimal USDCOP { get; set; }
+        public decimal USDGBP { get; set; }
+        public decimal USDEUR { get; set; }
+    }
+
 
     public class User
     {

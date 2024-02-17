@@ -37,6 +37,17 @@ namespace UserManagementAPI.POCOs
 
         public string warehouseNote { get; set; } = string.Empty;
 
+        #region added for jts earnings and duties computation
+
+        public decimal? wifcd { get; set; } = 0m;
+        public decimal? jtsearning { get; set; } = 0m;
+        public decimal? wifduty { get; set; } = 0m;
+        public decimal? jtsduty { get; set; } = 0m;
+        public decimal? cubic { get; set; } = 0;
+        public int destinationCountry { get; set; } = 8;  //defaulted to JAMAICA
+
+        #endregion
+
         #endregion
 
 

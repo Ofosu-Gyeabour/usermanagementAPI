@@ -24,6 +24,7 @@ namespace UserManagementAPI.Models
         public decimal? M5 { get; set; }
 
         public virtual TDeliveryMethod? DeliveryMethod { get; set; }
+        public virtual TParish? PIdNavigation { get; set; }
         public virtual TZone? Zone { get; set; }
     }
 }

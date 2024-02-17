@@ -9,7 +9,7 @@ namespace UserManagementAPI.Resources.Interfaces
     public interface ICityService
     {
         Task<DefaultAPIResponse> GetAllCitiesAsync();
-        Task<DefaultAPIResponse> GetCitiesAsync();
+        Task<PaginationAPIResponse> GetCitiesAsync(int page, int pageSize);
         Task<DefaultAPIResponse> CreateCityAsync(CityLookup payLoad);
         Task<DefaultAPIResponse> UpdateCityAsync(CityLookup payLoad);
         Task<UploadAPIResponse> UploadCityDataAsync(IEnumerable<CityLookup> payLoad);

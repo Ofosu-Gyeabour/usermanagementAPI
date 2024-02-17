@@ -25,6 +25,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.1" />
     <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
+    <PackageReference Include="Xero.NetStandard.OAuth2" Version="4.0.1" />
+    <PackageReference Include="Xero.NetStandard.OAuth2Client" Version="1.6.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,6 +7,7 @@ namespace UserManagementAPI.Models
     {
         public TZone()
         {
+            TD2djamaicaDeliveries = new HashSet<TD2djamaicaDelivery>();
             TD2dukDeliveries = new HashSet<TD2dukDelivery>();
             TParishes = new HashSet<TParish>();
         }
@@ -16,6 +17,7 @@ namespace UserManagementAPI.Models
         public int? CountryId { get; set; }
 
         public virtual TCountryLookup? Country { get; set; }
+        public virtual ICollection<TD2djamaicaDelivery> TD2djamaicaDeliveries { get; set; }
         public virtual ICollection<TD2dukDelivery> TD2dukDeliveries { get; set; }
         public virtual ICollection<TParish> TParishes { get; set; }
     }

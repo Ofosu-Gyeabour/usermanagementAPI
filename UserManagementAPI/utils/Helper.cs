@@ -11,6 +11,12 @@ using System.Transactions;
 using System.Drawing;
 using System.Drawing.Imaging;
 using UserManagementAPI.Procs;
+using System.Net.Security;
+using Newtonsoft.Json;
+using UserManagementAPI.Xero;
+using System.Text;
+using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
 
 namespace UserManagementAPI.utils
 {
@@ -852,10 +858,10 @@ namespace UserManagementAPI.utils
                         AssociatedCompanyId = record.oCompany.id,
                         ChannelTypeId = record.oChannelType.id,
                         ClientBusinessName = record.clientBusiness.Trim().ToUpper(),
-                        MobileNo = record.mobileNo.Trim(),
-                        WhatsappNo = record.whatsappNo.Trim(),
-                        HomeTelephone = record.homeTelephone.Trim(),
-                        WorkTelephone = record.workTelephone.Trim(),
+                        MobileNo = record.mobileNo.Replace(@"+",string.Empty).Trim(),
+                        WhatsappNo = record.whatsappNo.Replace(@"+", string.Empty).Trim(),
+                        HomeTelephone = record.homeTelephone.Replace(@"+", string.Empty).Trim(),
+                        WorkTelephone = record.workTelephone.Replace(@"+", string.Empty).Trim(),
                         ClientEmailAddr = record.clientEmail.Trim(),
                         ClientEmailAddr2 = record.clientEmail2.Trim(),
                         ClientCityId = record.oCity.id,
@@ -1237,6 +1243,35 @@ namespace UserManagementAPI.utils
             catch(Exception ex)
             {
                 throw ex;
+            }
+        }
+        
+        public async Task<bool> saveShippingOrderCommmissionAsync(clsShippingOrderCommission commission)
+        {
+            //TODO: saves the commission for the shipping order
+            bool bln = false;
+
+            try
+            {
+                Tshippingordercommission tshippingordercommission = new Tshippingordercommission() { 
+                    Orderid = commission.shippingOrderId,
+                    Wifduties = commission.wifduty,
+                    Jtsduties = commission.jtsduty,
+                    Earningsonduties = commission.dutyEarnings,
+                    Wifcd = commission.wifcd,
+                    Jtscd = commission.jtscd,
+                    Earningsoncd = commission.earningsOnCnD,
+                    Cbm = commission.cubicPerMeter
+                };
+
+                await config.AddAsync(tshippingordercommission);
+                await config.SaveChangesAsync();
+
+                return bln = true;
+            }
+            catch(Exception commErr)
+            {
+                return bln = false;
             }
         }
         public async Task<bool> saveImageAsync(string uniqueIdentifier, string base64String)
@@ -1789,6 +1824,242 @@ namespace UserManagementAPI.utils
                 throw x;
             }
         }
+
+        #region fx
+
+        public async Task<FxAPIResponse> getFxRatesAsync()
+        {
+            //TODO: gets the forex rates for the day...relative to to the USD
+            FxAPIResponse rsp = null;
+
+            try
+            {
+                HttpClient client = BuildHTTPClient($"{ConfigObject.FX_LIVE_ENDPOINT}{ConfigObject.FX_KEY}", PostCodeConfigObject.CONTENT_TYPE);
+
+                var response = await client.GetAsync(client.BaseAddress);
+                using (response)
+                {
+                    response.EnsureSuccessStatusCode();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseBody = await response.Content.ReadAsStringAsync();
+                        rsp = JsonConvert.DeserializeObject<FxAPIResponse>(responseBody);
+                    }
+                }
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new FxAPIResponse()
+                {
+                    success = false,                    
+                };
+            }
+        }
+
+        public HttpClient BuildHTTPClient(string URL, string _contentType)
+        {
+            HttpClientHandler handler = new HttpClientHandler();
+            handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, SslPolicyErrors) => { return true; };
+            handler.UseProxy = false;
+
+            var client = new HttpClient(handler)
+            {
+                BaseAddress = new Uri(URL)
+            };
+
+            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(_contentType));
+            client.DefaultRequestHeaders.Add(@"accept", @"*/*");
+
+            return client;
+        }
+
+        #endregion
+
+        #region Xero
+
+        public async Task<XeroAPIResponse> CreateInvoiceAsync(clsXeroInvoice payLoad)
+        {
+            //TODO: post the invoice payload to the xero API
+            XeroAPIResponse rsp = null;
+
+            try
+            {
+                HttpClient client = new HttpClient() { 
+                    BaseAddress = new Uri(XeroConfigObject.INVOICE)
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(payLoad), Encoding.UTF8, XeroConfigObject.CONTENT_TYPE);
+
+                //adding headers
+                //client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(XeroConfigObject.CONTENT_TYPE));
+                
+                
+                client.DefaultRequestHeaders.Add(@"Xero-Tenant-Id", XeroConfigObject.XERO_TENANT_ID);
+                client.DefaultRequestHeaders.Add(@"Authorization", string.Format($"Bearer {XeroConfigObject.ACCESS_TOKEN}"));
+                //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", string.Format($"Bearer {XeroConfigObject.ACCESS_TOKEN}"));
+                //client.DefaultRequestHeaders.Add(@"accept", XeroConfigObject.CONTENT_TYPE);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(XeroConfigObject.CONTENT_TYPE));
+
+                var response = await client.PostAsync(client.BaseAddress, content);
+                using (response)
+                {
+                    response.EnsureSuccessStatusCode();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseBody = await response.Content.ReadAsStringAsync();
+                        rsp = JsonConvert.DeserializeObject<XeroAPIResponse>(responseBody);
+                    }
+                }
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new XeroAPIResponse()
+                {
+                    Status = @"Error",
+                    Message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<XeroTokenAPIResponse> RefreshTokenAsync(clsRefresh payLoad)
+        {
+            //TODO: refreshes the token to use in accesssing API endpoints
+            XeroTokenAPIResponse r = null;
+
+            try
+            {
+                HttpClient client = new HttpClient()
+                {
+                    BaseAddress = new Uri(XeroConfigObject.REFRESH_T)
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(payLoad), Encoding.UTF8, XeroConfigObject.CONTENT_TYPE);
+
+
+                client.DefaultRequestHeaders.Add("grant_type", XeroConfigObject.REFRESH_TOKEN);
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(XeroConfigObject.CONTENT_TYPE));
+
+                var response = await client.PostAsync(client.BaseAddress, content);
+                using (response)
+                {
+                    response.EnsureSuccessStatusCode();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseBody = await response.Content.ReadAsStringAsync();
+                        r = JsonConvert.DeserializeObject<XeroTokenAPIResponse>(responseBody);
+                    }
+                }
+
+                return r;
+            }
+            catch (Exception x)
+            {
+                return r = new XeroTokenAPIResponse()
+                {
+                    
+                };
+            }
+        }
+
+        public async Task<TXeroConfig> getXeroConfigAsync()
+        {
+            //TODO: gets xero config from the data store
+            TXeroConfig obj = null;
+
+            try
+            {
+                using (config)
+                {
+                    obj = await config.TXeroConfigs.FirstOrDefaultAsync();
+                }
+
+                return obj;
+            }
+            catch(Exception x)
+            {
+                return obj;
+            }
+        }
+
+        public async Task<bool> updateXeroConfigTokens(string accessTok, string refreshTok)
+        {
+            //TODO: updates the access and refresh tokens every 30 minutes
+            bool bln = false;
+            try
+            {
+                using (config)
+                {
+                    var obj = await config.TXeroConfigs.FirstOrDefaultAsync();
+                    obj.AccessToken = accessTok;
+                    obj.RefreshToken = refreshTok;
+
+                    await config.SaveChangesAsync();
+
+                    bln = true;
+                }
+
+                return bln;
+            }
+            catch(Exception x)
+            {
+                return bln;
+            }
+        }
+
+        #endregion
+
+
+        #region cities
+
+        public async Task<IEnumerable<CityLookup>> getActiveCitiesAsync()
+        {
+            //TODO: get all active cities
+            List<CityLookup> results = new List<CityLookup>();
+
+            try
+            {
+                using (config)
+                {
+                    var dta = (from c in config.TCities
+                                  join ct in config.TCountryLookups
+                                  on c.CountryId equals ct.CountryId
+
+                                  select new
+                                  {
+                                      Id = c.Id, 
+                                      CityName = c.CityName,
+                                      CountryName = ct.CountryName
+                                  });
+
+                    var dtaList = await dta.ToListAsync().ConfigureAwait(false);
+
+                    results = dtaList
+                                 .Select(a => new CityLookup()
+                                 {
+                                     id = a.Id,
+                                     nameOfcity = a.CityName,
+                                     oCountry = new CountryLookup()
+                                     {
+                                         nameOfcountry = a.CountryName
+                                     }
+                                 }).ToList();
+
+                    return results;
+                }
+                    
+            }
+            catch(Exception x)
+            {
+                throw x;
+            }
+        }
+
+        #endregion
+
 
     }
 }

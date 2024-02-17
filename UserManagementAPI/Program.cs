@@ -1,5 +1,7 @@
 global using UserManagementAPI.Data;
 global using Microsoft.EntityFrameworkCore;
+global using UserManagementAPI.Xero;
+
 using UserManagementAPI.Resources.Implementations;
 using UserManagementAPI.Resources.Interfaces;
 using UserManagementAPI.utils;
@@ -110,6 +112,8 @@ ConfigObject.MAC_LOCAL_CONN = settings.macConnString;
 ConfigObject.TEST_CONN = settings.testConn;
 ConfigObject.ROOT_PATH = settings.imgRoot;
 ConfigObject.IMG_FOLDER_PATH = settings.imgPath;
+ConfigObject.FX_KEY = settings.fxKey;
+ConfigObject.FX_LIVE_ENDPOINT = settings.fxLive;
 
 
 var eventSettings = builder.Configuration.GetSection("Events").Get<Events>();
@@ -124,6 +128,14 @@ PostCodeConfigObject.KEY = postCodeSettings.apiKey;
 PostCodeConfigObject.FIND_POST_CODE = postCodeSettings.findEndPoint;
 PostCodeConfigObject.RETRIEVE_ADDRESS = postCodeSettings.retrieveEndPoint;
 PostCodeConfigObject.CONTENT_TYPE = postCodeSettings.contentType;
+
+//Xero Accounting API
+var XeroAPISettings = builder.Configuration.GetSection("XeroAccountingAPI").Get<XeroAccountingAPI>();
+XeroConfigObject.ACCEPT = XeroAPISettings.Accept;
+XeroConfigObject.CONTENT_TYPE = XeroAPISettings.ContentType;
+XeroConfigObject.CONTACT = XeroAPISettings.contacts;
+XeroConfigObject.INVOICE = XeroAPISettings.invoices;
+XeroConfigObject.REFRESH_T = XeroAPISettings.refresh;
 
 #endregion
 
@@ -436,7 +448,7 @@ app.MapPost("/Profile/GetProfileModules", async (SingleParam oProfileObj, IProfi
 #region city endpoints
 
 app.MapGet("/City/GetCities", async (ICityService service) => await GetCitiesAsync(service)).WithTags("City");
-app.MapGet("/City/GetActiveCities", async (ICityService service) => await GetActiveCitiesAsync(service)).WithTags("City");
+//app.MapGet("/City/GetActiveCities", async (ICityService service) => await GetActiveCitiesAsync(service)).WithTags("City");
 app.MapPost("/City/CreateCity", async (CityLookup oCity, ICityService service) => await CreateCityAsync(oCity, service)).WithTags("City");
 app.MapPut("/City/UpdateCity", async (CityLookup oCity, ICityService service) => await UpdateCityAsync(oCity, service)).WithTags("City");
 app.MapPut("/City/UpdateCountryOfCity", async (CityLookup oCity, ICityService service) => await UpdateCountryOfCityAsync(oCity, service)).WithTags("City");
@@ -608,7 +620,7 @@ app.MapPost("/ShippingPort/Get", async Task<IResult> (IShippingPortService servi
 #endregion
 
 #region Client - routes
-
+app.MapGet("/City/GetActiveCities", async (ICityService service, int pageNumber, int pageSize) => await GetActiveCitiesAsync(service, pageNumber, pageSize)).WithTags("City");
 app.MapGet("/Client/List", async (IClientService service, int pageNumber, int pageSize) => await GetClientListAsync(service, pageNumber, pageSize)).WithTags("Client");
 app.MapGet("/Client/CorporateList", async (IClientService service) => await GetCorporateClientAsync(service)).WithTags("Client");
 app.MapGet("/Client/IndividualList", async (IClientService service) => await GetIndividualClientAsync(service)).WithTags("Client");
@@ -2317,15 +2329,25 @@ async Task<IResult> GetCitiesAsync(ICityService service)
     }
 }
 
-async Task<IResult> GetActiveCitiesAsync(ICityService service)
+async Task<IResult> GetActiveCitiesAsync(ICityService service, int pageNumber, int pageSize)
 {
     try
     {
-        if (service == null)
-            return Results.BadRequest(@"service could not be instantiated");
+        if (pageNumber <= 0)
+            return Results.BadRequest("Page number cannot be less than or equal to zero (0)");
 
-        var active_city_list = await service.GetCitiesAsync();
-        return Results.Ok(active_city_list);
+        if (pageSize <= 0)
+            return Results.BadRequest("Page size cannot be less than or equal to zero (0)");
+
+        try
+        {
+            var active_city_list = await service.GetCitiesAsync(pageNumber,pageSize);
+            return Results.Ok(active_city_list);
+        }
+        catch(Exception x)
+        {
+            return Results.BadRequest(x.Message);
+        }      
     }
     catch(Exception ex)
     {
@@ -3068,13 +3090,14 @@ app.MapGet("/Parish/List", async Task<IResult> (IUtilityService service) =>
     }
 }).WithTags("Parish");
 
-app.MapPost("/Parish/Zone/Fetch", async Task<IResult> (IUtilityService service, clsParish payLoad) =>
+app.MapGet("/Parish/Zone/Fetch", async Task<IResult> (IUtilityService service, int ID) =>
 {
-    if (payLoad.id == 0)
+    if (ID < 1)
         return Results.BadRequest(@"ID of Parish cannot be zero (0)");
 
     try
     {
+        clsParish payLoad = new clsParish() { id = ID };
         var zone_item = await service.getZoneFromParishAsync(payLoad);
         return Results.Ok(zone_item);
     }
@@ -3261,6 +3284,26 @@ app.MapPost("/Data/Company/ShippingOrder", async Task<IResult> (IDataService ser
     }
 
 }).WithTags("Data");
+
+#endregion
+
+#region Xero
+
+app.MapPost("/Xero/Invoice/Create", async Task<IResult> (IUtilityService service, clsXeroInvoice payLoad) =>
+{
+    if (payLoad.Contact.ContactID.Length < 1)
+        return Results.BadRequest(@"Length of Contact Id cannot be less or equal to zero (0)");
+
+    try
+    {
+        var status = await service.createXeroInvoiceAsync(payLoad);
+        return Results.Ok(status);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Xero");
 
 #endregion
 

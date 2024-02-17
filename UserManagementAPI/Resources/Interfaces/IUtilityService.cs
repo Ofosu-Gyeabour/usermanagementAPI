@@ -41,5 +41,6 @@ namespace UserManagementAPI.Resources.Interfaces
 
         Task<DefaultAPIResponse> createRecordAsync(clsShippingOrder payLoad);
 
+        Task<XeroAPIResponse> createXeroInvoiceAsync(clsXeroInvoice payLoad);
     }
 }

@@ -1,6 +1,7 @@
 ﻿#nullable disable
 using Newtonsoft.Json.Schema;
-using UserManagementAPI.Data;
+using UserManagementAPI.Response;
+using UserManagementAPI.utils;
 
 namespace UserManagementAPI.POCOs
 {
@@ -485,6 +486,8 @@ namespace UserManagementAPI.POCOs
                         xresult = xresult > calcObj.freightBar1 ? xresult : calcObj.freightBar1;
                     }
 
+                    //do NOT calculate the duty here
+                    /*
                     if (input.cubic == barrelObj.volume)
                         xduty = dutyObj.frgtBar1Duty;
 
@@ -523,6 +526,8 @@ namespace UserManagementAPI.POCOs
                         xduty = decimal.Add(decimal.Multiply(dt1, dt2), dutyObj.frgtBar4Duty);
                         xduty = xduty > dutyObj.frgtBar1Duty ? xduty : dutyObj.frgtBar1Duty;
                     }
+                    */
+                    //end of duty
                 }
 
                 //combining d2d and duty
@@ -532,6 +537,113 @@ namespace UserManagementAPI.POCOs
             catch (Exception ex)
             {
                 throw ex;
+            }
+        }
+
+        public async Task<OrderSummaryDetails> determineFreightRateUSD(decimal gbpFreight)
+        {
+            //TODO: gets the freight rate for USD (from GBP)
+            FxAPIResponse fxData = new FxAPIResponse();
+            OrderSummaryDetails o = new OrderSummaryDetails()
+            {
+                id = 3,
+                key = @"FRT RATE USD"
+            };
+
+            try
+            {
+                Helper helper = new Helper();
+                OrderSummaryDetails chargeKeys = await o.Get();
+
+                //check if record exist in the Db before
+                clsFx fx = new clsFx();
+                var oFx = await fx.Get(DateTime.Now);
+
+                if (oFx == null)
+                {
+                    fxData = await helper.getFxRatesAsync();
+                    chargeKeys.value = fxData.quotes.USDGBP * gbpFreight;
+
+                    //store fx data for future use
+                    var fxObj = new clsFx() { usdgbp = fxData.quotes.USDGBP, usdeur = fxData.quotes.USDEUR, forexDate = DateTime.Now };
+                    await fx.AddToDbAsync(fxObj);
+                }
+                else
+                {
+                    chargeKeys.value = oFx.usdgbp * gbpFreight;
+                }
+
+                return chargeKeys;
+            }
+            catch(Exception x)
+            {
+                throw x;
+            }
+        }
+
+        public async Task<OrderSummaryDetails> determineWifDuty(clsFreightInput input)
+        {
+            //TODO: determines wif duties
+            decimal? xduty = 0m;
+            clsShippingItem barrelObj = null;
+
+            OrderSummaryDetails o = new OrderSummaryDetails()
+            {
+                id = 3,
+                key = @"DUTIES"
+            };
+
+            try
+            {
+                var chargeKeys = await o.Get();
+                barrelObj = await this.getVolumeForBarrelAsync();
+                var dutyObj = await new clsDuty() { }.getDutyRecordAsync();
+
+                if (input.cubic == barrelObj.volume)
+                    xduty = dutyObj.frgtBar1Duty;
+
+                if (input.cubic == decimal.Multiply(barrelObj.volume, 2))
+                    xduty = dutyObj.frgtBar2Duty;
+
+                if (input.cubic == decimal.Multiply(barrelObj.volume, 3))
+                    xduty = dutyObj.frgtBar3Duty;
+
+                if (input.cubic == decimal.Multiply(barrelObj.volume, 4))
+                    xduty = dutyObj.frgtBar4Duty;
+
+                if ((input.cubic > barrelObj.volume) && (input.cubic < decimal.Multiply(barrelObj.volume, 2)))
+                {
+                    xduty = decimal.Multiply(decimal.Divide(dutyObj.frgtBar2Duty, decimal.Multiply(barrelObj.volume, 2)), (decimal)input.cubic);
+                    xduty = xduty > dutyObj.frgtBar1Duty ? xduty : dutyObj.frgtBar1Duty;
+                }
+
+                if ((input.cubic > decimal.Multiply(barrelObj.volume, 2)) && (input.cubic < decimal.Multiply(barrelObj.volume, 3)))
+                {
+                    xduty = decimal.Multiply(decimal.Divide(dutyObj.frgtBar3Duty, decimal.Multiply(barrelObj.volume, 3)), (decimal)input.cubic);
+                    xduty = xduty > dutyObj.frgtBar1Duty ? xduty : dutyObj.frgtBar1Duty;
+                }
+
+                if ((input.cubic > decimal.Multiply(barrelObj.volume, 3)) && (input.cubic < decimal.Multiply(barrelObj.volume, 4)))
+                {
+                    xduty = decimal.Multiply(decimal.Divide(dutyObj.frgtBar4Duty, decimal.Multiply(barrelObj.volume, 3)), (decimal)input.cubic);
+                    xduty = xduty > dutyObj.frgtBar1Duty ? xduty : dutyObj.frgtBar1Duty;
+                }
+
+                if (input.cubic > decimal.Multiply(barrelObj.volume, 4))
+                {
+                    decimal dt1 = decimal.Subtract((decimal)input.cubic, decimal.Multiply(barrelObj.volume, 4));
+                    decimal dt2 = decimal.Divide(dutyObj.frgtBar5Duty, barrelObj.volume);
+
+                    xduty = decimal.Add(decimal.Multiply(dt1, dt2), dutyObj.frgtBar4Duty);
+                    xduty = xduty > dutyObj.frgtBar1Duty ? xduty : dutyObj.frgtBar1Duty;
+                }
+
+                chargeKeys.value = (decimal) xduty;
+                return chargeKeys;
+            }
+            catch(Exception dutyErr)
+            {
+                throw dutyErr;
             }
         }
         public async Task<OrderSummaryDetails> determineFreightBand(clsFreightInput input)

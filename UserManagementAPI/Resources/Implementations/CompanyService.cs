@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.ComponentModel.Design;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Runtime.InteropServices;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -121,43 +122,33 @@ namespace UserManagementAPI.Resources.Implementations
                                   incorporationDate = c.IncorporationDate
                               });
 
-                //iterate
-                if (result != null)
-                {
-                    companyList = new List<CompanyLookup>();
+                var resultQry = await result.ToListAsync().ConfigureAwait(false);
 
-                    foreach (var item in result)
-                    {
-                        var obj = new CompanyLookup()
-                        {
-                            id = item.Id,
-                            nameOfcompany = item.company,
-                            addressOfcompany = item.address,
-                            oCity = new CityLookup()
-                            {
-                                id = item.cityId,
-                                nameOfcity = item.nameOfcity
-                            },
-                            oCountry = new CountryLookup()
-                            {
-                                id = item.countryId,
-                                nameOfcountry = item.nameOfcountry
-                            },
-                            companyLogo = item.companyLogo,
-                            dateOfIncorporation = (DateTime)item.incorporationDate
-                        };
+                companyList = resultQry
+                                    .Select(item => new CompanyLookup()
+                                    {
+                                        id = item.Id,
+                                        nameOfcompany = item.company,
+                                        addressOfcompany = item.address,
+                                        oCity = new CityLookup()
+                                        {
+                                            id = item.cityId,
+                                            nameOfcity = item.nameOfcity
+                                        },
+                                        oCountry = new CountryLookup()
+                                        {
+                                            id = item.countryId,
+                                            nameOfcountry = item.nameOfcountry
+                                        },
+                                        companyLogo = item.companyLogo,
+                                        dateOfIncorporation = (DateTime)item.incorporationDate
+                                    }).ToList();
 
-                        companyList.Add(obj);
-                    }
-
-                    response = new DefaultAPIResponse()
-                    {
-                        status = true,
-                        message = @"success",
-                        data = companyList
-                    };
-                }
-                else { return response = new DefaultAPIResponse() { status = false, message = @"No data" }; }
+                response = new DefaultAPIResponse() { 
+                    status = companyList.Count() > 0 ? true: false,
+                    message = companyList.Count() > 0 ? @"success": @"failed",
+                    data = companyList
+                };
 
                 return response;
             }

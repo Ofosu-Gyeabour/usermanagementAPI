@@ -6,6 +6,12 @@ using UserManagementAPI.Resources.Interfaces;
 using UserManagementAPI.utils;
 using System.Reflection.Metadata.Ecma335;
 
+using Xero.NetStandard.OAuth2.Api;
+using Xero.NetStandard.OAuth2.Client;
+using Xero.NetStandard.OAuth2.Config;
+using Xero.NetStandard.OAuth2.Model.Accounting;
+using System.Runtime.InteropServices;
+
 namespace UserManagementAPI.Resources.Implementations
 {
     public class UtilityService : IUtilityService
@@ -539,33 +545,51 @@ namespace UserManagementAPI.Resources.Implementations
                 var objFreight = new clsFreight() { cubic = payLoad.cubic};
 
                 var freightParams = await objFreight.determineFreightBand(payLoad);
+                var freightUSD = await objFreight.determineFreightRateUSD(freightParams.value);
+
                 var CnD = await objFreight.determineClearanceAndDelivery(payLoad);
 
-                var jTS = await objFreight.determineJTSClearanceAndDelivery(payLoad);
-
-                results.Add(freightParams);
-                results.Add(CnD);
-
-                if (jTS != null)
+                if(payLoad.deliveryMethodId == 9)
                 {
-                    OrderSummaryDetails jcd = new OrderSummaryDetails()
+                    //door to door and duty paid
+                    var wifDuty = await objFreight.determineWifDuty(payLoad);
+                    if (wifDuty != null)
                     {
-                        id = 31,
-                        key = @"jTS",
-                        value = (decimal) jTS.jtscd
-                    };
-
-                    OrderSummaryDetails jdt = new OrderSummaryDetails()
-                    {
-                        id = 32,
-                        key = @"jTSDuty",
-                        value = (decimal)jTS.jtsduty
-                    };
-
-                    results.Add(jcd);
-                    results.Add(jdt);
+                        results.Add(wifDuty);
+                    }
                 }
 
+                CountryLookup countryObj = await new CountryLookup() { }.Get(payLoad.oCountry.id);
+                if (countryObj.nameOfcountry == @"JAMAICA")
+                {
+                    var jTS = await objFreight.determineJTSClearanceAndDelivery(payLoad);
+                    if (jTS != null)
+                    {
+                        OrderSummaryDetails jcd = new OrderSummaryDetails()
+                        {
+                            id = 31,
+                            key = @"jTS",
+                            value = (decimal)jTS.jtscd
+                        };
+
+                        OrderSummaryDetails jdt = new OrderSummaryDetails()
+                        {
+                            id = 32,
+                            key = @"jTSDuty",
+                            value = (decimal)jTS.jtsduty
+                        };
+
+                        results.Add(jcd);
+                        results.Add(jdt);
+                    }
+                }
+                
+
+                results.Add(freightParams);
+                results.Add(freightUSD);
+                results.Add(CnD);
+
+                
                 return response = new DefaultAPIResponse()
                 {
                     status = true,
@@ -627,6 +651,24 @@ namespace UserManagementAPI.Resources.Implementations
                     }                   
                 }
 
+                CountryLookup countryObj = await new CountryLookup() { }.Get(payLoad.destinationCountry);
+                if (countryObj.nameOfcountry == @"JAMAICA")
+                {
+                    //compute jts earnings and jts duties
+                    clsShippingOrderCommission commissionObj = new clsShippingOrderCommission() { 
+                        shippingOrderId = payLoad.oShipping.shippingOrderId,
+                        wifduty = payLoad.wifduty,
+                        jtsduty = payLoad.jtsduty,
+                        dutyEarnings = (decimal) (payLoad.wifduty - payLoad.jtsduty),
+                        wifcd = payLoad.wifcd,
+                        jtscd = payLoad.jtsearning,
+                        earningsOnCnD = (payLoad.wifcd - payLoad.jtsearning),
+                        cubicPerMeter = payLoad.cubic
+                    };
+
+                    bool bln = await helper.saveShippingOrderCommmissionAsync(commissionObj);
+                }
+
                 return response = new DefaultAPIResponse()
                 {
                     status = opStatus != string.Empty ? true: false,
@@ -640,6 +682,86 @@ namespace UserManagementAPI.Resources.Implementations
                 {
                     status = false,
                     message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<XeroAPIResponse> createXeroInvoiceAsync(clsXeroInvoice payLoad)
+        {
+            //TODO: creates an invoice for the xero accounting package
+            XeroAPIResponse r = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                //r = await helper.CreateInvoiceAsync(payLoad);
+
+                var xDbParams = await helper.getXeroConfigAsync();
+
+                XeroConfiguration xconfig = new XeroConfiguration() {
+                    ClientId = xDbParams.ClientId,
+                    ClientSecret = xDbParams.ClientSecret,
+                    CallbackUri = new Uri(xDbParams.ReDirectUri),
+                    Scope = xDbParams.Scopes
+                };
+
+                var client = new XeroClient(xconfig);
+                //await client.RequestClientCredentialsTokenAsync(false);
+
+                //await client.RefreshAccessTokenAsync(XeroConfigObject.REFRESH_TOKEN);
+
+                //get all invoices first using the sdk
+                //create contact
+                var contact = new Contact() { 
+                    ContactID = new Guid(payLoad.Contact.ContactID)
+                };
+
+                //create line item list
+                List<LineItem> lines = new List<LineItem>();
+                foreach(var pl in payLoad.LineItems)
+                {
+                    lines.Add(new LineItem()
+                    {
+                        Description = pl.Description,
+                        Quantity = pl.Quantity,
+                        UnitAmount = pl.UnitAmount,
+                        AccountCode = pl.AccountCode
+                    });
+                }
+
+                //create invoice
+                var invoice = new Invoice()
+                {
+                    Type = payLoad.Type == @"ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY,
+                    Contact = contact,
+                    Date = payLoad.Date,
+                    DueDate = payLoad.DueDate,
+                    LineItems = lines
+                };
+
+                //create invoice list
+                var invoiceList = new List<Invoice>();
+                invoiceList.Add(invoice);
+
+                var invoices = new Invoices();
+                invoices._Invoices = invoiceList;
+
+                var accountingApi = new AccountingApi();
+                //var response = await accountingApi.GetInvoicesAsync(XeroConfigObject.ACCESS_TOKEN, XeroConfigObject.XERO_TENANT_ID);
+
+                //create invoice in xero accounting app
+                var response = await accountingApi.CreateInvoicesAsync(xDbParams.AccessToken, xDbParams.XeroTenantId, invoices);
+
+                return r = new XeroAPIResponse() { 
+                    Message = @"Ok"
+                };
+            }
+            catch(Exception x)
+            {
+                return r = new XeroAPIResponse()
+                {
+                    Status = @"Error",
+                    Message = $"error: {x.Message}"
                 };
             }
         }

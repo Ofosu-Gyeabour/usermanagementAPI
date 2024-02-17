@@ -17,6 +17,55 @@ namespace UserManagementAPI.POCOs
         public RegionLookup oRegion { get; set; }
         public string nameOfcountry { get; set; } = string.Empty;
         public string codeOfcountry { get; set; } = string.Empty;
+
+        #region methods
+
+        public async Task<CountryLookup> Get(int id)
+        {
+            //TODO: gets a country lookup using the record's ID
+            CountryLookup obj = null;
+
+            try
+            {
+                var config = new swContext();
+                using (config)
+                {
+                    var o = await config.TCountryLookups.Where(c => c.CountryId == id).FirstOrDefaultAsync();
+                    obj = o != null ? new CountryLookup() { id = o.CountryId, nameOfcountry = o.CountryName } : null;
+                }
+
+                return obj;
+            }
+            catch(Exception ex)
+            {
+                return obj;
+            }
+        }
+
+        public async Task<CountryLookup> Get(string country)
+        {
+            //TODO: gets a country record using the record's name
+            CountryLookup obj = null;
+
+            try
+            {
+                var config = new swContext();
+                using (config)
+                {
+                    var o = await config.TCountryLookups.Where(c => c.CountryName == country).FirstOrDefaultAsync();
+                    obj = o != null ? new CountryLookup() { id = o.CountryId, nameOfcountry = o.CountryName } : null;
+                }
+
+                return obj;
+            }
+            catch(Exception ex)
+            {
+                return obj;
+            }
+        }
+
+        #endregion
+
     }
 
     public class RegionLookup

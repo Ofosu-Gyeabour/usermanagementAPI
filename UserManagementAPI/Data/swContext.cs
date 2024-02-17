@@ -70,6 +70,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TDepartment> TDepartments { get; set; } = null!;
         public virtual DbSet<TDialCode> TDialCodes { get; set; } = null!;
         public virtual DbSet<TEvent> TEvents { get; set; } = null!;
+        public virtual DbSet<TFx> TFxes { get; set; } = null!;
         public virtual DbSet<TInsurance> TInsurances { get; set; } = null!;
         public virtual DbSet<TLogger> TLoggers { get; set; } = null!;
         public virtual DbSet<TModule> TModules { get; set; } = null!;
@@ -110,6 +111,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TTitle> TTitles { get; set; } = null!;
         public virtual DbSet<TUsrDetail> TUsrDetails { get; set; } = null!;
         public virtual DbSet<TVessel> TVessels { get; set; } = null!;
+        public virtual DbSet<TXeroConfig> TXeroConfigs { get; set; } = null!;
         public virtual DbSet<TZone> TZones { get; set; } = null!;
         public virtual DbSet<Tbranch> Tbranches { get; set; } = null!;
         public virtual DbSet<Tclientreferralsource> Tclientreferralsources { get; set; } = null!;
@@ -133,13 +135,12 @@ namespace UserManagementAPI.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(utils.ConfigObject.DB_CONN);
+                optionsBuilder.UseSqlServer(utils.ConfigObject.LOCAL_CONN);
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
             #region stored procedure
 
             modelBuilder.Entity<pShippingOrder>(entity => entity.HasNoKey());
@@ -1292,6 +1293,16 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TD2djamaicaDeliveries)
                     .HasForeignKey(d => d.DeliveryMethodId)
                     .HasConstraintName("FK_tD2DJamaicaDelivery_tDeliveryMethod");
+
+                entity.HasOne(d => d.PIdNavigation)
+                    .WithMany(p => p.TD2djamaicaDeliveries)
+                    .HasForeignKey(d => d.PId)
+                    .HasConstraintName("FK_tD2DJamaicaDelivery_tParish");
+
+                entity.HasOne(d => d.Zone)
+                    .WithMany(p => p.TD2djamaicaDeliveries)
+                    .HasForeignKey(d => d.ZoneId)
+                    .HasConstraintName("FK_tD2DJamaicaDelivery_tZone");
             });
 
             modelBuilder.Entity<TD2dukDelivery>(entity =>
@@ -1356,6 +1367,11 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TD2dukDeliveries)
                     .HasForeignKey(d => d.DeliveryMethodId)
                     .HasConstraintName("FK_tD2DUkDelivery_tDeliveryMethod");
+
+                entity.HasOne(d => d.PIdNavigation)
+                    .WithMany(p => p.TD2dukDeliveries)
+                    .HasForeignKey(d => d.PId)
+                    .HasConstraintName("FK_tD2DUkDelivery_tParish");
 
                 entity.HasOne(d => d.Zone)
                     .WithMany(p => p.TD2dukDeliveries)
@@ -1482,7 +1498,7 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.Id).HasComment("primary key for the table");
 
                 entity.Property(e => e.Code)
-                    .HasMaxLength(15)
+                    .HasMaxLength(30)
                     .IsUnicode(false)
                     .HasColumnName("code")
                     .HasComment("the dialling code");
@@ -1507,6 +1523,28 @@ namespace UserManagementAPI.Data
                     .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasColumnName("eventDescription");
+            });
+
+            modelBuilder.Entity<TFx>(entity =>
+            {
+                entity.ToTable("tFx");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.FxDate)
+                    .HasColumnType("date")
+                    .HasColumnName("fxDate")
+                    .HasComment("valid date for fx");
+
+                entity.Property(e => e.Usdeur)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("usdeur")
+                    .HasComment("USDEUR pair");
+
+                entity.Property(e => e.Usdgbp)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("usdgbp")
+                    .HasComment("USDGBP pair");
             });
 
             modelBuilder.Entity<TInsurance>(entity =>
@@ -2827,6 +2865,48 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TVessels)
                     .HasForeignKey(d => d.ShippingLineId)
                     .HasConstraintName("FK_tVessel_tShippingLine");
+            });
+
+            modelBuilder.Entity<TXeroConfig>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToTable("tXeroConfig");
+
+                entity.Property(e => e.AccessToken)
+                    .IsUnicode(false)
+                    .HasColumnName("access_token");
+
+                entity.Property(e => e.ClientId)
+                    .HasMaxLength(300)
+                    .IsUnicode(false)
+                    .HasColumnName("client_id");
+
+                entity.Property(e => e.ClientSecret)
+                    .HasMaxLength(300)
+                    .IsUnicode(false)
+                    .HasColumnName("client_secret");
+
+                entity.Property(e => e.ReDirectUri)
+                    .HasMaxLength(60)
+                    .IsUnicode(false)
+                    .HasColumnName("re_directURI");
+
+                entity.Property(e => e.RefreshToken)
+                    .HasMaxLength(300)
+                    .IsUnicode(false)
+                    .HasColumnName("refresh_token");
+
+                entity.Property(e => e.Scopes)
+                    .IsUnicode(false)
+                    .HasColumnName("scopes");
+
+                entity.Property(e => e.State).HasColumnName("state");
+
+                entity.Property(e => e.XeroTenantId)
+                    .HasMaxLength(30)
+                    .IsUnicode(false)
+                    .HasColumnName("xero_tenant_id");
             });
 
             modelBuilder.Entity<TZone>(entity =>
