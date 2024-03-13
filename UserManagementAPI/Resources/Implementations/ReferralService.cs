@@ -5,6 +5,7 @@ using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using System.Diagnostics;
 using System.ComponentModel.Design;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {

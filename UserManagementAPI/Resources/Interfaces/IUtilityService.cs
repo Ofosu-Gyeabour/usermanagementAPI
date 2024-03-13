@@ -41,6 +41,15 @@ namespace UserManagementAPI.Resources.Interfaces
 
         Task<DefaultAPIResponse> createRecordAsync(clsShippingOrder payLoad);
 
-        Task<XeroAPIResponse> createXeroInvoiceAsync(clsXeroInvoice payLoad);
+        Task<DefaultAPIResponse> createRateOfExchangeAsync(clsROE payLoad);
+        Task<PaginationAPIResponse> ListRateOfExchangeAsync(int page, int pageSize);
+
+        Task<DefaultAPIResponse> GetAppropriateMonths(int YR);
+
+        Task<UploadAPIResponse> UploadRateOfExchange(IEnumerable<clsROE> payLoad);
+
+        Task<PaginationAPIResponse> GetShipmentReportAsync(DateTime df, DateTime dt, int page, int pageSize);
+
+        Task<DefaultAPIResponse> GetCollectionAndDelivery(DateTime df, DateTime dt);
     }
 }

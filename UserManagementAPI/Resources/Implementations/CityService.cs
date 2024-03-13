@@ -6,6 +6,7 @@ using UserManagementAPI.POCOs;
 using UserManagementAPI.utils;
 using System.Xml.Linq;
 using System.Diagnostics;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -23,13 +24,11 @@ namespace UserManagementAPI.Resources.Implementations
         public async Task<PaginationAPIResponse> GetCitiesAsync(int page, int pageSize)
         {
             PaginationAPIResponse response = null;
-            List<CityLookup> data = new List<CityLookup>();
 
             try
             {
                 Helper helper = new Helper();
                 var dt = await helper.getActiveCitiesAsync();
-                data = dt.ToList();
 
                 //paginating data
                 var totalCount = dt.Count();

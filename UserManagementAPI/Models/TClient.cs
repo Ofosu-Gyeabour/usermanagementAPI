@@ -38,6 +38,7 @@ namespace UserManagementAPI.Models
         public string? ClientPassword { get; set; }
         public bool? CanLogin { get; set; }
         public int? ConsolidatorId { get; set; }
+        public string? XeroContactId { get; set; }
 
         public virtual Tcompany? AssociatedCompany { get; set; }
         public virtual TChannelType? ChannelType { get; set; }

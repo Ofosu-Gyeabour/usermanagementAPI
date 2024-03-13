@@ -4,7 +4,10 @@ C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Ou
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\UserManagementAPI.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\UserManagementAPI.runtimeconfig.json
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\UserManagementAPI.pdb
+C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\KellermanSoftware.Compare-NET-Objects.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Humanizer.dll
+C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\IdentityModel.dll
+C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\JsonSubTypes.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Microsoft.Data.SqlClient.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Microsoft.EntityFrameworkCore.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Microsoft.EntityFrameworkCore.Abstractions.dll
@@ -21,6 +24,7 @@ C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Ou
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Microsoft.OpenApi.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Microsoft.Win32.SystemEvents.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Newtonsoft.Json.dll
+C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\RestSharp.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Swashbuckle.AspNetCore.Swagger.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Swashbuckle.AspNetCore.SwaggerUI.dll
@@ -30,7 +34,11 @@ C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Ou
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\System.Runtime.Caching.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\System.Security.Cryptography.ProtectedData.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\System.Security.Permissions.dll
+C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\System.Text.Encodings.Web.dll
+C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\System.Text.Json.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\System.Windows.Extensions.dll
+C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Xero.NetStandard.OAuth2.dll
+C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\Xero.NetStandard.OAuth2Client.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\runtimes\unix\lib\netcoreapp3.1\Microsoft.Data.SqlClient.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\netcoreapp3.1\Microsoft.Data.SqlClient.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\runtimes\win-arm\native\Microsoft.Data.SqlClient.SNI.dll
@@ -40,5 +48,6 @@ C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Ou
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\net6.0\Microsoft.Win32.SystemEvents.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\netstandard2.0\System.Runtime.Caching.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\netstandard2.0\System.Security.Cryptography.ProtectedData.dll
+C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\runtimes\browser\lib\net6.0\System.Text.Encodings.Web.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\netcoreapp3.0\System.Windows.Extensions.dll
 C:\Users\Nana\Projects\usrMgmtAPI\UserManagementAPI\obj\Release\net6.0\PubTmp\Out\UserManagementAPI.deps.json

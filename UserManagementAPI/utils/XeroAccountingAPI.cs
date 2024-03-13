@@ -8,6 +8,8 @@ namespace UserManagementAPI.utils
         public string contacts { get; set; } = string.Empty;
         public string invoices { get; set; } = string.Empty;
         public string refresh { get; set; } = string.Empty;
+        public string connections { get; set; } = string.Empty;
+        public string xeroTenantID { get; set; } = string.Empty;
     }
 
     public class XeroConfigObject
@@ -17,5 +19,7 @@ namespace UserManagementAPI.utils
         public static string CONTACT { get; set; }
         public static string INVOICE { get; set; }
         public static string REFRESH_T { get; set; }
+        public static string CONNECTIONS { get; set; }
+        public static string XERO_TENANT { get; set; }
     }
 }

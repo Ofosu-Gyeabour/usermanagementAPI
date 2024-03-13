@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using UserManagementAPI.Models;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Resources.Interfaces;
 using UserManagementAPI.Response;

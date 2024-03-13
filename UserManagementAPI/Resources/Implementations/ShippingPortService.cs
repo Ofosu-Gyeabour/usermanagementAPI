@@ -5,6 +5,7 @@ using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
 using System.Diagnostics;
 using UserManagementAPI.utils;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -258,6 +259,38 @@ namespace UserManagementAPI.Resources.Implementations
             catch(Exception x)
             {
                 return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<PaginationAPIResponse> GetShippingPortPageAsync(int page, int pageSize)
+        {
+            //TODO: gets shipping port and paginate it
+            PaginationAPIResponse response = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var portRecords = await helper.getPortAsync();
+
+                var totalCount = portRecords.Count();
+                var totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
+
+                response = new PaginationAPIResponse() {
+                    status = totalCount > 0 ? true : false,
+                    message = totalCount > 0 ? $"Page {page} out of {totalPages}" : @"failed",
+                    data = portRecords.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
+                    total = totalCount
+                };
+
+                return response;
+            }
+            catch(Exception x)
+            {
+                return response = new PaginationAPIResponse()
                 {
                     status = false,
                     message = $"error: {x.Message}"

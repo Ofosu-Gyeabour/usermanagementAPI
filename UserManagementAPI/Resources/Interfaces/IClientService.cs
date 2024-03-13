@@ -16,7 +16,7 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<PagedResponseAPI> PaginationTestAsync(int pageNumber, int pageSize);
 
         Task<DefaultAPIResponse> GetGenericCustomerListAsync(SearchParam param);
-
+        Task<GenericCustomerLookup> GetGenericCustomer(string acctParam);
         Task<DefaultAPIResponse> GetClientRecordAsync(SearchParam param);
 
         Task<DefaultAPIResponse> SaveCorporateClientRecordAsync(CorporateCustomerLookup payLoad);

@@ -8,6 +8,7 @@ using UserManagementAPI.utils;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.ComponentModel.DataAnnotations;
 using UserManagementAPI.Procs;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {

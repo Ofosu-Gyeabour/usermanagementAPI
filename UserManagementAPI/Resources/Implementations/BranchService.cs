@@ -6,6 +6,7 @@ using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore.Storage;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {

@@ -4,6 +4,7 @@ using UserManagementAPI.Resources.Implementations;
 using UserManagementAPI.Resources.Interfaces;
 using UserManagementAPI.Response;
 using UserManagementAPI.POCOs;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {

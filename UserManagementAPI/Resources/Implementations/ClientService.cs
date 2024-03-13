@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using System.Runtime.InteropServices;
 using System.Transactions;
 using UserManagementAPI.utils;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -217,6 +218,89 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<GenericCustomerLookup> GetGenericCustomer(string acctParam)
+        {
+            //gets a unique customer whose account number is the param passed
+            GenericCustomerLookup obj = null;
+
+            try
+            {
+                var genericQuery = (from tc in config.TClients
+                                    join ct in config.TClientTypes on tc.ClientTypeId equals ct.Id
+                                    join tca in config.TClientAddresses on tc.Id equals tca.ClientId
+                                    join cty in config.TCities on tc.ClientCityId equals cty.Id
+
+                                    join cnt in config.TCountryLookups on tc.ClientCountryId equals cnt.CountryId   //added
+                                    join rf in config.Tclientreferralsources on tc.ReferralId equals rf.Id
+
+                                    where tc.ClientAccNo == acctParam
+
+                                    select new
+                                    {
+                                        uniqueID = tc.Id,
+                                        clientTypeId = tc.ClientTypeId,
+                                        clientTypeDescrib = ct.Describ,
+                                        accNo = tc.ClientAccNo,
+                                        nameOrcompany = ct.Id == 1 ? string.Format("{0} {1} {2}", tc.Firstname, tc.Middlenames.Trim(), tc.Surname) : tc.ClientBusinessName,
+                                        postCode = tc.ClientPostCode,
+                                        mobileNo = tc.MobileNo == null ? string.Empty : tc.MobileNo,
+                                        whatsappNo = tc.WhatsappNo == null ? string.Empty : tc.WhatsappNo,
+                                        address = string.Format("{0} {1} {2} {3}", tca.ClientAddr1, tca.ClientAddr2, tca.ClientAddr3, tca.ClientAddr4),
+                                        email = tc.ClientEmailAddr == null ? string.Empty : tc.ClientEmailAddr,
+                                        cityid = cty.Id,
+                                        cityName = cty.CityName,
+
+                                        //added country
+                                        countryId = tc.ClientCountryId,
+                                        countryName = cnt.CountryName,
+                                        referralId = tc.ReferralId,
+                                        nameOfreferral = rf.ReferralSource
+                                    });
+
+                var accountCriteriaList = await genericQuery.ToListAsync().ConfigureAwait(false);
+
+                obj = accountCriteriaList
+                                .Select(q => new GenericCustomerLookup()
+                                {
+                                    id = q.uniqueID,
+                                    accountNo = q.accNo,
+                                    oClientType = new ClientTypeLookup()
+                                    {
+                                        id = (int)q.clientTypeId,
+                                        clientTypeDescrib = q.clientTypeDescrib
+                                    },
+                                    nameOrcompany = q.nameOrcompany,
+                                    postCode = q.postCode,
+                                    address = q.address,
+                                    mobileNo = q.mobileNo,
+                                    whatsappNo = q.whatsappNo,
+                                    emailAddress = q.email,
+
+                                    oCity = new CityLookup()
+                                    {
+                                        id = q.cityid,
+                                        nameOfcity = q.cityName
+                                    },
+
+                                    oCountry = new CountryLookup()
+                                    {
+                                        id = (int)q.countryId,
+                                        nameOfcountry = q.countryName
+                                    },
+                                    oReferral = new ReferralLookup()
+                                    {
+                                        id = (int)q.referralId,
+                                        sourceOfReferral = q.nameOfreferral
+                                    }
+                                }).FirstOrDefault();
+
+                return obj;
+            }
+            catch(Exception x)
+            {
+                return obj;
+            }
+        }
         public async Task<DefaultAPIResponse> GetGenericCustomerListAsync(SearchParam param)
         {
             //gets a generic customer for a snap lookup

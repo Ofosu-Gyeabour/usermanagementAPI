@@ -13,6 +13,8 @@ using System.Net;
 using System.Net.Http;
 using Newtonsoft.Json;
 using UserManagementAPI.Procs;
+using Xero.NetStandard.OAuth2.Model.Accounting;
+using System.Drawing.Printing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +66,8 @@ builder.Services.AddSingleton<ISalesService, SalesService>();
 builder.Services.AddSingleton<IUtilityService, UtilityService>();
 builder.Services.AddSingleton<IConsolidatorService, ConsolidatorService>();
 builder.Services.AddSingleton<IDataService, DataService>();
+builder.Services.AddSingleton<IXeroService, XeroService>();
+builder.Services.AddSingleton<IVehicleService, VehicleService>();
 
 #endregion
 
@@ -136,6 +140,8 @@ XeroConfigObject.CONTENT_TYPE = XeroAPISettings.ContentType;
 XeroConfigObject.CONTACT = XeroAPISettings.contacts;
 XeroConfigObject.INVOICE = XeroAPISettings.invoices;
 XeroConfigObject.REFRESH_T = XeroAPISettings.refresh;
+XeroConfigObject.CONNECTIONS = XeroAPISettings.connections;
+XeroConfigObject.XERO_TENANT = XeroAPISettings.xeroTenantID;
 
 #endregion
 
@@ -425,6 +431,8 @@ app.MapPost("/User/GetUser/Role", async Task<IResult> (IUserService service, Sys
 }).WithTags("Users");
 app.MapPut("/User/ChangePassword", async (UserInfo oUserInfo, IUserService service) => await ChangePasswordAsync(oUserInfo, service)).WithTags("Authentication");
 
+
+
 #endregion
 
 #region Log-routes
@@ -582,6 +590,25 @@ app.MapPost("/Branch/Upload", async (List<BranchLookup> branchList, IBranchServi
 #region Title - routes
 
 app.MapGet("/Title/Get", async (ITitleService service) => await GetTitlesAsync(service)).WithTags("Titles");
+app.MapGet("/Title/List", async (ITitleService service, int pageNumber, int pageSize) =>
+{
+    if (pageNumber < 1)
+        return Results.BadRequest("Page number cannot be less than or equal to zero(0)");
+
+    if (pageSize < 1)
+        return Results.BadRequest("Page Size cannot be less than or equal to zero(0)");
+
+    try
+    {
+        var titleData = await service.ListTitlesAsync(pageNumber, pageSize);
+        return Results.Ok(titleData);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("Titles");
+
 app.MapPost("/Title/Create", async (TitleLookup oTitle, ITitleService service) => await CreateTitleAsync(oTitle, service)).WithTags("Titles");
 app.MapPost("/Title/Upload", async (List<TitleLookup> titleList, ITitleService service) => await UploadTitleDataAsync(titleList, service)).WithTags("Titles");
 #endregion
@@ -615,6 +642,25 @@ app.MapPost("/ShippingPort/Get", async Task<IResult> (IShippingPortService servi
 
     var rec = await service.GetShippingPortRecordAsync(payLoad);
     return Results.Ok(rec);
+}).WithTags("Shipping Port");
+
+app.MapGet("/ShippingPort/Paging/List", async Task<IResult> (IShippingPortService service, int pageNumber, int pageSize) =>
+{
+    if (pageNumber < 1)
+        return Results.BadRequest(@"Page number should not be less than or equal to zero(0)");
+
+    if (pageSize < 1)
+        return Results.BadRequest(@"PageSize should not be less than or equal to zero(0)");
+
+    try
+    {
+        var shippingPortList = await service.GetShippingPortPageAsync(pageNumber, pageSize);
+        return Results.Ok(shippingPortList);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
 }).WithTags("Shipping Port");
 
 #endregion
@@ -1641,6 +1687,25 @@ async Task<IResult> GetDialAllDialCodesAsync(IDialCodeService service)
         return Results.BadRequest(x);
     }
 }
+
+app.MapGet("/DialCode/Page/List", async Task<IResult> (IDialCodeService service, int pageNumber, int pageSize) =>
+{
+    if (pageNumber < 0)
+        return Results.BadRequest(@"Page number cannot be less than or equal to zero (0)");
+
+    if (pageSize < 0)
+        return Results.BadRequest(@"Page size cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var dialcodeList = await service.GetDialCodesListAsync(pageNumber, pageSize);
+        return Results.Ok(dialcodeList);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Dial Codes");
 
 #endregion
 
@@ -3256,6 +3321,52 @@ app.MapPost("/ShippingOrder/Create", async Task<IResult> (IUtilityService servic
     try
     {
         var recordStatus = await service.createRecordAsync(payLoad);
+
+        //check if customer exists in xero (using customerId)
+        //if he doesn't add customer
+        //check if isInvoiced was ticked: if it was send invoice to xero
+        if (recordStatus.status)
+        {
+            Helper helper = new Helper();
+            var xero_record = await helper.getClientXeroRecordAsync(payLoad.oShipping.customerId);
+
+            if ((xero_record.xero_contact_id == string.Empty) && (xero_record.acctNo.Length > 0))
+            {
+                //not a xero client. 
+                //get client data
+                //send to xero
+                IClientService iclient = new ClientService();
+                var rsp = await iclient.GetGenericCustomer(xero_record.acctNo);
+
+                if (rsp != null)
+                {
+                    IXeroService xeroservice = new XeroService();
+
+                    var xcnt = new clsXeroContact()
+                    {
+                           Name = rsp.nameOrcompany,
+                           AccountNumber = rsp.accountNo,
+                           BusinessName = rsp.nameOrcompany,
+                           EmailAddress = rsp.emailAddress,
+                           AddressLine1 = rsp.address,
+                           City = rsp.oCity.nameOfcity != null ? rsp.oCity.nameOfcity: string.Empty,
+                           Country  = rsp.oCountry.nameOfcountry != null ? rsp.oCountry.nameOfcountry: string.Empty,
+                           PostalCode = rsp.postCode,
+                           mobileNo = rsp.mobileNo,
+                           whatsappNo = rsp.whatsappNo,
+                           workTelephone = rsp.whatsappNo,
+                           ContactPersons = new List<contactPerson>() { },
+                           DefaultCurrency = @"GBP"
+                    };
+
+                    var checkXero = await xeroservice.CreateContactSDKAsync(xcnt);
+                    if (checkXero.Status == @"Ok")
+                    {
+                        bool b = await new Helper() { }.updateClientWithXeroContactID(checkXero.Message, xcnt.AccountNumber);
+                    }                   
+                }                                  
+            }
+        }
         return Results.Ok(recordStatus);
     }
     catch(Exception x)
@@ -3289,7 +3400,7 @@ app.MapPost("/Data/Company/ShippingOrder", async Task<IResult> (IDataService ser
 
 #region Xero
 
-app.MapPost("/Xero/Invoice/Create", async Task<IResult> (IUtilityService service, clsXeroInvoice payLoad) =>
+app.MapPost("/Xero/Invoice/Create", async Task<IResult> (IXeroService service, clsXeroInvoice payLoad) =>
 {
     if (payLoad.Contact.ContactID.Length < 1)
         return Results.BadRequest(@"Length of Contact Id cannot be less or equal to zero (0)");
@@ -3305,6 +3416,311 @@ app.MapPost("/Xero/Invoice/Create", async Task<IResult> (IUtilityService service
     }
 }).WithTags("Xero");
 
+app.MapPost("/Xero/Contact/Create", async Task<IResult> (IXeroService service, clsXeroContact payLoad) =>
+{
+    try
+    {
+        var opResults = await service.CreateContactAsync(payLoad);
+        return Results.Ok(opResults);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Xero");
+
+app.MapPost("/Xero/Contact/SDK/Create", async Task<IResult> (IXeroService service, clsXeroContact payLoad) =>
+{
+    try
+    {
+        var opResults = await service.CreateContactSDKAsync(payLoad);
+        if (opResults.Status == @"Ok")
+        {
+            var list = new List<Contacts>();
+            var contact_ID = opResults.Message;
+            var accNo = payLoad.AccountNumber;
+
+            bool b = await new Helper() { }.updateClientWithXeroContactID(contact_ID, accNo);
+        }
+        return Results.Ok(opResults);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Xero");
+
+#endregion
+
+#region Vehicle Endpoints
+
+app.MapGet("/user/getdriver/unassigned", async Task<IResult> (IVehicleService service, int pageNumber, int pageSize) =>
+{
+
+    if (pageNumber < 1)
+        return Results.BadRequest(@"Page number cannot be less than or equal to zero (0)");
+
+    if (pageSize < 1)
+        return Results.BadRequest(@"Page size cannot be less than or equal to zero (0)");
+
+    try
+    {
+        PaginationAPIResponse rs = new PaginationAPIResponse();
+        IUserService uservice = new UserService();
+
+        SystemProfile payLoad = new SystemProfile() { companyId = 1, nameOfProfile = @"drv" };
+        var dt = await uservice.GetUserFromRoleAsync(payLoad);
+
+        if (dt.status)
+        {
+            var u_dta = (List<userRecord>)dt.data;
+            rs = await service.GetUnassignedDriversAsync(u_dta, pageNumber, pageSize);
+        }
+
+        return Results.Ok(rs);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+
+}).WithTags("Driver");
+
+app.MapGet("/user/getALLDrivers/Unassigned", async Task<IResult> (IVehicleService service) =>
+{
+    DefaultAPIResponse rs = new DefaultAPIResponse();
+    IUserService uservice = new UserService();
+
+    SystemProfile payLoad = new SystemProfile() { companyId = 1, nameOfProfile = @"drv" };
+    var dt = await uservice.GetUserFromRoleAsync(payLoad);
+
+    if (dt.status)
+    {
+        var u_dta = (List<userRecord>)dt.data;
+        rs = await service.GetALLDriversUnassigned(u_dta);
+    }
+
+    return Results.Ok(rs);
+}).WithTags("Driver");
+
+app.MapGet("/user/getdriver/assigned", async Task<IResult> (IVehicleService service, int pageNumber, int pageSize) =>
+{
+
+    if (pageNumber < 1)
+        return Results.BadRequest(@"Page number cannot be less than or equal to zero (0)");
+
+    if (pageSize < 1)
+        return Results.BadRequest(@"Page size cannot be less than or equal to zero (0)");
+
+    try
+    {
+
+            var rs = await service.GetAssignedDriversAsync(pageNumber, pageSize);
+            return Results.Ok(rs);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+
+}).WithTags("Driver");
+
+app.MapPost("Vehicle/AssignVehicle", async Task<IResult> (IVehicleService service, DriverVehicleRecord payLoad) =>
+{
+    if (payLoad.driveremail.Length < 1)
+        return Results.BadRequest(@"Name of driver cannot be empty");
+
+    if (payLoad.vehicleRegistration.Length < 1)
+        return Results.BadRequest(@"Vehicle registration number cannot be empty");
+
+    try
+    {
+        var opStatus = await service.AssignVehicleToDriverAsync(payLoad);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Vehicle");
+
+app.MapGet("Vehicle/Paging/Unassigned/List", async Task<IResult> (IVehicleService service, int pageNumber, int pageSize) =>
+{
+    //TODO: gets unassigned vehicles
+    if (pageNumber < 1)
+        return Results.BadRequest(@"Page number cannot be less than or equal to zero (0)");
+    if (pageSize < 1)
+        return Results.BadRequest(@"Page size cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var vehicle_data = await service.ListUnassignedVehiclesAsync(pageNumber, pageSize);
+        return Results.Ok(vehicle_data);
+    }
+    catch(Exception e)
+    {
+        return Results.BadRequest(e.Message);
+    }
+}).WithTags("Vehicle");
+
+app.MapGet("Vehicle/Unassigned/Get", async Task<IResult> (IVehicleService service) =>
+{
+    try
+    {
+        var total_vehicle_list = await service.GetUnassignedVehiclesAsync();
+        return Results.Ok(total_vehicle_list);
+    }
+    catch(Exception e)
+    {
+        return Results.BadRequest(e.Message);
+    }
+}).WithTags("Vehicle");
+
+app.MapGet("/Vehicle/Paging/List", async Task<IResult> (IVehicleService service, int pageNumber, int pageSize) =>
+{
+    if (pageNumber < 1)
+        return Results.BadRequest(@"page number cannot be less than or equal to zero (0)");
+
+    if (pageSize < 1)
+        return Results.BadRequest(@"page size cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var vehicleData = await service.ListVehiclesAsync(pageNumber, pageSize);
+        return Results.Ok(vehicleData);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Vehicle");
+
+app.MapPost("/Vehicle/Create", async Task<IResult> (IVehicleService service, clsVehicle payLoad) =>
+{
+    if ((payLoad.registrationNo == null) || (payLoad.registrationNo.Length == 0))
+        return Results.BadRequest(@"Vehicle cannot be saved if registration number is null or empty");
+
+    if ((payLoad.vehicleMake == null) || (payLoad.vehicleMake.Length == 0))
+        return Results.BadRequest(@"Vehicle cannot be saved if vehicle make is null or empty");
+
+    try
+    {
+        var opStatus = await service.SaveVehicleAsync(payLoad);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Vehicle");
+
+app.MapPost("RateOfExchange/Create", async Task<IResult> (IUtilityService service, clsROE payLoad) =>
+{
+    if (payLoad.month.Length < 1)
+        return Results.BadRequest(@"Month must be specified");
+
+    if (payLoad.fx == 0)
+        return Results.BadRequest(@"Forex value must be greater than zero (0)");
+
+    try
+    {
+        var roeOpStatus = await service.createRateOfExchangeAsync(payLoad);
+        return Results.Ok(roeOpStatus);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("RateOfExchange");
+
+app.MapGet("RateOfExchange/Paging/List", async Task<IResult> (IUtilityService service, int pageNumber, int pageSize) =>
+{
+    if (pageNumber < 1)
+        return Results.BadRequest(@"Page number cannot be less than or equal to zero (0)");
+
+    if (pageSize < 1)
+        return Results.BadRequest(@"Page size cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var roeData = await service.ListRateOfExchangeAsync(pageNumber, pageSize);
+        return Results.Ok(roeData);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("RateOfExchange");
+
+app.MapGet("RateOfExchange/GetMonthsNotInputted", async Task<IResult> (IUtilityService service, int YEAR) =>
+{
+    if (YEAR < 1)
+        return Results.BadRequest(@"Year entered should not be less than or equal to zero (0)");
+
+    try
+    {
+        var valid_months = await service.GetAppropriateMonths(YEAR);
+        return Results.Ok(valid_months);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("RateOfExchange");
+
+app.MapPost("RateOfExchange/Upload", async Task<IResult> (IUtilityService service, List<clsROE> payLoad) =>
+{
+    if (payLoad.Count < 1)
+        return Results.BadRequest(@"File can not be empty");
+
+    try
+    {
+        var opStatus = await service.UploadRateOfExchange(payLoad);
+        return Results.Ok(opStatus);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("RateOfExchange");
+
+app.MapGet("ShipmentReport/Paging/List", async Task<IResult> (IUtilityService service, DateTime df, DateTime dt, int pageNumber, int pageSize) =>
+{
+    if (df > dt)
+        return Results.BadRequest(@"Date range selected does not make sense. Please select again");
+
+    if (pageNumber < 1)
+        return Results.BadRequest(@"page number cannot be less than or equal to zero (0)");
+
+    if (pageSize < 1)
+        return Results.BadRequest(@"page size cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var ship_report_data = await service.GetShipmentReportAsync(df, dt, pageNumber, pageSize);
+        return Results.Ok(ship_report_data);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("ShipmentReport");
+
+app.MapGet("CollectionAndDelivery/Get", async Task<IResult> (IUtilityService service, DateTime df, DateTime dt) =>
+{
+    if (df > dt)
+        return Results.BadRequest(@"Ending date cannot be earlier than commencing date for specified date range");
+
+    try
+    {
+        var cnd_data = await service.GetCollectionAndDelivery(df, dt);
+        return Results.Ok(cnd_data);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("CnDs");
 #endregion
 
 #endregion

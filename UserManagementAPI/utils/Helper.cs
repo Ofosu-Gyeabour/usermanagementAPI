@@ -15,11 +15,26 @@ using System.Net.Security;
 using Newtonsoft.Json;
 using UserManagementAPI.Xero;
 using System.Text;
+using System.Text.Json;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
+using Xero.NetStandard.OAuth2.Client;
+using Xero.NetStandard.OAuth2.Config;
+using Xero.NetStandard.OAuth2.Token;
+using Xero.NetStandard.OAuth2.Api;
+using Xero.NetStandard.OAuth2.Model.Accounting;
+using Newtonsoft.Json.Linq;
+using UserManagementAPI.Models;
+
 
 namespace UserManagementAPI.utils
 {
+    public record clientXeroRecord
+    {
+        public int? Id { get; set; }
+        public string? acctNo { get; set; } = string.Empty;
+        public string? xero_contact_id { get; set; } = string.Empty;
+    }
     public record clientCreatedRecord
     {
         public int id { get; set; }
@@ -741,6 +756,44 @@ namespace UserManagementAPI.utils
                 throw ex;
             }
         }
+        public async Task<IEnumerable<ShippingPortRecord>> getPortAsync()
+        {
+            //TODO: gets all the shipping port in the data store
+            List<ShippingPortRecord> list = null;
+
+            try
+            {
+                var q = (from tsp in config.Tshippingports
+                         join cnt in config.TCountryLookups on tsp.CountryId equals cnt.CountryId
+                         select new
+                         {
+                             id = tsp.Id,
+                             portName = tsp.NameOfport,
+                             countryId = tsp.CountryId,
+                             nameOfcountry = cnt.CountryName,
+                             codeOfport = tsp.Portcode,
+                             sailingTime = tsp.TraveltimeInDays
+                         });
+
+                var qList = await q.ToListAsync().ConfigureAwait(false);
+                list = qList
+                           .Select(a => new ShippingPortRecord()
+                           {
+                               id = a.id,
+                               nameOfport = a.portName,
+                               nameOfcountry = a.nameOfcountry,
+                               countryId = (int) a.countryId,
+                               codeOfport = a.codeOfport,
+                               sailingTimeInDays = (int)a.sailingTime
+                           }).ToList();
+
+                return list;
+            }
+            catch(Exception x)
+            {
+                return list;
+            }
+        }
         public async Task<clientCreatedRecord> createIndividualClientRecordAsync(IndividualCustomerLookup record)
         {
             //TODO: creates an individual client record in the data store
@@ -1051,7 +1104,10 @@ namespace UserManagementAPI.utils
                         DropoffrecievedBy = order.dropoffreceivedBy == null ? 10000: order.dropoffreceivedBy,
                         DropoffrecievedDate = order.dropoffreceiveddte == null? DateTime.Now: order.dropoffreceiveddte,
 
-                        WarehouseNote = order.warehouseNote == null ? string.Empty: order.warehouseNote
+                        WarehouseNote = order.warehouseNote == null ? string.Empty: order.warehouseNote,
+
+                        //added later
+                        ParishName = order.nameOfparish.Trim()
 
                     };
 
@@ -1596,6 +1652,38 @@ namespace UserManagementAPI.utils
             }
         }
 
+        public async Task<IEnumerable<TitleLookup>> GetTitlesAsync()
+        {
+            //todo: gets all titles
+            List<TitleLookup> titles = null;
+
+            try
+            {
+                using (config)
+                {
+                    var q = (from t in config.TTitles
+                             where t.Id > 0
+                             select new
+                             {
+                                 id = t.Id,
+                                 titleName = t.Title
+                             });
+
+                    var qList = await q.ToListAsync().ConfigureAwait(false);
+
+                    return titles = qList
+                                       .Select(a => new TitleLookup()
+                                       {
+                                           id = a.id,
+                                           nameOftitle = a.titleName
+                                       }).ToList();
+                }
+            }
+            catch(Exception x)
+            {
+                return titles;
+            }
+        }
         public async Task<UserAPIResponse> authenticateUserAsync(UserInfo usr)
         {
             //TODO: authenticates user against the database
@@ -1644,7 +1732,7 @@ namespace UserManagementAPI.utils
                           {
                               status = qList != null ? true: false,
                               message = qList != null ? @"success": @"An error occured. Please see Administrator",
-                              user = new User()
+                              user = new UserManagementAPI.Response.User()
                               {
                                   id = a.uid,
                                   surname = a.sname,
@@ -1879,30 +1967,90 @@ namespace UserManagementAPI.utils
 
         #region Xero
 
-        public async Task<XeroAPIResponse> CreateInvoiceAsync(clsXeroInvoice payLoad)
+        public async Task<XeroAPIResponse> CreateContactAsync(clsXeroContact payLoad, TXeroConfig xparams)
         {
-            //TODO: post the invoice payload to the xero API
-            XeroAPIResponse rsp = null;
+            //TODO: post the contact to the xero api
+            XeroAPIResponse response = null;
 
             try
             {
-                HttpClient client = new HttpClient() { 
-                    BaseAddress = new Uri(XeroConfigObject.INVOICE)
+                //var xparams = await getXeroConfigAsync();
+                HttpClient client = new HttpClient()
+                {
+                    BaseAddress = new Uri(XeroConfigObject.CONTACT)
                 };
 
                 var content = new StringContent(JsonConvert.SerializeObject(payLoad), Encoding.UTF8, XeroConfigObject.CONTENT_TYPE);
 
-                //adding headers
-                //client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(XeroConfigObject.CONTENT_TYPE));
+                //headers
+                client.DefaultRequestHeaders.Add(@"Authorization", string.Format($"Bearer {xparams.AccessToken}"));
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(XeroConfigObject.CONTENT_TYPE));
+                client.DefaultRequestHeaders.Add(@"Xero-tenant-id", xparams.XeroTenantId);
+
+                var rsp = await client.PostAsync(client.BaseAddress, content);
+                using (rsp)
+                {
+                    rsp.EnsureSuccessStatusCode();
+                    if (rsp.IsSuccessStatusCode)
+                    {
+                        var body = await rsp.Content.ReadAsStringAsync();
+                        response = JsonConvert.DeserializeObject<XeroAPIResponse>(body);
+                    }
+                }
+
+                return response;
+            }
+            catch(Exception x)
+            {
                 
+                return response = new XeroAPIResponse()
+                {
+                    Status = @"error",
+                    Message = $"{x.Message}"
+                };
+            }
+        }
+
+        public async Task<XeroAPIResponse> CreateInvoiceAsync(clsXeroInvoice payLoad)
+        {
+            //TODO: post the invoice payload to the xero API
+            XeroAPIResponse rsp = null;
+            try
+            {
+                Helper helper = new Helper();
+                var obj = await helper.getXeroConfigAsync();
                 
-                client.DefaultRequestHeaders.Add(@"Xero-Tenant-Id", XeroConfigObject.XERO_TENANT_ID);
-                client.DefaultRequestHeaders.Add(@"Authorization", string.Format($"Bearer {XeroConfigObject.ACCESS_TOKEN}"));
-                //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", string.Format($"Bearer {XeroConfigObject.ACCESS_TOKEN}"));
-                //client.DefaultRequestHeaders.Add(@"accept", XeroConfigObject.CONTENT_TYPE);
+                HttpClient client = new HttpClient() { 
+                    BaseAddress = new Uri(XeroConfigObject.INVOICE),
+                    Timeout = TimeSpan.FromSeconds(300)
+                };
+
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(XeroConfigObject.CONTENT_TYPE));
 
-                var response = await client.PostAsync(client.BaseAddress, content);
+                var request = new HttpRequestMessage() { 
+                    Method = System.Net.Http.HttpMethod.Post,
+                    RequestUri = new Uri(XeroConfigObject.INVOICE)
+                };
+
+                var content = new MultipartFormDataContent("form-data");
+                content.Add(new StringContent(string.Format($"Bearer {obj.AccessToken}")), @"Authorization");
+                content.Add(new StringContent(obj.XeroTenantId), @"xero-tenant-id");
+                content.Add(new StringContent(XeroConfigObject.CONTENT_TYPE), "Accept");
+                content.Add(new StringContent(XeroConfigObject.CONTENT_TYPE), "Content-Type");
+
+                request.Content = content;
+                var header = new ContentDispositionHeaderValue("form-data");
+                request.Content.Headers.ContentDisposition = header;
+
+                //var content = new StringContent(JsonConvert.SerializeObject(payLoad), Encoding.UTF8, XeroConfigObject.CONTENT_TYPE);
+
+                //adding headers
+                //client.DefaultRequestHeaders.Add(@"Authorization", string.Format($"Bearer {obj.AccessToken}"));
+                //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(XeroConfigObject.CONTENT_TYPE));
+                //client.DefaultRequestHeaders.Add(@"Xero-tenant-id", obj.XeroTenantId);
+
+                var response = await client.PostAsync(client.BaseAddress, request.Content);
+                //var response = await client.GetAsync(client.BaseAddress);
                 using (response)
                 {
                     response.EnsureSuccessStatusCode();
@@ -1910,6 +2058,7 @@ namespace UserManagementAPI.utils
                     {
                         var responseBody = await response.Content.ReadAsStringAsync();
                         rsp = JsonConvert.DeserializeObject<XeroAPIResponse>(responseBody);
+                        //rconn = JsonConvert.DeserializeObject<XeroAPIConnectionResponse>(responseBody);
                     }
                 }
 
@@ -1925,43 +2074,54 @@ namespace UserManagementAPI.utils
             }
         }
 
-        public async Task<XeroTokenAPIResponse> RefreshTokenAsync(clsRefresh payLoad)
+        public async Task<clsRefresh> RefreshTokenAsync()
         {
             //TODO: refreshes the token to use in accesssing API endpoints
-            XeroTokenAPIResponse r = null;
+            clsRefresh r = null;
 
             try
             {
+                Helper helper = new Helper();
+                var obj = await helper.getXeroConfigAsync();
+
                 HttpClient client = new HttpClient()
                 {
-                    BaseAddress = new Uri(XeroConfigObject.REFRESH_T)
+                    BaseAddress = new Uri(XeroConfigObject.REFRESH_T),
+                    Timeout = TimeSpan.FromSeconds(300),
                 };
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(XeroConfigObject.CONTENT_TYPE));
 
-                var content = new StringContent(JsonConvert.SerializeObject(payLoad), Encoding.UTF8, XeroConfigObject.CONTENT_TYPE);
+                var request = new HttpRequestMessage();
+                request.Method = System.Net.Http.HttpMethod.Post;
+                request.RequestUri = new Uri(XeroConfigObject.REFRESH_T);
 
+                var content = new MultipartFormDataContent("form-data");
+                content.Add(new StringContent("refresh_token"), "grant_type");
+                content.Add(new StringContent(obj.RefreshToken), "refresh_token");
+                content.Add(new StringContent(obj.ClientId), "client_id");
+                content.Add(new StringContent(obj.ClientSecret), "client_secret");
 
-                client.DefaultRequestHeaders.Add("grant_type", XeroConfigObject.REFRESH_TOKEN);
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(XeroConfigObject.CONTENT_TYPE));
+                request.Content = content;
+                var header = new ContentDispositionHeaderValue("form-data");
+                request.Content.Headers.ContentDisposition = header;
 
-                var response = await client.PostAsync(client.BaseAddress, content);
+                var response = await client.PostAsync(client.BaseAddress, request.Content);
                 using (response)
                 {
                     response.EnsureSuccessStatusCode();
                     if (response.IsSuccessStatusCode)
                     {
                         var responseBody = await response.Content.ReadAsStringAsync();
-                        r = JsonConvert.DeserializeObject<XeroTokenAPIResponse>(responseBody);
+                        //JObject json = JObject.Parse(responseBody);
+                        r = JsonConvert.DeserializeObject<clsRefresh>(responseBody);
                     }
                 }
-
+               
                 return r;
             }
             catch (Exception x)
             {
-                return r = new XeroTokenAPIResponse()
-                {
-                    
-                };
+                return r;
             }
         }
 
@@ -1985,7 +2145,7 @@ namespace UserManagementAPI.utils
             }
         }
 
-        public async Task<bool> updateXeroConfigTokens(string accessTok, string refreshTok)
+        public async Task<bool> updateXeroConfigTokensInDb(clsRefresh refO)
         {
             //TODO: updates the access and refresh tokens every 30 minutes
             bool bln = false;
@@ -1993,13 +2153,21 @@ namespace UserManagementAPI.utils
             {
                 using (config)
                 {
-                    var obj = await config.TXeroConfigs.FirstOrDefaultAsync();
-                    obj.AccessToken = accessTok;
-                    obj.RefreshToken = refreshTok;
+                    var obj = await config.TXeroConfigs.Where(c => c.ConfigId == 1).FirstOrDefaultAsync();
 
-                    await config.SaveChangesAsync();
+                    if (obj != null)
+                    {
+                        obj.AccessToken = refO.access_token;
+                        obj.IdToken = refO.id_token;
+                        obj.TokenType = refO.token_type;
+                        obj.RefreshToken = refO.refresh_token;
 
-                    bln = true;
+                        await config.SaveChangesAsync();
+                        bln = true;
+                    }
+
+
+                    return bln;
                 }
 
                 return bln;
@@ -2010,15 +2178,92 @@ namespace UserManagementAPI.utils
             }
         }
 
+        public async Task<bool> updateClientWithXeroContactID(string contactId, string clientAccNo)
+        {
+            //TODO: uses the clientaccno to fetch the client and then updates its xero_contact
+            bool bln = false;
+
+            try
+            {
+                using (config)
+                {
+                    var obj = await config.TClients.Where(c => c.ClientAccNo == clientAccNo).FirstOrDefaultAsync();
+                    if (obj.Id != null)
+                    {
+                        //update the xero_contact_id
+                        obj.XeroContactId = contactId;
+                        await config.SaveChangesAsync();
+
+                        bln = true;
+                    }
+                }
+
+                return bln;
+            }
+            catch(Exception x)
+            {
+                return bln;
+            }
+        }
+
+
+        public async Task<XeroOAuth2Token> GetXeroTokenAsync(XeroConfiguration xeroConfig, TXeroConfig xd)
+        {
+            try
+            {               
+                var xeroToken = GetStoredToken();  // Get our stored xero token 
+                xeroToken.RefreshToken = xd.RefreshToken;
+
+                if (DateTime.UtcNow > xeroToken.ExpiresAtUtc)  // Check if token has expired
+                {
+                    var client = new XeroClient(xeroConfig);
+                    xeroToken = (XeroOAuth2Token)await client.RefreshAccessTokenAsync(xeroToken);
+                                           
+                    StoreToken(xeroToken);   // Update stored token to refreshed token 
+                    //await updateXeroConfigTokensInDb(xeroToken);
+                }
+                return xeroToken;
+            }
+            catch(Exception x)
+            {
+                throw x;
+            }          
+        }
+
+        /// <summary>
+        /// Check if we have a xero token stored, if so, return token. Else return a newly instantiated token
+        /// </summary> 
+        public XeroOAuth2Token GetStoredToken()
+        {
+           
+            // Check if a token has already been generated and stored in our xerotoken.json file
+            if (File.Exists("./xerotoken.json"))
+            {
+                var tokenString = File.ReadAllText("./xerotoken.json");
+                //return JsonSerializer.Deserialize<XeroOAuth2Token>(tokenString);
+                return JsonConvert.DeserializeObject<XeroOAuth2Token>(tokenString);
+            }
+            // If doesn't exist create a new token
+            return new XeroOAuth2Token();
+        }
+
+        /// <summary>
+        /// Write xero token contents to file
+        /// </summary> 
+        public void StoreToken(XeroOAuth2Token xeroToken)
+        {
+            File.WriteAllText("./xerotoken.json", JsonConvert.SerializeObject(xeroToken));
+        }
+
         #endregion
 
 
         #region cities
 
-        public async Task<IEnumerable<CityLookup>> getActiveCitiesAsync()
+        public async Task<IEnumerable<CityRecord>> getActiveCitiesAsync()
         {
             //TODO: get all active cities
-            List<CityLookup> results = new List<CityLookup>();
+            List<CityRecord> results = new List<CityRecord>();
 
             try
             {
@@ -2032,20 +2277,19 @@ namespace UserManagementAPI.utils
                                   {
                                       Id = c.Id, 
                                       CityName = c.CityName,
-                                      CountryName = ct.CountryName
+                                      CountryName = ct.CountryName,
+                                      idCountry = ct.CountryId
                                   });
 
                     var dtaList = await dta.ToListAsync().ConfigureAwait(false);
 
                     results = dtaList
-                                 .Select(a => new CityLookup()
+                                 .Select(a => new CityRecord()
                                  {
                                      id = a.Id,
                                      nameOfcity = a.CityName,
-                                     oCountry = new CountryLookup()
-                                     {
-                                         nameOfcountry = a.CountryName
-                                     }
+                                     nameOfcountry = a.CountryName,
+                                     countryId = a.idCountry
                                  }).ToList();
 
                     return results;
@@ -2060,6 +2304,306 @@ namespace UserManagementAPI.utils
 
         #endregion
 
+        #region Vehicle
 
+        public async Task<bool> CreateVehicleRecordAsync(clsVehicle objVehicle)
+        {
+            //TODO: creates a vehicle record in the database
+            bool bln = false;
+
+            try
+            {
+                using (config)
+                {
+                    TVehiclePool vehiclePool = new TVehiclePool() {
+                        RegNo = objVehicle.registrationNo,
+                        VehicleMake = objVehicle.vehicleMake.Trim(),
+                        IsHired = objVehicle.isHired == @"No" ? false : true,
+                        HiredCompany = objVehicle.hiredCompany != null ? objVehicle.hiredCompany.Trim() : string.Empty,
+                        HiredDate = objVehicle.hiredDate,
+                        InUse = objVehicle.inUse == @"No" ? false: true,
+                        IsAssigned = objVehicle.isAssigned == @"Yes" ? true: false
+                    };
+
+                    await config.AddAsync(vehiclePool);
+                    await config.SaveChangesAsync();
+
+                    objVehicle.Id = vehiclePool.Id;
+                    bln = true;
+                }
+
+                return bln;
+            }
+            catch(Exception x)
+            {
+                return bln;
+            }
+        }
+
+        public async Task<IEnumerable<clsVehicle>> ListVehiclesAsync()
+        {
+            //TODO: gets the list of vehicles in the data store
+            List<clsVehicle> vehicles = new List<clsVehicle>();
+
+            try
+            {
+                var query = (from v in config.TVehiclePools
+                             select new
+                             {
+                                 id = v.Id,
+                                 registrationNo = v.RegNo,
+                                 vehicleMake = v.VehicleMake,
+                                 hiredStatus = v.IsHired,
+                                 hiredCompany = v.HiredCompany,
+                                 hiredDate = v.HiredDate,
+                                 inUseStatus = v.InUse,
+                                 assignedStatus = v.IsAssigned
+                             });
+
+                var queryList = await query.ToListAsync().ConfigureAwait(false);
+
+                vehicles = queryList
+                                .Select(a => new clsVehicle()
+                                {
+                                    Id = a.id,
+                                    registrationNo = a.registrationNo.Trim(),
+                                    vehicleMake = a.vehicleMake.Trim(),
+                                    isHired = a.hiredStatus == true ? @"Yes" : @"No",
+                                    hiredCompany = a.hiredCompany != null ? a.hiredCompany.Trim() : string.Empty,
+                                    hiredDate = a.hiredDate != null ? a.hiredDate : null,
+                                    inUse = a.inUseStatus == true? @"Yes" : @"No",
+                                    isAssigned = a.assignedStatus == true? @"Yes" : @"No"
+                                }).ToList();
+
+                return vehicles;
+            }
+            catch(Exception x)
+            {
+                return vehicles;
+            }
+        }
+
+        public async Task<bool> getDriverAssignmentStatus(userRecord r)
+        {
+            //determines if a user(i.e. a driver) has been assigned a vehicle currently or not
+            bool bln = false;
+
+            try
+            {
+                using (config)
+                {
+                    //check unassigned condition below
+                    var dObj = await config.TDriverAssignments.Where(da => da.DriverId == r.id).Where(i => i.IsAssigned == true).FirstOrDefaultAsync();
+
+                    if(dObj == null)
+                    {
+                        bln = false;
+                    }
+                    else { 
+                        //object exist: assigned
+                        bln = true;  
+                    }
+                }
+
+                return bln;
+            }
+            catch (Exception ex)
+            {
+                Debug.Print(ex.Message);
+                return bln;
+            }
+        }
+
+        public async Task<bool> AssignDriverAsync(string email, int driverID, clsVehicle vehicle)
+        {
+            //TODO: assigns vehicle
+            bool bln = false;
+            
+            try
+            {
+                using (config)
+                {
+                    var transaction = await config.Database.BeginTransactionAsync();
+
+                    try
+                    {
+                        TDriverAssignment tda = new TDriverAssignment()
+                        {
+                            DriverName = email,
+                            DriverId = driverID,
+                            VehicleId = vehicle.Id,
+                            IsAssigned = true,
+                            AssignmentDate = DateTime.Now,
+                            ReturnedToPool = null
+                        };
+
+                        await config.AddAsync(tda);
+                        await config.SaveChangesAsync();
+
+                        var ovPool = await config.TVehiclePools.Where(vp => vp.RegNo == vehicle.registrationNo).FirstOrDefaultAsync();
+                        if (ovPool != null)
+                        {
+                            ovPool.IsAssigned = true;
+
+                            await config.SaveChangesAsync();
+                        }
+
+                        await transaction.CommitAsync();
+                        bln = true;
+                    }
+                    catch(Exception tErr)
+                    {
+                        await transaction.RollbackAsync();
+                        return bln;
+                    }
+                }
+
+                return bln;
+            }
+            catch(Exception x)
+            {
+                return bln;
+            }
+        }
+
+        public async Task<IEnumerable<DriverVehicleRecord>> GetAssignedDriversAsync()
+        {
+            //TODO: gets assigned drivers
+            List<DriverVehicleRecord> result = null;
+
+            try
+            {
+                using (config)
+                {
+                    var q = (from tda in config.TDriverAssignments
+                             join usr in config.Tusrs on tda.DriverId equals usr.UsrId
+                             join vp in config.TVehiclePools on tda.VehicleId equals vp.Id
+                             select new
+                             {
+                                 id = tda.Id,
+                                 driver = tda.DriverName,
+                                 registrationNo = vp.RegNo
+                             });
+
+                    var qList = await q.ToListAsync().ConfigureAwait(false);
+
+                    return result = qList
+                                .Select(a => new DriverVehicleRecord()
+                                {
+                                    id = a.id,
+                                    driveremail = a.driver,
+                                    vehicleRegistration = a.registrationNo
+                                }).ToList();
+                }
+            }
+            catch (Exception e)
+            {
+                return result;
+            }
+        }
+        public async Task<int> getDriverIDAsync(string email)
+        {
+            //TODO: gets the id of a driver using his user name or email address
+            int result = 0;
+
+            try
+            {
+                using (config)
+                {
+                    var o = await config.Tusrs.Where(u => u.Usrname == email).FirstOrDefaultAsync();
+                    result = o != null ? o.UsrId : 0;
+                }
+
+                return result;
+            }
+            catch(Exception ex)
+            {
+                return result;
+            }
+        }
+        #endregion
+
+        public async Task<IEnumerable<DialCodeLookup>> getDialCodesAsync()
+        {
+            //TODO: gets all the dial codes
+            List<DialCodeLookup> results = null;
+
+            try
+            {
+                var query = (from dc in config.TDialCodes
+                             join c in config.TCountryLookups on dc.CountryId equals c.CountryId
+                             select new
+                             {
+                                 Id = dc.Id,
+                                 code = dc.Code,
+                                 countryName = c.CountryName,
+                                 countryId = c.CountryId
+                             });
+
+                var queryList = await query.ToListAsync().ConfigureAwait(false);
+                results = queryList
+                             .Select(q => new DialCodeLookup()
+                             {
+                                 id = q.Id,
+                                 dialCode = q.code.Trim(),
+                                 oCountry = new CountryLookup()
+                                 {
+                                     nameOfcountry = q.countryName,
+                                     id = q.countryId
+                                 }
+                             }).ToList();
+
+                return results;
+            }
+            catch(Exception x)
+            {
+                return results;
+            }
+        }
+
+        public async Task<clientXeroRecord> getClientXeroRecordAsync(int? recordId)
+        {
+            //TODO: gets the client record using the record id
+            clientXeroRecord obj = new clientXeroRecord();
+
+            try
+            {
+                obj = await getXeroContactID(recordId);
+
+                return obj;
+            }
+            catch(Exception x)
+            {
+                return obj;
+            }
+        }
+
+        private async Task<clientXeroRecord> getXeroContactID(int? recordId)
+        {
+            //get the xero contact id for the client
+            var ob = new clientXeroRecord() { Id = recordId };
+
+            string xcontact = string.Empty;
+
+            try
+            {
+                using (config)
+                {
+                    var o = await config.TClients.Where(x => x.Id == recordId).FirstOrDefaultAsync();
+                    if (o != null)
+                    {
+                        ob.xero_contact_id = o.XeroContactId != null ? o.XeroContactId.ToString() : string.Empty;
+                        ob.acctNo = o.ClientAccNo != null ? o.ClientAccNo.Trim() : string.Empty;
+                    }
+                }
+
+                return ob;
+            }
+            catch(Exception x)
+            {
+                return ob;
+            }
+        }
+        
     }
 }

@@ -36,6 +36,7 @@ namespace UserManagementAPI.POCOs
         public DateTime? dropoffreceiveddte { get; set; } = DateTime.Now;
 
         public string warehouseNote { get; set; } = string.Empty;
+        public string nameOfparish { get; set; } = string.Empty;
 
         #region added for jts earnings and duties computation
 

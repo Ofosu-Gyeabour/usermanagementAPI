@@ -39,6 +39,7 @@ namespace UserManagementAPI.POCOs
         public int isLogged { get; set; }
         public int isActive { get; set; }
         public int profileid { get; set; }
+        public string em { get; set; } //email
     }
 
     public class consolUserRecord : userRecord

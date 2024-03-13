@@ -3,6 +3,8 @@
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
+using UserManagementAPI.utils;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -21,48 +23,61 @@ namespace UserManagementAPI.Resources.Implementations
 
             try
             {
-                var query = (from dc in config.TDialCodes
-                             join c in config.TCountryLookups on dc.CountryId equals c.CountryId
-                             select new
-                             {
-                                 Id = dc.Id,
-                                 code = dc.Code,
-                                 countryName = c.CountryName,
-                                 countryId = c.CountryId
-                             });
+                Helper helper = new Helper();
+                var dc = await helper.getDialCodesAsync();
+                dialcodes = dc.ToList();
 
-                if (query != null)
-                {
-                    dialcodes = new List<DialCodeLookup>();
-                    foreach(var q in query)
-                    {
-                        dialcodes.Add(new DialCodeLookup()
-                        {
-                            id = q.Id,
-                            dialCode = q.code,
-                            oCountry = new CountryLookup()
-                            {
-                                nameOfcountry = q.countryName,
-                                id = q.countryId
-                            }
-                        });
-                    }
-
-                    rsp = new DefaultAPIResponse()
-                    {
-                        status = true,
-                        message = @"success",
-                        data = dialcodes
-                    };
-                }
-                else { rsp = new DefaultAPIResponse() { status = false, message = @"No data" }; }
-
-                return rsp;
+                return rsp = new DefaultAPIResponse() { 
+                    status = dialcodes.Count() > 0 ? true: false,
+                    message = dialcodes.Count() > 0 ? @"success": @"failed",
+                    data = dialcodes
+                };
             }
             catch(Exception x)
             {
                 return rsp = new DefaultAPIResponse()
                 {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+        
+        public async Task<PaginationAPIResponse> GetDialCodesListAsync(int page, int pageSize)
+        {
+            PaginationAPIResponse rsp = null;
+            List<DialCodeRecord> dcRecord = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var dc = await helper.getDialCodesAsync();
+
+                dcRecord = dc.
+                             Select(a => new DialCodeRecord()
+                             {
+                                 id = a.id,
+                                 dialCode = a.dialCode.Trim(),
+                                 nameOfcountry = a.oCountry.nameOfcountry,
+                                 countryId = a.oCountry.id
+                             }).ToList();
+
+                var totalCount = dcRecord.Count();
+                var totalPages = (int) Math.Ceiling((decimal) totalCount / pageSize);
+
+                rsp = new PaginationAPIResponse()
+                {
+                    status = dcRecord.Count() > 0 ? true : false,
+                    message = dcRecord.Count() > 0 ? $"Page {page} out of {totalPages}" : @"An error occured. Please see the Administrator",
+                    data = dcRecord.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
+                    total = totalCount
+                };
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new PaginationAPIResponse() { 
                     status = false,
                     message = $"error: {x.Message}"
                 };

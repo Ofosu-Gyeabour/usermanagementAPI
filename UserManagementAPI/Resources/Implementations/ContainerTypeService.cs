@@ -4,6 +4,7 @@ using UserManagementAPI.Resources.Interfaces;
 using UserManagementAPI.POCOs;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {

@@ -10,6 +10,13 @@ namespace UserManagementAPI.POCOs
         public string nameOfcity { get; set; } = string.Empty;
         public CountryLookup oCountry { get; set; }
     }
+    public record CityRecord
+    {
+        public int id { get; set; } = 0;
+        public string nameOfcity { get; set; } = string.Empty;
+        public int countryId { get; set; } = 0;
+        public string nameOfcountry { get; set; } = string.Empty;
+    }
 
     public class CountryLookup
     {
@@ -128,6 +135,16 @@ namespace UserManagementAPI.POCOs
 
     }
 
+    public record ShippingPortRecord
+    {
+        public int id { get; set; } = 0;
+        public string nameOfport { get; set; } = string.Empty;
+        public string codeOfport { get; set; } = string.Empty;
+        public string nameOfcountry { get; set; } = string.Empty;
+        public int countryId { get; set; } = 0;
+        public int sailingTimeInDays { get; set; } = 0;
+    }
+
     public class AirportLookup
     {
         public int id { get; set; } = 0;
@@ -141,6 +158,14 @@ namespace UserManagementAPI.POCOs
         public int id { get; set; } = 0;
         public string dialCode { get; set; } = string.Empty;
         public CountryLookup oCountry { get; set; }
+    }
+
+    public record DialCodeRecord
+    {
+        public int id { get; set; }
+        public string dialCode { get; set; }
+        public string nameOfcountry { get; set; } 
+        public int countryId { get; set; }
     }
 
     public class ContainerTypeLookup

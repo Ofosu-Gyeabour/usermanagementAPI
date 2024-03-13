@@ -5,6 +5,7 @@ using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {

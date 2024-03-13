@@ -5,6 +5,7 @@ using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
 using System.Runtime.CompilerServices;
 using UserManagementAPI.utils;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {

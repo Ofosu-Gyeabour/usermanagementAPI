@@ -1,10 +1,8 @@
-﻿global using Microsoft.EntityFrameworkCore;
-global using UserManagementAPI.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Swashbuckle.AspNetCore.SwaggerUI;
-using UserManagementAPI.utils;
+using UserManagementAPI.Models;
 using UserManagementAPI.Procs;
 
 namespace UserManagementAPI.Data
@@ -27,9 +25,9 @@ namespace UserManagementAPI.Data
         public virtual DbSet<pSalesOrder> PSalesOrders { get; set; }
         public virtual DbSet<pClient> pClients { get; set; }
 
-        public virtual DbSet<psaleRecord> PsaleRecords { get; set; }   //gets a single record for sale or adhoc record
-        public virtual DbSet<pSaleItem> PSaleItems { get; set; }  //adhoc or sale items associated with the record
-        public virtual DbSet<pSalePayment> PSalePayments { get; set; } //adhoc or sale payments associated with the record
+        public virtual DbSet<psaleRecord> PsaleRecords { get; set; }    //gets a single record for sale or adhoc record
+        public virtual DbSet<pSaleItem> PSaleItems { get; set; }        //adhoc or sale items associated with the record
+        public virtual DbSet<pSalePayment> PSalePayments { get; set; }  //adhoc or sale payments associated with the record
 
         public virtual DbSet<pPackageOrder> PPackageOrderRecord { get; set; }
         public virtual DbSet<pPackageOrderItem> PPackageOrderItems { get; set; }
@@ -69,11 +67,13 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TDeliveryZone> TDeliveryZones { get; set; } = null!;
         public virtual DbSet<TDepartment> TDepartments { get; set; } = null!;
         public virtual DbSet<TDialCode> TDialCodes { get; set; } = null!;
+        public virtual DbSet<TDriverAssignment> TDriverAssignments { get; set; } = null!;
         public virtual DbSet<TEvent> TEvents { get; set; } = null!;
         public virtual DbSet<TFx> TFxes { get; set; } = null!;
         public virtual DbSet<TInsurance> TInsurances { get; set; } = null!;
         public virtual DbSet<TLogger> TLoggers { get; set; } = null!;
         public virtual DbSet<TModule> TModules { get; set; } = null!;
+        public virtual DbSet<TMonth> TMonths { get; set; } = null!;
         public virtual DbSet<TOrderCharge> TOrderCharges { get; set; } = null!;
         public virtual DbSet<TOrderStatus> TOrderStatuses { get; set; } = null!;
         public virtual DbSet<TOrderStatusLookup> TOrderStatusLookups { get; set; } = null!;
@@ -110,6 +110,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TTemplate> TTemplates { get; set; } = null!;
         public virtual DbSet<TTitle> TTitles { get; set; } = null!;
         public virtual DbSet<TUsrDetail> TUsrDetails { get; set; } = null!;
+        public virtual DbSet<TVehiclePool> TVehiclePools { get; set; } = null!;
         public virtual DbSet<TVessel> TVessels { get; set; } = null!;
         public virtual DbSet<TXeroConfig> TXeroConfigs { get; set; } = null!;
         public virtual DbSet<TZone> TZones { get; set; } = null!;
@@ -122,6 +123,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<Tdutyjt> Tdutyjts { get; set; } = null!;
         public virtual DbSet<TemailConfig> TemailConfigs { get; set; } = null!;
         public virtual DbSet<Thscode> Thscodes { get; set; } = null!;
+        public virtual DbSet<TjtsRoe> TjtsRoes { get; set; } = null!;
         public virtual DbSet<Tpackaging> Tpackagings { get; set; } = null!;
         public virtual DbSet<TpackagingOrder> TpackagingOrders { get; set; } = null!;
         public virtual DbSet<TpackagingOrderCharge> TpackagingOrderCharges { get; set; } = null!;
@@ -135,12 +137,13 @@ namespace UserManagementAPI.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(utils.ConfigObject.LOCAL_CONN);
+                optionsBuilder.UseSqlServer(utils.ConfigObject.DB_CONN);
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             #region stored procedure
 
             modelBuilder.Entity<pShippingOrder>(entity => entity.HasNoKey());
@@ -148,20 +151,12 @@ namespace UserManagementAPI.Data
             modelBuilder.Entity<pSalesOrder>(entity => entity.HasNoKey());
             modelBuilder.Entity<pClient>(entity => entity.HasNoKey());
 
-            #region adhoc or sale records
-
             modelBuilder.Entity<psaleRecord>(entity => entity.HasNoKey());
             modelBuilder.Entity<pSaleItem>(entity => entity.HasNoKey());
             modelBuilder.Entity<pSalePayment>(entity => entity.HasNoKey());
 
-            #endregion
-
-            #region package orders
-
             modelBuilder.Entity<pPackageOrder>(entity => entity.HasNoKey());
             modelBuilder.Entity<pPackageOrderItem>(entity => entity.HasNoKey());
-
-            #endregion
 
             #endregion
 
@@ -674,6 +669,11 @@ namespace UserManagementAPI.Data
                     .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasColumnName("workTelephone");
+
+                entity.Property(e => e.XeroContactId)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("xero_contact_id");
 
                 entity.HasOne(d => d.AssociatedCompany)
                     .WithMany(p => p.TClients)
@@ -1513,6 +1513,44 @@ namespace UserManagementAPI.Data
                     .HasConstraintName("FK_tDialCode_tCountryLookup");
             });
 
+            modelBuilder.Entity<TDriverAssignment>(entity =>
+            {
+                entity.ToTable("tDriverAssignment");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.AssignmentDate)
+                    .HasColumnType("date")
+                    .HasColumnName("assignmentDate")
+                    .HasComment("the date of assignment");
+
+                entity.Property(e => e.DriverId)
+                    .HasColumnName("driverId")
+                    .HasComment("the Id of the driver");
+
+                entity.Property(e => e.DriverName)
+                    .HasMaxLength(300)
+                    .IsUnicode(false)
+                    .HasColumnName("driverName")
+                    .HasComment("the name of the driver");
+
+                entity.Property(e => e.IsAssigned).HasColumnName("isAssigned");
+
+                entity.Property(e => e.ReturnedToPool)
+                    .HasColumnType("date")
+                    .HasColumnName("returnedToPool")
+                    .HasComment("the date on which the vehicle was returned to pool");
+
+                entity.Property(e => e.VehicleId)
+                    .HasColumnName("vehicleId")
+                    .HasComment("the Id of the vehicle");
+
+                entity.HasOne(d => d.Vehicle)
+                    .WithMany(p => p.TDriverAssignments)
+                    .HasForeignKey(d => d.VehicleId)
+                    .HasConstraintName("FK_tDriverAssignment_tVehiclePool");
+            });
+
             modelBuilder.Entity<TEvent>(entity =>
             {
                 entity.ToTable("tEvent");
@@ -1643,6 +1681,19 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("sysName")
                     .HasComment("name of the module");
+            });
+
+            modelBuilder.Entity<TMonth>(entity =>
+            {
+                entity.ToTable("tMonth");
+
+                entity.Property(e => e.Id).HasComment("primary key of month");
+
+                entity.Property(e => e.Month)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("month")
+                    .HasComment("name of month");
             });
 
             modelBuilder.Entity<TOrderCharge>(entity =>
@@ -2207,6 +2258,11 @@ namespace UserManagementAPI.Data
                 entity.Property(e => e.OrderStatusId)
                     .HasColumnName("orderStatusId")
                     .HasComment("status of the shipping order. foreign key to the dbo.tshippingorderstatus table");
+
+                entity.Property(e => e.ParishName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("parishName");
 
                 entity.Property(e => e.PayMethodId)
                     .HasColumnName("payMethodId")
@@ -2839,6 +2895,46 @@ namespace UserManagementAPI.Data
                     .HasConstraintName("FK_tUsrDetail_tusr");
             });
 
+            modelBuilder.Entity<TVehiclePool>(entity =>
+            {
+                entity.ToTable("tVehiclePool");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.HiredCompany)
+                    .HasMaxLength(300)
+                    .IsUnicode(false)
+                    .HasColumnName("hiredCompany")
+                    .HasComment("the hiring of company");
+
+                entity.Property(e => e.HiredDate)
+                    .HasColumnType("date")
+                    .HasColumnName("hiredDate")
+                    .HasComment("the date of hiring");
+
+                entity.Property(e => e.InUse)
+                    .HasColumnName("inUse")
+                    .HasComment("flag determining if vehicle is currently in use");
+
+                entity.Property(e => e.IsAssigned).HasColumnName("isAssigned");
+
+                entity.Property(e => e.IsHired)
+                    .HasColumnName("isHired")
+                    .HasComment("flag determining if vehicle was hired");
+
+                entity.Property(e => e.RegNo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("regNo")
+                    .HasComment("registration number of vehicle");
+
+                entity.Property(e => e.VehicleMake)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("vehicleMake")
+                    .HasComment("vehicle make/model for the vehicle");
+            });
+
             modelBuilder.Entity<TVessel>(entity =>
             {
                 entity.ToTable("tVessel");
@@ -2869,9 +2965,11 @@ namespace UserManagementAPI.Data
 
             modelBuilder.Entity<TXeroConfig>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => e.ConfigId);
 
                 entity.ToTable("tXeroConfig");
+
+                entity.Property(e => e.ConfigId).HasColumnName("configId");
 
                 entity.Property(e => e.AccessToken)
                     .IsUnicode(false)
@@ -2887,8 +2985,13 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("client_secret");
 
+                entity.Property(e => e.IdToken)
+                    .HasMaxLength(300)
+                    .IsUnicode(false)
+                    .HasColumnName("id_token");
+
                 entity.Property(e => e.ReDirectUri)
-                    .HasMaxLength(60)
+                    .HasMaxLength(300)
                     .IsUnicode(false)
                     .HasColumnName("re_directURI");
 
@@ -2903,8 +3006,13 @@ namespace UserManagementAPI.Data
 
                 entity.Property(e => e.State).HasColumnName("state");
 
+                entity.Property(e => e.TokenType)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("token_type");
+
                 entity.Property(e => e.XeroTenantId)
-                    .HasMaxLength(30)
+                    .HasMaxLength(300)
                     .IsUnicode(false)
                     .HasColumnName("xero_tenant_id");
             });
@@ -3181,6 +3289,38 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("hscode")
                     .HasComment("hs code");
+            });
+
+            modelBuilder.Entity<TjtsRoe>(entity =>
+            {
+                entity.ToTable("tjtsROE");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Fx)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("fx")
+                    .HasComment("computed forex to use in shipment report");
+
+                entity.Property(e => e.Jam)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("jam")
+                    .HasComment("jamaican dollar");
+
+                entity.Property(e => e.Mth)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("mth")
+                    .HasComment("month of the year");
+
+                entity.Property(e => e.Roe)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("roe")
+                    .HasComment("rate of exchange to use in computation");
+
+                entity.Property(e => e.Yr)
+                    .HasColumnName("yr")
+                    .HasComment("full year (i.e. 2023, 2024)");
             });
 
             modelBuilder.Entity<Tpackaging>(entity =>

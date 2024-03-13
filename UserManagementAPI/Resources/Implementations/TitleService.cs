@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 
 using UserManagementAPI.utils;
 using System.Linq.Expressions;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -55,6 +56,36 @@ namespace UserManagementAPI.Resources.Implementations
                 {
                     status = false,
                     message = $"error: {ex.Message}"
+                };
+            }
+        }
+        public async Task<PaginationAPIResponse> ListTitlesAsync(int page, int pageSize)
+        {
+            PaginationAPIResponse response = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var titleList = await helper.GetTitlesAsync();
+
+                var totalCount = titleList.Count();
+                var totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
+
+
+                return response = new PaginationAPIResponse() { 
+                    status = titleList.Count() > 0 ? true: false,
+                    message = titleList.Count() > 0 ? @"success": @"failed",
+                    data = titleList.Skip((page - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToList(),
+                    total = totalCount
+                };
+            }
+            catch(Exception x)
+            {
+                return response = new PaginationAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
                 };
             }
         }

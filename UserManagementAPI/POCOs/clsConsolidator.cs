@@ -1,6 +1,7 @@
 ﻿#nullable disable
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using UserManagementAPI.Models;
 using UserManagementAPI.Resources.Implementations;
 
 namespace UserManagementAPI.POCOs

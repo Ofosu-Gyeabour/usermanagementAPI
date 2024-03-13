@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Text;
+using UserManagementAPI.Models;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Resources.Interfaces;
 using UserManagementAPI.Response;
@@ -94,7 +95,8 @@ namespace UserManagementAPI.Resources.Implementations
                               select new
                               {
                                   id = u.UsrId,
-                                  name = $"{u.Firstname.Trim().ToUpper()} {u.Surname.Trim().ToUpper()}"
+                                  name = $"{u.Firstname.Trim().ToUpper()} {u.Surname.Trim().ToUpper()}",
+                                  email = u.Usrname
                               });
 
                 var uQueryList = await uQuery.ToListAsync().ConfigureAwait(false);
@@ -102,13 +104,14 @@ namespace UserManagementAPI.Resources.Implementations
                 userRecords = uQueryList.Select(x => new userRecord()
                 {
                     id = x.id,
-                    sname = x.name
+                    sname = x.name,
+                    em = x.email != null ? x.email : string.Empty
                 }).ToList();
 
                 return rsp = new DefaultAPIResponse() { 
                     status = true,
                     message = $"{userRecords.Count()} fetched for role {payLoad.nameOfProfile}",
-                    data = userRecords
+                    data = userRecords.ToList()
                 };
             }
             catch(Exception x)
@@ -283,6 +286,7 @@ namespace UserManagementAPI.Resources.Implementations
         public async Task<DefaultAPIResponse> CreateUserAsync(userRecord payLoad)
         {
             DefaultAPIResponse response = null;
+
             try
             {
                 var obj = new Tusr()

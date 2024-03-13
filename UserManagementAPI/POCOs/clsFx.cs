@@ -1,6 +1,7 @@
 ﻿#nullable disable
 
 using System.Diagnostics;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.POCOs
 {

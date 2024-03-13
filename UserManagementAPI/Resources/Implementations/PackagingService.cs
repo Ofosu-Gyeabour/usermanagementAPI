@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using System.Diagnostics;
 using UserManagementAPI.utils;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {

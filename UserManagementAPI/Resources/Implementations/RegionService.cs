@@ -6,6 +6,7 @@ using UserManagementAPI.POCOs;
 using UserManagementAPI.utils;
 using System.Xml.Linq;
 using System.Diagnostics;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {

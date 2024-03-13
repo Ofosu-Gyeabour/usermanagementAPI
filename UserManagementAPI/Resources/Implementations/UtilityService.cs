@@ -11,6 +11,9 @@ using Xero.NetStandard.OAuth2.Client;
 using Xero.NetStandard.OAuth2.Config;
 using Xero.NetStandard.OAuth2.Model.Accounting;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Security.Cryptography.Xml;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -686,82 +689,254 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
-        public async Task<XeroAPIResponse> createXeroInvoiceAsync(clsXeroInvoice payLoad)
+        public async Task<DefaultAPIResponse> createRateOfExchangeAsync(clsROE payLoad)
         {
-            //TODO: creates an invoice for the xero accounting package
-            XeroAPIResponse r = null;
+            //TODO: creates a rate of exchange in the data store
+            DefaultAPIResponse rsp = null;
 
             try
             {
-                Helper helper = new Helper();
-                //r = await helper.CreateInvoiceAsync(payLoad);
-
-                var xDbParams = await helper.getXeroConfigAsync();
-
-                XeroConfiguration xconfig = new XeroConfiguration() {
-                    ClientId = xDbParams.ClientId,
-                    ClientSecret = xDbParams.ClientSecret,
-                    CallbackUri = new Uri(xDbParams.ReDirectUri),
-                    Scope = xDbParams.Scopes
-                };
-
-                var client = new XeroClient(xconfig);
-                //await client.RequestClientCredentialsTokenAsync(false);
-
-                //await client.RefreshAccessTokenAsync(XeroConfigObject.REFRESH_TOKEN);
-
-                //get all invoices first using the sdk
-                //create contact
-                var contact = new Contact() { 
-                    ContactID = new Guid(payLoad.Contact.ContactID)
-                };
-
-                //create line item list
-                List<LineItem> lines = new List<LineItem>();
-                foreach(var pl in payLoad.LineItems)
-                {
-                    lines.Add(new LineItem()
-                    {
-                        Description = pl.Description,
-                        Quantity = pl.Quantity,
-                        UnitAmount = pl.UnitAmount,
-                        AccountCode = pl.AccountCode
-                    });
-                }
-
-                //create invoice
-                var invoice = new Invoice()
-                {
-                    Type = payLoad.Type == @"ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY,
-                    Contact = contact,
-                    Date = payLoad.Date,
-                    DueDate = payLoad.DueDate,
-                    LineItems = lines
-                };
-
-                //create invoice list
-                var invoiceList = new List<Invoice>();
-                invoiceList.Add(invoice);
-
-                var invoices = new Invoices();
-                invoices._Invoices = invoiceList;
-
-                var accountingApi = new AccountingApi();
-                //var response = await accountingApi.GetInvoicesAsync(XeroConfigObject.ACCESS_TOKEN, XeroConfigObject.XERO_TENANT_ID);
-
-                //create invoice in xero accounting app
-                var response = await accountingApi.CreateInvoicesAsync(xDbParams.AccessToken, xDbParams.XeroTenantId, invoices);
-
-                return r = new XeroAPIResponse() { 
-                    Message = @"Ok"
+                bool bln = await payLoad.AddRateOfExchangeAsync();
+                return rsp = new DefaultAPIResponse() { 
+                    status = bln,
+                    message = bln ? $"Rate of exchange {payLoad.roe} saved successfully into database": @"failed",
+                    data = payLoad
                 };
             }
             catch(Exception x)
             {
-                return r = new XeroAPIResponse()
+                return rsp = new DefaultAPIResponse()
                 {
-                    Status = @"Error",
-                    Message = $"error: {x.Message}"
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<PaginationAPIResponse> ListRateOfExchangeAsync(int page, int pageSize)
+        {
+            //TODO: gets a paginated data of rate of exchange
+            PaginationAPIResponse rsp = null;
+
+            try
+            {
+                clsROE obj = new clsROE();
+                var roeList = await obj.Get();
+
+                var totalCount = roeList.Count();
+                var totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
+
+                return rsp = new PaginationAPIResponse() {
+                    status = totalCount > 0 ? true : false,
+                    message = totalCount > 0 ? $"Page {page} of {totalPages} fetched successfully!!!" : @"failed",
+                    total = totalCount,
+                    data = roeList.Skip((page - 1) * pageSize)
+                                    .Take(pageSize)
+                                    .ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new PaginationAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> GetAppropriateMonths(int YR)
+        {
+            //TODO: gets the appropriate months for the year selected
+            DefaultAPIResponse rsp = null;
+            List<clsMonth> result = new List<clsMonth>();
+
+            try
+            {
+                clsMonth month = new clsMonth();
+                clsROE roe = new clsROE();
+
+                var monthList = await month.Get();
+                var roeList = await roe.Get();
+
+                var roeYearEntries = roeList.Where(r => r.year == YR).ToList();
+
+                result = monthList.ToList();
+
+                //iteration
+                foreach(var m in monthList.ToList())
+                {
+                    foreach(var ro in roeYearEntries)
+                    {
+                        if (m.nameOfmonth == ro.month)
+                        {
+                            //remove from month list
+                            result.Remove(m);
+                        }
+                    }
+                }
+
+                int totalcount = result.Count();
+
+                //return api response object
+                return rsp = new DefaultAPIResponse() { 
+                    status = totalcount > 0 ? true: false,
+                    message = totalcount > 0 ? $"{totalcount} records fetched successfully": @"failed",
+                    data = result.ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<UploadAPIResponse> UploadRateOfExchange(IEnumerable<clsROE> payLoad)
+        {
+            //TODO: upload rate of exchange into the data store
+            UploadAPIResponse rsp = null;
+            int success = 0;
+            int failed = 0;
+            List<clsROE> successList = new List<clsROE>();
+            List<clsROE> errorList = new List<clsROE>();
+            List<string> errors = new List<string>();
+
+            try
+            {
+                foreach(var item in payLoad)
+                {
+                    //check if record exists
+                    var o = await item.Get(item.month, item.year);
+                    if (o == null)
+                    {
+                        //item does not exist. proceed to save item
+                        if (await item.AddRateOfExchangeAsync())
+                        {
+                            success += 1;
+                            successList.Add(item);
+                        }
+                        else {
+                            errorList.Add(item);
+                            failed += 1; 
+                        }
+                    }
+                    else
+                    {
+                        failed += 1;
+                        errors.Add($"Rate of Exchange for month {item.month} and year {item.year} already exist in the datastore");
+                    }
+                }
+
+                return rsp = new UploadAPIResponse() {
+                    status = true,
+                    message = $"Total records= {payLoad.Count().ToString()}, successful inserts= {success.ToString()}, failed inserts= {failed.ToString()}",
+                    data = successList,
+                    successCount = success,
+                    errorList = errorList,
+                    errorMessageList = errors,
+                    errorCount = failed
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new UploadAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<PaginationAPIResponse> GetShipmentReportAsync(DateTime df, DateTime dt, int page, int pageSize)
+        {
+            //TODO: gets the shipment report for the specified date range
+            PaginationAPIResponse rsp = null;
+            List<clsShipmentReport> resultant = null;
+            List<clsShipmentReport> shipmentReports = new List<clsShipmentReport>();
+            const decimal const_CBM = 0.30m;
+
+            try
+            {
+                clsShipmentReport obj = new clsShipmentReport();
+                var dta = await obj.GetShipmentReportAsync(df, dt);
+
+                resultant = dta.ToList();
+
+                //iteration and computation of duties
+                foreach(var r in resultant)
+                {
+                    var _rateYr = r.dte.Year;
+                    var _rateMonth = r.dte.Month.ToString();
+
+                    if (_rateMonth.Length == 1)
+                    {
+                        _rateMonth = string.Format("{0}{1}", "0", _rateMonth);
+                    }
+
+                    var monthString = await new clsMonth() { }.Get(_rateMonth);
+                    var roeObj = await new clsROE() { }.Get(monthString, _rateYr);
+
+                    r.roe = roeObj.fx;
+                    
+                    //wif duties
+                    //r.wifduties = r.wifduties * ((r.cbm / const_CBM) * r.roe);
+                    r.jtsduties = ((r.cbm / const_CBM) * r.roe);
+
+                    r.earningsOnDuties = (r.wifduties - r.jtsduties);
+                    r.totalEarnings = (r.earningsOnDuties + r.earningsOnCD);
+
+                    shipmentReports.Add(r);
+                }
+
+                int totalCount = shipmentReports.Count;
+                int totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
+
+                rsp = new PaginationAPIResponse() { 
+                    status = totalCount > 0 ? true: false,
+                    message = totalCount > 0 ? @"success" : @"failed",
+                    total = totalCount,
+                    data = shipmentReports
+                                  .Skip((page - 1) * pageSize)
+                                  .Take(pageSize)
+                                  .ToList()
+                };
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new PaginationAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+    
+        public async Task<DefaultAPIResponse> GetCollectionAndDelivery(DateTime df, DateTime dt)
+        {
+            //TODO: gets deliveries and collections for client display
+            DefaultAPIResponse rsp = null;
+
+            try
+            {
+                var cnd = new clsCollectionAndDelivery();
+                var deliv = await cnd.getDeliveryAsync(df, dt);
+
+                int totalCount = deliv.ToList().Count();
+
+                return rsp = new DefaultAPIResponse() { 
+                    status = totalCount > 0 ? true: false,
+                    message = totalCount > 0 ? @"success": @"failed",
+                    data = deliv.ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
                 };
             }
         }

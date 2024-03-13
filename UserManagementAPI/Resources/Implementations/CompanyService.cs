@@ -8,6 +8,7 @@ using System.ComponentModel.Design;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Runtime.InteropServices;
+using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Resources.Implementations
 {

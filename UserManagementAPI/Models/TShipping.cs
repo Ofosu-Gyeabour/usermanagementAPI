@@ -161,6 +161,7 @@ namespace UserManagementAPI.Models
         /// the note left for the warehouse
         /// </summary>
         public string? WarehouseNote { get; set; }
+        public string? ParishName { get; set; }
 
         public virtual Tshippingport? ArrivalPort { get; set; }
         public virtual TShippingOrderStatus? OrderStatus { get; set; }

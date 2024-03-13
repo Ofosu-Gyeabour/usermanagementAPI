@@ -15,5 +15,7 @@ namespace UserManagementAPI.Resources.Interfaces
 
         Task<DefaultAPIResponse> GetShippingPortRecordAsync(SingleParam payLoad);
 
+        Task<PaginationAPIResponse> GetShippingPortPageAsync(int page, int pageSize);
+
     }
 }
