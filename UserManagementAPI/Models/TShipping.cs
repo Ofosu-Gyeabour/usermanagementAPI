@@ -164,7 +164,8 @@ namespace UserManagementAPI.Models
         public string? ParishName { get; set; }
 
         public virtual Tshippingport? ArrivalPort { get; set; }
-        public virtual TShippingOrderStatus? OrderStatus { get; set; }
+        public virtual TOrderStatusLookup? OrderStatus { get; set; }
+        public virtual TShippingOrderStatus? OrderStatusNavigation { get; set; }
         public virtual ICollection<TOrderCharge> TOrderCharges { get; set; }
         public virtual ICollection<TOrderStatus> TOrderStatuses { get; set; }
         public virtual ICollection<TShippingConsigneeItem> TShippingConsigneeItems { get; set; }

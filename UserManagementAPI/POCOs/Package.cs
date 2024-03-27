@@ -48,6 +48,8 @@ namespace UserManagementAPI.POCOs
         public int Id { get; set; }
         public int? qty { get; set; }
         public string? itemdescription { get; set; } = string.Empty;
+        public string? itembcode { get; set; } = string.Empty;
+        public int? itemid { get; set; } = 0;
         public string? itemName { get; set; } = string.Empty;
         public string? pluralName { get; set; } = string.Empty;
     }

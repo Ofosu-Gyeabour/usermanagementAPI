@@ -118,6 +118,7 @@ ConfigObject.MAC_LOCAL_CONN = settings.macConnString;
 ConfigObject.TEST_CONN = settings.testConn;
 ConfigObject.ROOT_PATH = settings.imgRoot;
 ConfigObject.IMG_FOLDER_PATH = settings.imgPath;
+ConfigObject.ZIPPED_FOLDER = settings.zipped;
 ConfigObject.FX_KEY = settings.fxKey;
 ConfigObject.FX_LIVE_ENDPOINT = settings.fxLive;
 
@@ -3763,14 +3764,20 @@ app.MapGet("/Scanner/GenerateQRCode", async Task<IResult> (IScannerService servi
 
 }).WithTags("Scanner");
 
-app.MapGet("/Scanner/GenerateBarCode", async Task<IResult> (IScannerService service, string payLoad) =>
+app.MapGet("/Scanner/GenerateBarCode", async Task<IResult> (IScannerService service, string payLoad, string bcodes, string descr) =>
 {
     //TODO: generates a bar code for the specified data
-    var result = await service.GenerateBarCodeAsync(payLoad);
-    var mimeType = @"image/png";
-    var filename = @"BarCode.png";
+    if (payLoad.Length <= 0)
+        return Results.BadRequest(@"order No cannot be less than or equal to zero (0)");
 
-    return Results.File(result.data, mimeType, filename);
+    if (bcodes.Length <= 0)
+        return Results.BadRequest(@"Length of barcode cannot be less than or equal to zero (0)");
+
+    //var result = await service.GenerateBarCodeAsync(payLoad, bcodes,descr);
+    var result = await service.GenerateZippedBarCodeAsync(payLoad, bcodes, descr);
+
+    return Results.File(result.data, result.mimeType, result.filename);
+
 }).WithTags("Scanner");
 
 
@@ -3846,6 +3853,25 @@ app.MapGet("/Scanner/ListBarCodeGenerator", async Task<IResult> (IScannerService
         return Results.BadRequest(x.Message);
     }
 
+}).WithTags("Scanner");
+
+app.MapGet("/Scanner/ListWarehouseSections", async Task<IResult> (IScannerService service, int pageNumber, int pageSize) =>
+{
+    if (pageNumber <= 0)
+        return Results.BadRequest(@"Page number cannot be less than or equal to zero(0)");
+
+    if (pageSize <= 0)
+        return Results.BadRequest(@"Page size cannot be less than or equal to zero(0)");
+
+    try
+    {
+        var warehouseData = await service.ListWarehouseSectionsAsync(pageNumber, pageSize);
+        return Results.Ok(warehouseData);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
 }).WithTags("Scanner");
 
 #endregion

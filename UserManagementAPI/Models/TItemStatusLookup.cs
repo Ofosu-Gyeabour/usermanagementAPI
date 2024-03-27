@@ -5,6 +5,12 @@ namespace UserManagementAPI.Models
 {
     public partial class TItemStatusLookup
     {
+        public TItemStatusLookup()
+        {
+            TShippingOrderItems = new HashSet<TShippingOrderItem>();
+            TpackagingOrderItems = new HashSet<TpackagingOrderItem>();
+        }
+
         /// <summary>
         /// primary key
         /// </summary>
@@ -13,5 +19,8 @@ namespace UserManagementAPI.Models
         /// status of item (ordered, approved, etc)
         /// </summary>
         public string? ItemStatusDescrib { get; set; }
+
+        public virtual ICollection<TShippingOrderItem> TShippingOrderItems { get; set; }
+        public virtual ICollection<TpackagingOrderItem> TpackagingOrderItems { get; set; }
     }
 }

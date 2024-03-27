@@ -1131,7 +1131,9 @@ namespace UserManagementAPI.utils
                             Marks = item.marks,
                             Hscode = item.hscode,
                             LpId = 0,
-                            ItemPicPath = item.picturePath != null ? string.Format("{0}{1}_{2}.{3}",ConfigObject.IMG_FOLDER_PATH, shipping.BolNo, item.item.name,@"png") : string.Empty
+                            ItemPicPath = item.picturePath != null ? string.Format("{0}{1}_{2}.{3}",ConfigObject.IMG_FOLDER_PATH, shipping.BolNo, item.item.name,@"png") : string.Empty,
+                            ItemBcode = $"{shipping.Id}o{await item.item.getShippingItemID()}o{item.quantity}",
+                            ItemStatusId = (int) ItemStatusEnum.ORDERED
                         };
 
                         await config.AddAsync(shippingItem);
@@ -1247,7 +1249,9 @@ namespace UserManagementAPI.utils
                             ItemId = await tpi.item.getPackageItemID(),
                             Qty = tpi.quantity,
                             ItemDescription = tpi.itemDescription,
+                            ItemBcode = $"{tp.Id}o{await tpi.item.getPackageItemID()}o{tpi.quantity}",
                             ItemPrice = tpi.itemPrice,
+                            ItemStatusId = (int) ItemStatusEnum.ORDERED,
                             NomCode = tpi.nomCode
                         };
 

@@ -1,4 +1,5 @@
 ﻿#nullable disable
+using Microsoft.AspNetCore.Server.IIS.Core;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using UserManagementAPI.Models;
@@ -98,7 +99,59 @@ namespace UserManagementAPI.POCOs
         public string generatedBarCode { get; set; }
         public DateTime generatedDate { get; set; }
 
+        public string Location { get; set; } = string.Empty;
+
         public string barcodeIdValue { get; set; }
+
+        public async Task<bool> AddOpBarCodeAndLocationAsync()
+        {
+            //TODO: adds generated barcode and the warehouse section to the data store
+            bool bln = false;
+
+            try
+            {
+                swContext config = new swContext();
+                using (config)
+                {
+                    try
+                    {
+                        var trans = config.Database.BeginTransaction();
+
+                        TBarCodeGenerator barcodeGenerator = new TBarCodeGenerator()
+                        {
+                            BarcodeId = barcodeId,
+                            Genbarcode = generatedBarCode,
+                            Dte = generatedDate
+                        };
+
+                        await config.AddAsync(barcodeGenerator);
+                        await config.SaveChangesAsync();
+
+                        TwhouseSection warehouse_section = new TwhouseSection() { 
+                            WhouseSection = Location,
+                            AssocBarcode = generatedBarCode
+                        };
+
+                        await config.AddAsync(warehouse_section);
+                        await config.SaveChangesAsync();
+
+                        //commit transaction
+                        await trans.CommitAsync();
+                        bln = true;
+                    }
+                    catch(Exception configErr)
+                    {
+                        throw configErr;
+                    }
+                }
+
+                return bln;
+            }
+            catch(Exception x)
+            {
+                return bln;
+            }
+        }
 
         public async Task<bool> AddAsync()
         {
@@ -184,4 +237,58 @@ namespace UserManagementAPI.POCOs
             }
         }
     }
+
+    public class clsWarehouse
+    {
+        public int Id { get; set; }
+        public string warehouseSection { get; set; }
+        public string associatedBarCode { get; set; }
+
+        public async Task<IEnumerable<clsWarehouse>> ListSectionsAsync()
+        {
+            //TODO: list all the sections in the warehouse
+            List<clsWarehouse> list = null;
+            const int ZERO = 0;
+
+            try
+            {
+                swContext config = new swContext();
+                using (config)
+                {
+                    try
+                    {
+                        var qry = (from tw in config.TwhouseSections
+                                   where tw.Id > ZERO
+                                   select new
+                                   {
+                                       id = tw.Id,
+                                       whouseSection = tw.WhouseSection,
+                                       assocBarCode = tw.AssocBarcode
+                                   });
+
+                        var qryList = await qry.ToListAsync().ConfigureAwait(false);
+                        list = qryList
+                                    .Select(a => new clsWarehouse()
+                                    {
+                                        Id = a.id,
+                                        warehouseSection = a.whouseSection,
+                                        associatedBarCode = a.assocBarCode
+                                    }).ToList();
+
+                        return list;
+                    }
+                    catch(Exception cErr)
+                    {
+                        throw cErr;
+                    }
+                }
+            }
+            catch(Exception x)
+            {
+                return list;
+            }
+        }
+
+    }
+
 }

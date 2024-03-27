@@ -929,7 +929,10 @@ namespace UserManagementAPI.Resources.Implementations
                 {
                     foreach(var d in deliv.ToList())
                     {
-                        d.orderItems = await cnd.getDeliveryOrderItemsAsync(d.orderId);
+                        var drec = await cnd.getDeliveryOrderItemsAsync(d.orderId);
+                        d.orderItems = drec.descriptionOfitems;
+                        d.bcodeItems = drec.barcodeOfitems;
+
                         finalList.Add(d);
                     }
                 }
@@ -938,7 +941,10 @@ namespace UserManagementAPI.Resources.Implementations
                 {
                     foreach(var c in collect.ToList())
                     {
-                        c.orderItems = await cnd.getCollectionOrderItemsAsync(c.orderId);
+                        var cRec = await cnd.getCollectionOrderItemsAsync(c.orderId);
+                        c.orderItems = cRec.descriptionOfitems;
+                        c.bcodeItems = cRec.barcodeOfitems;
+
                         finalList.Add(c);
                     }
                 }

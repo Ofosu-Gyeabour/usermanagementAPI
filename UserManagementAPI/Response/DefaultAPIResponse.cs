@@ -12,6 +12,9 @@
         public bool status { get; set; }
         public string? message { get; set; }
         public byte[]? data { get; set; }
+
+        public string mimeType { get; set; }
+        public string filename { get; set; }
     }
 
 

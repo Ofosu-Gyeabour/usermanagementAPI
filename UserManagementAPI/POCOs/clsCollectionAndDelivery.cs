@@ -27,6 +27,8 @@ namespace UserManagementAPI.POCOs
         public string email { get; set; }
         public List<PackageItem> packageItems { get; set; }
         public string orderItems { get; set; }  //description of all items in the order
+        public string bcodeItems { get; set; }  //bar code for all items in the order
+
         public DateTime orderDate { get; set; }
         public string driverName { get; set; }
         public string orderNote { get; set; }   //make changes to the schema and add it
@@ -36,10 +38,12 @@ namespace UserManagementAPI.POCOs
 
 
         #region Methods
-        public async Task<string> getCollectionOrderItemsAsync(int id)
+        public async Task<ItemBarCodeRecord> getCollectionOrderItemsAsync(int id)
         {
             //gets the collection order items and converts the entire thing to a string
+            ItemBarCodeRecord collRec = new ItemBarCodeRecord();
             string results = string.Empty;
+            string bcodes = string.Empty;
 
             try
             {
@@ -53,25 +57,39 @@ namespace UserManagementAPI.POCOs
                         if (ds.qty == 1)
                         {
                             results += results.Length == 0 ? ds.itemdescription : $",{ds.itemdescription}";
+                            bcodes += bcodes.Length == 0 ? $"{id}o{ds.itemid.ToString()}o{ds.qty.ToString()}" : $"|{id}o{ds.itemid.ToString()}o{ds.qty.ToString()}";
                         }
                         else if (ds.qty > 1)
                         {
                             results += results.Length == 0 ? $"{ds.qty} {ds.pluralName}" : $",{ds.qty} {ds.pluralName}";
+                            bcodes += bcodes.Length == 0 ? $"{id}o{ds.itemid.ToString()}o{ds.qty.ToString()}" : $"|{id}o{ds.itemid.ToString()}o{ds.qty.ToString()}";
                         }
                     }
                 }
 
-                return results;
+                collRec.descriptionOfitems = results;
+                collRec.barcodeOfitems = bcodes;
+
+                return collRec;
             }
             catch(Exception x)
             {
-                return results;
+                return collRec;
             }
         }
-        public async Task<string> getDeliveryOrderItemsAsync(int id)
+
+        public record ItemBarCodeRecord()
+        {
+            public string descriptionOfitems { get; set; }
+            public string barcodeOfitems { get; set; }
+        }
+        public async Task<ItemBarCodeRecord> getDeliveryOrderItemsAsync(int id)
         {
             //gets the collection order items and converts the entire thing to a string
+            ItemBarCodeRecord item = new ItemBarCodeRecord();
+
             string results = string.Empty;
+            string bcodes = string.Empty;
 
             try
             {
@@ -85,19 +103,24 @@ namespace UserManagementAPI.POCOs
                         if (ds.qty == 1)
                         {
                             results += results.Length == 0 ? $"{ds.qty} {ds.itemName}" : $",{ds.qty} {ds.itemName}";
+                            bcodes += bcodes.Length == 0 ? $"{id}o{ds.itemid.ToString()}o{ds.qty.ToString()}" : $"|{id}o{ds.itemid.ToString()}o{ds.qty.ToString()}";
                         }
                         else if (ds.qty > 1)
                         {
                             results += results.Length == 0 ? $"{ds.qty} {ds.pluralName}" : $",{ds.qty} {ds.pluralName}";
+                            bcodes += bcodes.Length == 0 ? $"{id}o{ds.itemid.ToString()}o{ds.qty.ToString()}" : $"|{id}o{ds.itemid.ToString()}o{ds.qty.ToString()}";
                         }
                     }
                 }
 
-                return results;
+                item.descriptionOfitems = results;
+                item.barcodeOfitems = bcodes;
+
+                return item;
             }
             catch (Exception x)
             {
-                return results;
+                return item;
             }
         }
 

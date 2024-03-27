@@ -11,12 +11,4 @@ namespace UserManagementAPI.Enums
         ORDER_SHIPPED,
         ORDER_CANCELLED
     }
-
-    public enum ItemStatusEnum
-    {
-        ORDERED = 1,
-        APPROVED,
-        SCANNED_TO_WAREHOUSE,
-        SCANNED_FOR_SHIPPING
-    }
 }

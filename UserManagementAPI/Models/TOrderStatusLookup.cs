@@ -8,6 +8,8 @@ namespace UserManagementAPI.Models
         public TOrderStatusLookup()
         {
             TOrderStatuses = new HashSet<TOrderStatus>();
+            TShippings = new HashSet<TShipping>();
+            TpackagingOrders = new HashSet<TpackagingOrder>();
         }
 
         /// <summary>
@@ -20,5 +22,7 @@ namespace UserManagementAPI.Models
         public string? Describ { get; set; }
 
         public virtual ICollection<TOrderStatus> TOrderStatuses { get; set; }
+        public virtual ICollection<TShipping> TShippings { get; set; }
+        public virtual ICollection<TpackagingOrder> TpackagingOrders { get; set; }
     }
 }

@@ -32,6 +32,7 @@ namespace UserManagementAPI.Models
         public int? StatusId { get; set; }
 
         public virtual TSaleTypeLookup? Saletype { get; set; }
+        public virtual TOrderStatusLookup? Status { get; set; }
         public virtual ICollection<TpackagingOrderCharge> TpackagingOrderCharges { get; set; }
         public virtual ICollection<TpackagingOrderItem> TpackagingOrderItems { get; set; }
         public virtual ICollection<TpackagingOrderPayment> TpackagingOrderPayments { get; set; }

@@ -53,8 +53,14 @@ namespace UserManagementAPI.Models
         /// path to uploaded reference image or picture
         /// </summary>
         public string? ItemPicPath { get; set; }
+        /// <summary>
+        /// shippingorder.Id|0|shippingorderitems.Id
+        /// </summary>
+        public string? ItemBcode { get; set; }
+        public int? ItemStatusId { get; set; }
 
         public virtual TShippingItem? Item { get; set; }
+        public virtual TItemStatusLookup? ItemStatus { get; set; }
         public virtual TShipping? Shippingorder { get; set; }
     }
 }

@@ -138,6 +138,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<Tshippingordercommission> Tshippingordercommissions { get; set; } = null!;
         public virtual DbSet<Tshippingport> Tshippingports { get; set; } = null!;
         public virtual DbSet<Tusr> Tusrs { get; set; } = null!;
+        public virtual DbSet<TwhouseSection> TwhouseSections { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -149,7 +150,6 @@ namespace UserManagementAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
             #region stored procedure
 
             modelBuilder.Entity<pShippingOrder>(entity => entity.HasNoKey());
@@ -2372,6 +2372,11 @@ namespace UserManagementAPI.Data
                 entity.HasOne(d => d.OrderStatus)
                     .WithMany(p => p.TShippings)
                     .HasForeignKey(d => d.OrderStatusId)
+                    .HasConstraintName("FK_tShipping_tOrderStatusLookup");
+
+                entity.HasOne(d => d.OrderStatusNavigation)
+                    .WithMany(p => p.TShippings)
+                    .HasForeignKey(d => d.OrderStatusId)
                     .HasConstraintName("FK_tShipping_tShippingOrderStatus");
             });
 
@@ -2701,6 +2706,12 @@ namespace UserManagementAPI.Data
                     .HasColumnName("hscode")
                     .HasComment("hs code");
 
+                entity.Property(e => e.ItemBcode)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("itemBcode")
+                    .HasComment("shippingorder.Id|0|shippingorderitems.Id");
+
                 entity.Property(e => e.ItemDescription)
                     .HasMaxLength(4000)
                     .IsUnicode(false)
@@ -2716,6 +2727,8 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("itemPicPath")
                     .HasComment("path to uploaded reference image or picture");
+
+                entity.Property(e => e.ItemStatusId).HasColumnName("itemStatusId");
 
                 entity.Property(e => e.ItemVolume)
                     .HasColumnType("numeric(9, 2)")
@@ -2754,6 +2767,11 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TShippingOrderItems)
                     .HasForeignKey(d => d.ItemId)
                     .HasConstraintName("FK_tShippingOrderItem_tShippingItem");
+
+                entity.HasOne(d => d.ItemStatus)
+                    .WithMany(p => p.TShippingOrderItems)
+                    .HasForeignKey(d => d.ItemStatusId)
+                    .HasConstraintName("FK_tShippingOrderItem_tItemStatusLookup");
 
                 entity.HasOne(d => d.Shippingorder)
                     .WithMany(p => p.TShippingOrderItems)
@@ -3527,6 +3545,11 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TpackagingOrders)
                     .HasForeignKey(d => d.SaletypeId)
                     .HasConstraintName("FK_tpackagingOrder_tSaleTypeLookup");
+
+                entity.HasOne(d => d.Status)
+                    .WithMany(p => p.TpackagingOrders)
+                    .HasForeignKey(d => d.StatusId)
+                    .HasConstraintName("FK_tpackagingOrder_tOrderStatusLookup");
             });
 
             modelBuilder.Entity<TpackagingOrderCharge>(entity =>
@@ -3569,6 +3592,13 @@ namespace UserManagementAPI.Data
                     .HasColumnType("numeric(9, 2)")
                     .HasColumnName("itemPrice");
 
+                entity.Property(e => e.ItemStatusId).HasColumnName("itemStatusId");
+
+                entity.Property(e => e.ItemBcode)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("itembcode");
+
                 entity.Property(e => e.NomCode)
                     .HasMaxLength(50)
                     .IsUnicode(false)
@@ -3579,6 +3609,11 @@ namespace UserManagementAPI.Data
                     .HasComment("foreign key to packaging order table");
 
                 entity.Property(e => e.Qty).HasColumnName("qty");
+
+                entity.HasOne(d => d.ItemStatus)
+                    .WithMany(p => p.TpackagingOrderItems)
+                    .HasForeignKey(d => d.ItemStatusId)
+                    .HasConstraintName("FK_tpackagingOrderItem_tItemStatusLookup");
 
                 entity.HasOne(d => d.PackageOrder)
                     .WithMany(p => p.TpackagingOrderItems)
@@ -3768,6 +3803,25 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.Tusrs)
                     .HasForeignKey(d => d.ProfileId)
                     .HasConstraintName("FK_tusr_tProfile");
+            });
+
+            modelBuilder.Entity<TwhouseSection>(entity =>
+            {
+                entity.ToTable("twhouseSection");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.AssocBarcode)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("assoc_barcode")
+                    .HasComment("associated barcode");
+
+                entity.Property(e => e.WhouseSection)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("whouse_section")
+                    .HasComment("section of the warehouse");
             });
 
             OnModelCreatingPartial(modelBuilder);
