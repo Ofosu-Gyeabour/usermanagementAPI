@@ -45,6 +45,14 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "BarCode": {
+              "target": "Package",
+              "version": "[2024.3.2, )"
+            },
+            "BarcodeLib": {
+              "target": "Package",
+              "version": "[3.0.3, )"
+            },
             "Humanizer.Core": {
               "target": "Package",
               "version": "[2.8.26, )"
@@ -84,6 +92,10 @@
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.3, )"
+            },
+            "QRCoder": {
+              "target": "Package",
+              "version": "[1.4.3, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",

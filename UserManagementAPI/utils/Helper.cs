@@ -26,6 +26,7 @@ using Xero.NetStandard.OAuth2.Model.Accounting;
 using Newtonsoft.Json.Linq;
 using UserManagementAPI.Models;
 
+using UserManagementAPI.Enums;
 
 namespace UserManagementAPI.utils
 {
@@ -1086,7 +1087,9 @@ namespace UserManagementAPI.utils
                         OrderNote = order.oShipping.orderNote,
                         CargoDescr = order.oShipping.cargoDescription,
                         OrderCreationDate = order.oShipping.orderCreationDate,
-                        OrderStatusId = await order.oShipping.oShippingStatus.getId(),
+                        //OrderStatusId = await order.oShipping.oShippingStatus.getId(),
+                        OrderStatusId = (int)OrderStatusEnum.INPUTTED,
+                        
                         BolNo = await formatShippingOrderNumber(order.oShipping.oArrivalPort.codeOfport),
 
                         TransporttypeId = order.transportTypeId,
@@ -1230,7 +1233,7 @@ namespace UserManagementAPI.utils
                         Addr2 = package.address2,
                         Addr3 = package.address3,
                         OrderNo = await formatPackageOrder(),
-                        StatusId = 1
+                        StatusId = (int)OrderStatusEnum.INPUTTED
                     };
 
                     await config.AddAsync(tp);

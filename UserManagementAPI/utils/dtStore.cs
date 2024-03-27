@@ -1,6 +1,7 @@
 ﻿#nullable disable
 
 using System.Runtime.InteropServices;
+using UserManagementAPI.POCOs;
 using UserManagementAPI.Procs;
 
 namespace UserManagementAPI.utils
@@ -252,6 +253,41 @@ namespace UserManagementAPI.utils
         }
         #endregion
 
+        #region order items record
+
+        public async Task<IEnumerable<orderItem>> GetOrderItems(int orderID)
+        {
+            //gets the list of order items
+            List<orderItem> orderItems = null;
+
+            try
+            {
+                orderItems = await config.OrderItemRecord.FromSqlRaw("exec proc_fetch_shippingOrder_items {0}", orderID).ToListAsync();
+                return orderItems;
+            }
+            catch(Exception x)
+            {
+                return orderItems;
+            }
+        }
+
+        public async Task<IEnumerable<orderItem>> GetDeliveryOrderItemsAsync(int deliveryOrderID)
+        {
+            //gets the list of order items for packages (deliveries)
+            List<orderItem> orderItems = null;
+
+            try
+            {
+                orderItems = await config.OrderItemRecord.FromSqlRaw("exec proc_fetch_pOrder_items {0}", deliveryOrderID).ToListAsync();
+                return orderItems;
+            }
+            catch (Exception x)
+            {
+                return orderItems;
+            }
+        }
+
+        #endregion
 
     }
 }

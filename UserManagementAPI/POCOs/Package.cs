@@ -43,6 +43,15 @@ namespace UserManagementAPI.POCOs
         public string? nomCode { get; set; }
     }
 
+    public class orderItem
+    {
+        public int Id { get; set; }
+        public int? qty { get; set; }
+        public string? itemdescription { get; set; } = string.Empty;
+        public string? itemName { get; set; } = string.Empty;
+        public string? pluralName { get; set; } = string.Empty;
+    }
+
     public class PackagePayment
     {
         public int Id { get; set; }

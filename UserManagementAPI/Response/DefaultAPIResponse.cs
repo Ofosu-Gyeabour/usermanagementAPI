@@ -7,6 +7,14 @@
         public object data { get; set; }
     }
 
+    public class DownloadAPIResponse
+    {
+        public bool status { get; set; }
+        public string? message { get; set; }
+        public byte[]? data { get; set; }
+    }
+
+
     public class PaginationAPIResponse : DefaultAPIResponse
     {
         public int total { get; set; }

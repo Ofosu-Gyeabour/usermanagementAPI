@@ -49,5 +49,6 @@ namespace UserManagementAPI.Models
         /// the threshold at which a notification should be sent to management
         /// </summary>
         public int? Stockthreshold { get; set; }
+        public string? PluralName { get; set; }
     }
 }

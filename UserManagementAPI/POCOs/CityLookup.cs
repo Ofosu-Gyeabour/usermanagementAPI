@@ -18,6 +18,12 @@ namespace UserManagementAPI.POCOs
         public string nameOfcountry { get; set; } = string.Empty;
     }
 
+    public record DateRangeRecord
+    {
+        public DateTime df { get; set; }
+        public DateTime dt { get; set; }
+    }
+
     public class CountryLookup
     {
         public int id { get; set; } = 0;

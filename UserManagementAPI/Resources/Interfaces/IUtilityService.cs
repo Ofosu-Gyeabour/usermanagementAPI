@@ -50,6 +50,10 @@ namespace UserManagementAPI.Resources.Interfaces
 
         Task<PaginationAPIResponse> GetShipmentReportAsync(DateTime df, DateTime dt, int page, int pageSize);
 
-        Task<DefaultAPIResponse> GetCollectionAndDelivery(DateTime df, DateTime dt);
+        Task<PaginationAPIResponse> GetCollectionAndDelivery(DateTime df, DateTime dt, int page, int pageSize);
+
+        Task<DefaultAPIResponse> GetOperationalBarcodeListAsync();
+
+        Task<DefaultAPIResponse> GenerateRandomBarCodeNumberAsync(string opBarCode);
     }
 }

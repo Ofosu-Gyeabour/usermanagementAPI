@@ -69,6 +69,8 @@ builder.Services.AddSingleton<IDataService, DataService>();
 builder.Services.AddSingleton<IXeroService, XeroService>();
 builder.Services.AddSingleton<IVehicleService, VehicleService>();
 
+builder.Services.AddSingleton<IScannerService, ScannerService>();
+
 #endregion
 
 #region CORS
@@ -3706,14 +3708,21 @@ app.MapGet("ShipmentReport/Paging/List", async Task<IResult> (IUtilityService se
     }
 }).WithTags("ShipmentReport");
 
-app.MapGet("CollectionAndDelivery/Get", async Task<IResult> (IUtilityService service, DateTime df, DateTime dt) =>
+app.MapGet("CollectionAndDelivery/Get", async Task<IResult> (IUtilityService service, DateTime df, DateTime dt, int pageNumber, int pageSize) =>
 {
     if (df > dt)
         return Results.BadRequest(@"Ending date cannot be earlier than commencing date for specified date range");
 
+    if (pageNumber < 1)
+        return Results.BadRequest(@"page number cannot be less than or equal to zero (0)");
+
+    if (pageSize < 1)
+        return Results.BadRequest(@"page size cannot be less than or equal to zero (0)");
+
+
     try
     {
-        var cnd_data = await service.GetCollectionAndDelivery(df, dt);
+        var cnd_data = await service.GetCollectionAndDelivery(df, dt,pageNumber,pageSize);
         return Results.Ok(cnd_data);
     }
     catch(Exception x)
@@ -3722,6 +3731,125 @@ app.MapGet("CollectionAndDelivery/Get", async Task<IResult> (IUtilityService ser
     }
 }).WithTags("CnDs");
 #endregion
+
+#region Scanner
+
+//app.MapPost("/Scanner/GenerateQRCode2", async Task<IResult> (IScannerService service, clsCollectionAndDelivery payLoad) =>
+//{
+//    //TODO: generates a qr code for the specified data
+//    //try
+//    //{
+//        var st = JsonConvert.SerializeObject(payLoad);
+//        var resultant = await service.GenerateQRCodeAsync(st);
+//        var mimeType = @"image/jpeg";
+//        var filename = @"QRCode.jpeg";
+
+//        return Results.File((byte[])resultant.data, mimeType, filename);
+//    //}
+//    //catch(Exception ex)
+//    //{
+//    //    return ex.Message;
+//    //}
+//}).WithTags("Scanner");
+
+app.MapGet("/Scanner/GenerateQRCode", async Task<IResult> (IScannerService service, string payLoad) =>
+{
+    //TODO: generates a qr code for the specified data
+    var resultant = await service.GenerateQRCodeAsync(payLoad);
+    var mimeType = @"image/jpeg";
+    var filename = @"QRCode.jpeg";
+
+    return Results.File((byte[])resultant.data, mimeType, filename);
+
+}).WithTags("Scanner");
+
+app.MapGet("/Scanner/GenerateBarCode", async Task<IResult> (IScannerService service, string payLoad) =>
+{
+    //TODO: generates a bar code for the specified data
+    var result = await service.GenerateBarCodeAsync(payLoad);
+    var mimeType = @"image/png";
+    var filename = @"BarCode.png";
+
+    return Results.File(result.data, mimeType, filename);
+}).WithTags("Scanner");
+
+
+app.MapGet("/Scanner/GetOperationalBarCodes", async Task<IResult> (IUtilityService service) =>
+{
+    try
+    {
+        var operationalBarCodes = await service.GetOperationalBarcodeListAsync();
+        return Results.Ok(operationalBarCodes);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Scanner");
+
+app.MapGet("/Scanner/GenerateRandomNos", async Task<IResult> (IUtilityService service, string operationalBarCode) =>
+{
+    try
+    {
+        //TODO (later): check to see if operationalBarcode is indeed valid
+
+        var randomNo = await service.GenerateRandomBarCodeNumberAsync(operationalBarCode);
+        return Results.Ok(randomNo);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Scanner");
+
+app.MapGet("/Scanner/GenerateOperationalBarCode", async Task<IResult> (IScannerService service, string payLoad) =>
+{
+    //TODO: generates a bar code for the specified data
+    var result = await service.GenerateOperationalBarCodeAsync(payLoad);
+    var mimeType = @"image/png";
+    var filename = @"GeneratedOpBarCode.png";
+
+    return Results.File(result.data, mimeType, filename);
+}).WithTags("Scanner");
+
+app.MapPost("/Scanner/AddBarCodeGenerator", async Task<IResult> (IScannerService service, clsBarCodeGenerator payLoad) =>
+{
+    if (payLoad.barcodeId == 0)
+        return Results.BadRequest(@"Bar code Id cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var opStatus = await service.AddBarCodeGeneratorAsync(payLoad);
+        return Results.Ok(opStatus);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Scanner");
+
+app.MapGet("/Scanner/ListBarCodeGenerator", async Task<IResult> (IScannerService service, int pageNumber, int pageSize) =>
+{
+    if (pageNumber <= 0)
+        return Results.BadRequest(@"Page number cannot be less than or equal to zero(0)");
+
+    if (pageSize <= 0)
+        return Results.BadRequest(@"Page size cannot be less than or equal to zero(0)");
+
+    try
+    {
+        var pagedData = await service.ListBarCodeGeneratorsAsync(pageNumber, pageSize);
+        return Results.Ok(pagedData);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+
+}).WithTags("Scanner");
+
+#endregion
+
 
 #endregion
 

@@ -913,28 +913,105 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
     
-        public async Task<DefaultAPIResponse> GetCollectionAndDelivery(DateTime df, DateTime dt)
+        public async Task<PaginationAPIResponse> GetCollectionAndDelivery(DateTime df, DateTime dt, int page, int pageSize)
         {
             //TODO: gets deliveries and collections for client display
-            DefaultAPIResponse rsp = null;
+            PaginationAPIResponse rsp = null;
+            List<clsCollectionAndDelivery> finalList = new List<clsCollectionAndDelivery>();
 
             try
             {
                 var cnd = new clsCollectionAndDelivery();
                 var deliv = await cnd.getDeliveryAsync(df, dt);
+                var collect = await cnd.getCollectionAsync(df, dt);
 
-                int totalCount = deliv.ToList().Count();
+                if (deliv.ToList().Count() > 0)
+                {
+                    foreach(var d in deliv.ToList())
+                    {
+                        d.orderItems = await cnd.getDeliveryOrderItemsAsync(d.orderId);
+                        finalList.Add(d);
+                    }
+                }
 
-                return rsp = new DefaultAPIResponse() { 
+                if (collect.ToList().Count() > 0)
+                {
+                    foreach(var c in collect.ToList())
+                    {
+                        c.orderItems = await cnd.getCollectionOrderItemsAsync(c.orderId);
+                        finalList.Add(c);
+                    }
+                }
+
+                int totalCount = finalList.Count();
+                int totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
+
+                return rsp = new PaginationAPIResponse() { 
                     status = totalCount > 0 ? true: false,
                     message = totalCount > 0 ? @"success": @"failed",
-                    data = deliv.ToList()
+                    total = totalCount,
+                    data =  finalList
+                           .Skip((page -1) * pageSize)
+                           .Take(pageSize)
+                           .ToList()
                 };
             }
             catch(Exception x)
             {
-                return rsp = new DefaultAPIResponse()
+                return rsp = new PaginationAPIResponse()
                 {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> GetOperationalBarcodeListAsync()
+        {
+            //TODO: gets the operational barcode list
+            DefaultAPIResponse rsp = null;
+
+            try
+            {
+                clsBarCodeLookup obj = new clsBarCodeLookup();
+                var barcodeData = await obj.ListOperationalBarCodesAsync();
+
+                return rsp = new DefaultAPIResponse() { 
+                    status = barcodeData.Count() > 0 ? true: false,
+                    message = barcodeData.Count() > 0 ? @"success": @"failed",
+                    data = barcodeData
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> GenerateRandomBarCodeNumberAsync(string opBarCode)
+        {
+            //TODO: generates random numbers for operational code
+            DefaultAPIResponse rsp = null;
+
+            try
+            {
+                clsBarCodeLookup obj = new clsBarCodeLookup();
+                string generatedNumbers = await obj.GenerateRandomNumbers(opBarCode);
+
+                rsp = new DefaultAPIResponse() { 
+                    status = generatedNumbers.Length > 6 ? true: false,
+                    message = generatedNumbers.Length > 6? @"success": @"failed",
+                    data = generatedNumbers
+                };
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse() { 
                     status = false,
                     message = $"error: {x.Message}"
                 };

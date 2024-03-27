@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using UserManagementAPI.Models;
+using UserManagementAPI.POCOs;
 using UserManagementAPI.Procs;
 
 namespace UserManagementAPI.Data
@@ -32,6 +33,8 @@ namespace UserManagementAPI.Data
         public virtual DbSet<pPackageOrder> PPackageOrderRecord { get; set; }
         public virtual DbSet<pPackageOrderItem> PPackageOrderItems { get; set; }
 
+        public virtual DbSet<orderItem> OrderItemRecord { get; set; }
+
         #endregion
 
         public virtual DbSet<SaleTypeLookup> SaleTypeLookups { get; set; } = null!;
@@ -41,6 +44,8 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TAdhocType> TAdhocTypes { get; set; } = null!;
         public virtual DbSet<TAgencyRate> TAgencyRates { get; set; } = null!;
         public virtual DbSet<TAirport> TAirports { get; set; } = null!;
+        public virtual DbSet<TBarCodeGenerator> TBarCodeGenerators { get; set; } = null!;
+        public virtual DbSet<TBarCodeOp> TBarCodeOps { get; set; } = null!;
         public virtual DbSet<TCalculator> TCalculators { get; set; } = null!;
         public virtual DbSet<TChannelType> TChannelTypes { get; set; } = null!;
         public virtual DbSet<TChargeEngine> TChargeEngines { get; set; } = null!;
@@ -71,6 +76,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TEvent> TEvents { get; set; } = null!;
         public virtual DbSet<TFx> TFxes { get; set; } = null!;
         public virtual DbSet<TInsurance> TInsurances { get; set; } = null!;
+        public virtual DbSet<TItemStatusLookup> TItemStatusLookups { get; set; } = null!;
         public virtual DbSet<TLogger> TLoggers { get; set; } = null!;
         public virtual DbSet<TModule> TModules { get; set; } = null!;
         public virtual DbSet<TMonth> TMonths { get; set; } = null!;
@@ -157,6 +163,8 @@ namespace UserManagementAPI.Data
 
             modelBuilder.Entity<pPackageOrder>(entity => entity.HasNoKey());
             modelBuilder.Entity<pPackageOrderItem>(entity => entity.HasNoKey());
+
+            modelBuilder.Entity<orderItem>(entity => entity.HasNoKey());
 
             #endregion
 
@@ -436,6 +444,54 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TAirports)
                     .HasForeignKey(d => d.CountryId)
                     .HasConstraintName("FK_tAirport_tCountryLookup");
+            });
+
+            modelBuilder.Entity<TBarCodeGenerator>(entity =>
+            {
+                entity.ToTable("tBarCodeGenerator");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.BarcodeId)
+                    .HasColumnName("barcodeId")
+                    .HasComment("fk");
+
+                entity.Property(e => e.Dte)
+                    .HasColumnType("date")
+                    .HasColumnName("dte")
+                    .HasComment("date generated");
+
+                entity.Property(e => e.Genbarcode)
+                    .HasMaxLength(13)
+                    .IsUnicode(false)
+                    .HasColumnName("genbarcode")
+                    .IsFixedLength()
+                    .HasComment("generated bar code");
+
+                entity.HasOne(d => d.Barcode)
+                    .WithMany(p => p.TBarCodeGenerators)
+                    .HasForeignKey(d => d.BarcodeId)
+                    .HasConstraintName("FK_tBarCodeGenerator_tBarCodeOp");
+            });
+
+            modelBuilder.Entity<TBarCodeOp>(entity =>
+            {
+                entity.ToTable("tBarCodeOp");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.BcodeDescrib)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("bcodeDescrib")
+                    .HasComment("description of operation");
+
+                entity.Property(e => e.Opbcode)
+                    .HasMaxLength(6)
+                    .IsUnicode(false)
+                    .HasColumnName("opbcode")
+                    .IsFixedLength()
+                    .HasComment("code for the operation");
             });
 
             modelBuilder.Entity<TCalculator>(entity =>
@@ -1604,6 +1660,19 @@ namespace UserManagementAPI.Data
                     .HasColumnType("numeric(9, 2)")
                     .HasColumnName("unitPrice")
                     .HasComment("unit price of insurance");
+            });
+
+            modelBuilder.Entity<TItemStatusLookup>(entity =>
+            {
+                entity.ToTable("tItemStatusLookup");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ItemStatusDescrib)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("itemStatusDescrib")
+                    .HasComment("status of item (ordered, approved, etc)");
             });
 
             modelBuilder.Entity<TLogger>(entity =>
@@ -3362,6 +3431,11 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("packagingitem")
                     .HasComment("packaging item");
+
+                entity.Property(e => e.PluralName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("pluralName");
 
                 entity.Property(e => e.Rrp)
                     .HasColumnType("numeric(9, 2)")
