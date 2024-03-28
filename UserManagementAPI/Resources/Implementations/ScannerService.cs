@@ -12,6 +12,7 @@ using SixLabors.ImageSharp.Memory;
 using System.IO.Compression;
 using System.Drawing;
 using System.Security.Cryptography;
+using UserManagementAPI.utils;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -248,6 +249,107 @@ namespace UserManagementAPI.Resources.Implementations
             catch(Exception x)
             {
                 return rsp = new PaginationAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> UpdateStockCountAsync(string barcode)
+        {
+            //TODO: stock counting using bar code
+            DefaultAPIResponse rsp = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                bool bln = false;
+                string[] arr = new string[] { };
+                arr = barcode.Split('o');
+
+                if (arr.Length > 2)
+                {
+                    bln = await helper.shippingStockCountAsync(arr);                    //shipping stock count
+                }
+                else
+                {
+                    arr = barcode.Split('b');                    //packaging stock count
+                    bln = await helper.packagingStockCountAsync(arr);
+                }
+
+                return rsp = new DefaultAPIResponse() { 
+                    status = bln,
+                    message = bln ? @"Stock control updated" : @"An error occured.Please see the Administrator",
+                    data = arr.ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> GetWarehouseAssetLocatorsAsync()
+        {
+            //TODO: gets warehouse assets
+            DefaultAPIResponse rsp = null;
+
+            try
+            {
+                var obj = new clsAssetLocator();
+                var assets = await obj.getWarehouseAssetsAsync();
+
+                return rsp = new DefaultAPIResponse() { 
+                    status = true,
+                    message = @"success",
+                    data = assets.ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> UpdateWarehouseAssetsAsync(string itemB, string warehouseSectionB)
+        {
+            //todo: add to warehouse
+            //itemB: barcode of item
+            //warehouseSectionB: barcode for section of the warehouse
+            DefaultAPIResponse rsp = null;
+
+            try
+            {
+                clsWarehouse objwarehouse = new clsWarehouse();
+                int w_section_id = await objwarehouse.getID(warehouseSectionB);
+
+                clsAssetLocator obj = new clsAssetLocator() { 
+                    itembcode = itemB,
+                    oWarehouse = new clsWarehouse()
+                    {
+                        Id = w_section_id
+                    },
+                    lastLocationDate = DateTime.Now
+                };
+
+                var b = await obj.updateWarehouseAssetAsync();
+
+                return rsp = new DefaultAPIResponse() { 
+                    status = b ? true: false,
+                    message = b ? @"success": @"failed. See the Administrator",
+                    data = obj
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse() { 
                     status = false,
                     message = $"error: {x.Message}"
                 };

@@ -18,5 +18,10 @@ namespace UserManagementAPI.Resources.Interfaces
 
         Task<PaginationAPIResponse> ListWarehouseSectionsAsync(int page, int pageSize);
 
+        Task<DefaultAPIResponse> UpdateStockCountAsync(string barcode);
+
+        Task<DefaultAPIResponse> GetWarehouseAssetLocatorsAsync();
+
+        Task<DefaultAPIResponse> UpdateWarehouseAssetsAsync(string itemB, string warehouseSectionB);
     }
 }

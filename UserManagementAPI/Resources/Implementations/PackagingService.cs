@@ -487,5 +487,93 @@ namespace UserManagementAPI.Resources.Implementations
             }
         }
 
+        public async Task<DefaultAPIResponse> AddPackagingStockAsync(PackageStockLookup payLoad)
+        {
+            //TODO: add a packaging stock to the data store
+            DefaultAPIResponse rsp = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var bln = await helper.savePackagingStockAsync(payLoad);
+
+                return rsp = new DefaultAPIResponse() { 
+                    status = bln,
+                    message = bln == true ? $"{payLoad.oPackageItem.name} saved successfully": @"An error occured. Please see Administrator",
+                    data = payLoad
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<PaginationAPIResponse> ListPackagingStockAsync(int page, int pageSize)
+        {
+            //TODO: list packaging stock
+            PaginationAPIResponse rsp = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var packageStockList = await helper.ListPackagingStockAsync();
+
+                int totalCount = packageStockList.ToList().Count();
+                int totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
+
+                rsp = new PaginationAPIResponse()
+                {
+                    status = totalCount > 0 ? true : false,
+                    message = totalCount > 0 ? @"success" : @"failed",
+                    total = totalCount,
+                    data = packageStockList
+                                  .ToList()
+                                  .Skip((page - 1) * pageSize)
+                                  .Take(pageSize)
+                                  .ToList()
+                };
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new PaginationAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> GetPackagingStockAsync()
+        {
+            DefaultAPIResponse rsp = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var packageStockList = await helper.ListPackagingStockAsync();
+                int totalCount = packageStockList.ToList().Count();
+
+                return rsp = new DefaultAPIResponse() { 
+                    status = totalCount > 0 ? true: false,
+                    message = totalCount > 0 ? @"success": @"failed",
+                    data = packageStockList.ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse() { 
+                    status = false,
+                    message  = $"error: {x.Message}"
+                };
+            }
+        }
+
     }
 }

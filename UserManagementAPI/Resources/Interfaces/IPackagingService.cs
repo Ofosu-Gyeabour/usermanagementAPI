@@ -19,5 +19,10 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<UploadAPIResponse> UploadPackagingPriceAsync(IEnumerable<PackagepriceLookup> payLoad);
 
         Task<DefaultAPIResponse> GetPackagePriceRecord(int companyId, int itemID);
+
+        Task<DefaultAPIResponse> AddPackagingStockAsync(PackageStockLookup payLoad);
+        Task<PaginationAPIResponse> ListPackagingStockAsync(int page, int pageSize);
+
+        Task<DefaultAPIResponse> GetPackagingStockAsync();
     }
 }

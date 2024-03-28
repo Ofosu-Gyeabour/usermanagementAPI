@@ -44,6 +44,7 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TAdhocType> TAdhocTypes { get; set; } = null!;
         public virtual DbSet<TAgencyRate> TAgencyRates { get; set; } = null!;
         public virtual DbSet<TAirport> TAirports { get; set; } = null!;
+        public virtual DbSet<TAssetLocator> TAssetLocators { get; set; } = null!;
         public virtual DbSet<TBarCodeGenerator> TBarCodeGenerators { get; set; } = null!;
         public virtual DbSet<TBarCodeOp> TBarCodeOps { get; set; } = null!;
         public virtual DbSet<TCalculator> TCalculators { get; set; } = null!;
@@ -444,6 +445,30 @@ namespace UserManagementAPI.Data
                     .WithMany(p => p.TAirports)
                     .HasForeignKey(d => d.CountryId)
                     .HasConstraintName("FK_tAirport_tCountryLookup");
+            });
+
+            modelBuilder.Entity<TAssetLocator>(entity =>
+            {
+                entity.ToTable("tAssetLocator");
+
+                entity.Property(e => e.Itembcode)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("itembcode")
+                    .HasComment("item bar code");
+
+                entity.Property(e => e.LastLocationUpdate)
+                    .HasColumnType("date")
+                    .HasColumnName("last_location_update");
+
+                entity.Property(e => e.WarehouseSectionId)
+                    .HasColumnName("warehouse_section_Id")
+                    .HasComment("warehouse section");
+
+                entity.HasOne(d => d.WarehouseSection)
+                    .WithMany(p => p.TAssetLocators)
+                    .HasForeignKey(d => d.WarehouseSectionId)
+                    .HasConstraintName("FK_tAssetLocator_twhouseSection");
             });
 
             modelBuilder.Entity<TBarCodeGenerator>(entity =>

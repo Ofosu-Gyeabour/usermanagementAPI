@@ -1249,7 +1249,7 @@ namespace UserManagementAPI.utils
                             ItemId = await tpi.item.getPackageItemID(),
                             Qty = tpi.quantity,
                             ItemDescription = tpi.itemDescription,
-                            ItemBcode = $"{tp.Id}o{await tpi.item.getPackageItemID()}o{tpi.quantity}",
+                            ItemBcode = $"{tp.Id}b{await tpi.item.getPackageItemID()}b{tpi.quantity}",
                             ItemPrice = tpi.itemPrice,
                             ItemStatusId = (int) ItemStatusEnum.ORDERED,
                             NomCode = tpi.nomCode
@@ -1971,6 +1971,241 @@ namespace UserManagementAPI.utils
         }
 
         #endregion
+
+        #region Packaging-Stock
+
+        public async Task<bool> savePackagingStockAsync(PackageStockLookup item)
+        {
+            //TODO: saves item
+            bool bln = false;
+
+            try
+            {
+                TPackagingStock packagingStock = new TPackagingStock() { 
+                    TpackagingItemId = item.oPackageItem.id,
+                    InStock = item.inStock,
+                    FloorThreshold = item.floor,
+                    CeilingThreshold = item.ceiling,
+                    CompanyId = item.oCompany.id
+                };
+
+                await config.AddAsync(packagingStock);
+                await config.SaveChangesAsync();
+
+                return bln = true;
+            }
+            catch (Exception x) {
+                return bln;
+            }
+        }
+
+        public async Task<IEnumerable<PackageStockLookup>> ListPackagingStockAsync()
+        {
+            //todo: list all package stock from the data store
+            List<PackageStockLookup> list = null;
+            const int ONE = 1;
+
+            try
+            {
+                using (config)
+                {
+                    try
+                    {
+                        var q = (from tps in config.TPackagingStocks
+                                 join tp in config.Tpackagings on tps.TpackagingItemId equals tp.Id
+                                 join cmp in config.Tcompanies on tps.CompanyId equals cmp.CompanyId
+                                 where cmp.CompanyId == ONE
+                                 select new
+                                 {
+                                     id = tps.Id,
+                                     packagingitemId = tps.TpackagingItemId,
+                                     packagingItem = tp.Packagingitem,
+                                     inStock = tps.InStock,
+                                     floor = tps.FloorThreshold,
+                                     ceiling = tps.CeilingThreshold,
+                                     companyId = tps.CompanyId,
+                                     companyName = cmp.Company
+                                 });
+
+                        var qList = await q.ToListAsync().ConfigureAwait(false);
+
+                        list = qList
+                                  .Select(a => new PackageStockLookup()
+                                  {
+                                      id = a.id,
+                                      oPackageItem = new PackageItemLookup()
+                                      {
+                                          id = (int) a.packagingitemId,
+                                          name = a.packagingItem
+                                      },
+                                      idOfpackage = (int) a.packagingitemId,
+                                      nameOfpackage = a.packagingItem,
+                                      inStock = (int) a.inStock,
+                                      floor = (int) a.floor,
+                                      ceiling = (int) a.ceiling,
+                                      oCompany = new CompanyLookup()
+                                      {
+                                          id = (int) a.companyId,
+                                          nameOfcompany = a.companyName
+                                      },
+                                      idOfcompany = (int) a.companyId,
+                                      nameOfcompany = a.companyName
+                                  }).ToList();
+
+                        return list;
+                    }
+                    catch(Exception configErr)
+                    {
+                        throw configErr;
+                    }
+                }
+            }
+            catch(Exception x)
+            {
+                return list;
+            }
+        }
+
+        #endregion
+
+        #region Stock - Counting
+
+        public async Task<bool> packagingStockCountAsync(string[] args)
+        {
+            //todo: update status of packaging order
+            //todo: update item status having barcode
+            //todo: update the stock count
+
+            bool bln = false;
+
+            try
+            {
+                using (config)
+                {
+                    var trans = config.Database.BeginTransaction();
+                    
+                    try
+                    {
+                        int porderId = int.Parse(args[0]);
+                        int itemid = int.Parse(args[1]);
+                        int qty = int.Parse(args[2]);
+
+                        //packaging order
+                        var pObj = await config.TpackagingOrders.Where(x => x.Id == porderId).FirstOrDefaultAsync();
+                        if (pObj != null)
+                        {
+                            pObj.StatusId = (int)OrderStatusEnum.ADDED_TO_INVENTORY;
+
+                            await config.SaveChangesAsync();
+                        }
+
+                        //package order items
+                        var pois = await config.TpackagingOrderItems.Where(x => x.PackageOrderId == porderId)
+                                    .Where(x => x.ItemId == itemid)
+                                    .Where(x => x.Qty == qty).FirstOrDefaultAsync();
+
+                        if (pois != null)
+                        {
+                            pois.ItemStatusId = (int)ItemStatusEnum.SCANNED_TO_WAREHOUSE;
+
+                            await config.SaveChangesAsync();
+                        }
+
+                        //packagingstock
+                        var pstockObj = await config.TPackagingStocks.Where(x => x.TpackagingItemId == itemid).FirstOrDefaultAsync();
+                        if (pstockObj != null)
+                        {
+                            pstockObj.InStock += qty;
+
+                            await config.SaveChangesAsync();
+                        }
+
+                        await trans.CommitAsync();
+                        bln = true;
+                    }
+                    catch(Exception configErr)
+                    {
+                        await trans.RollbackAsync();
+                        throw configErr;
+                    }
+                }
+
+                return bln;
+            }
+            catch(Exception x)
+            {
+                return bln;
+            }
+        }
+        public async Task<bool> shippingStockCountAsync(string[] args)
+        {
+            //todo: update the status of the shippingorder item
+            //todo: update the stock count
+
+            bool bol = false;
+
+            try
+            {
+                using (config)
+                {
+                    var transaction = config.Database.BeginTransaction();
+
+                    try
+                    {
+                        int orderId = int.Parse(args[0]);
+                        int itemid = int.Parse(args[1]);
+                        int qty = int.Parse(args[2]);
+
+                        //shipping
+                        var shipObj = await config.TShippings.Where(x => x.Id == orderId).FirstOrDefaultAsync();
+                        if (shipObj != null)
+                        {
+                            //update status
+                            shipObj.OrderStatusId = (int)OrderStatusEnum.ADDED_TO_INVENTORY;
+                            await config.SaveChangesAsync();
+                        }
+
+                        //shipping order items
+                        var obj = await config.TShippingOrderItems.Where(x => x.ShippingorderId == orderId)
+                            .Where(x => x.ItemId == itemid)
+                            .Where(x => x.Qty == qty).FirstOrDefaultAsync();
+
+                        if (obj != null)
+                        {
+                            //change status of item
+                            obj.ItemStatusId = (int)ItemStatusEnum.SCANNED_TO_WAREHOUSE;
+
+                            await config.SaveChangesAsync();
+                        }
+
+                        //tpackagingstock
+                        var stockObj = await config.TPackagingStocks.Where(x => x.TpackagingItemId == itemid).FirstOrDefaultAsync();
+                        if (stockObj != null)
+                        {
+                            stockObj.InStock += qty;
+                            await config.SaveChangesAsync();
+                        }
+
+                        await transaction.CommitAsync();
+                        bol = true;
+                    }
+                    catch(Exception configErr)
+                    {
+                        await transaction.RollbackAsync();
+                        throw configErr;
+                    }
+                }
+
+                return bol;
+            }
+            catch(Exception x)
+            {
+                return bol;
+            }
+        }
+
+        #endregion
+
 
         #region Xero
 

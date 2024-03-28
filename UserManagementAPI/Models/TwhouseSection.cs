@@ -5,6 +5,11 @@ namespace UserManagementAPI.Models
 {
     public partial class TwhouseSection
     {
+        public TwhouseSection()
+        {
+            TAssetLocators = new HashSet<TAssetLocator>();
+        }
+
         /// <summary>
         /// primary key
         /// </summary>
@@ -17,5 +22,7 @@ namespace UserManagementAPI.Models
         /// associated barcode
         /// </summary>
         public string? AssocBarcode { get; set; }
+
+        public virtual ICollection<TAssetLocator> TAssetLocators { get; set; }
     }
 }

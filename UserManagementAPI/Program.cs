@@ -276,6 +276,86 @@ app.MapPost("/PackagingPrice/Company/Item/Get", async Task<IResult> (IPackagingS
 
 #endregion
 
+#region Packaging-Stock
+
+app.MapPost("/PackagingStock/Company/Add", async Task<IResult> (IPackagingService service, PackageStockLookup payLoad) =>
+{
+    if (payLoad.oPackageItem.id < 1)
+        return Results.BadRequest(@"Package Item cannot have an ID less than or equal to zero (0)");
+
+    if (payLoad.oCompany.id < 1)
+        return Results.BadRequest(@"Company associated with package cannot have an ID less than or equal to zero (0)");
+
+    if (payLoad.inStock < 1)
+        return Results.BadRequest(@"Instock cannot be less than or equal to zero (0)");
+
+    if (payLoad.floor < 1)
+        return Results.BadRequest(@"Lowest stock count cannot be less than or equal to zero (0)");
+
+    if (payLoad.ceiling < 1)
+        return Results.BadRequest(@"Highest stock cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var addStatus = await service.AddPackagingStockAsync(payLoad);
+        return Results.Ok(addStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("PackagingStock");
+
+app.MapGet("/PackagingStock/Company/List", async Task<IResult> (IPackagingService service, int pageNumber, int pageSize) =>
+{
+    if (pageNumber < 1)
+        return Results.BadRequest(@"Page number cannot be less than or equal to zero (0)");
+
+    if (pageSize < 1)
+        return Results.BadRequest(@"Page Size cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var pStockList = await service.ListPackagingStockAsync(pageNumber, pageSize);
+        return Results.Ok(pStockList);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("PackagingStock");
+
+app.MapGet("/PackagingStock/Company/Get", async Task<IResult> (IPackagingService service) =>
+{
+    try
+    {
+        var pStockList = await service.GetPackagingStockAsync();
+        return Results.Ok(pStockList);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("PackagingStock");
+
+app.MapPost("/PackagingStock/Company/UpdateStock", async Task<IResult> (IScannerService service, string barcodeNo) =>
+{
+    if (barcodeNo.Length < 1)
+        return Results.BadRequest(@"Length of barcode cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var stockOpStatus = await service.UpdateStockCountAsync(barcodeNo);
+        return Results.Ok(stockOpStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("PackagingStock");
+
+#endregion
+
 #region Seal - routes
 
 app.MapGet("/SealType/List", async (ISealService service) => await GetSealTypeListAsync(service)).WithTags("SealType");
@@ -1445,7 +1525,6 @@ async Task<IResult> GetPackagingPriceListAsync(IPackagingService service)
         return Results.BadRequest(x);
     }
 }
-
 async Task<IResult> CreatePackagingItemAsync(PackageItemLookup oPackageItem, IPackagingService service)
 {
     if (service == null)
@@ -1464,7 +1543,6 @@ async Task<IResult> CreatePackagingItemAsync(PackageItemLookup oPackageItem, IPa
         return Results.BadRequest(x);
     }
 }
-
 async Task<IResult> UploadPackageItemData(List<PackageItemLookup> packageitemList, IPackagingService service)
 {
     if ((packageitemList == null) || (packageitemList.Count() == 0))
@@ -1504,7 +1582,6 @@ async Task<IResult> CreatePackagingPriceAsync(PackagepriceLookup oPackagePrice, 
         return Results.BadRequest(x);
     }
 }
-
 async Task<IResult> UploadPackagePriceDataAsync(List<PackagepriceLookup> packagepriceList, IPackagingService service)
 {
     if ((packagepriceList == null) || (packagepriceList.Count() == 0))
@@ -1520,6 +1597,7 @@ async Task<IResult> UploadPackagePriceDataAsync(List<PackagepriceLookup> package
         return Results.Ok(x);
     }
 }
+
 #endregion
 
 #region Adhoc - tasks
@@ -3876,6 +3954,35 @@ app.MapGet("/Scanner/ListWarehouseSections", async Task<IResult> (IScannerServic
 
 #endregion
 
+#region Warehouse
+
+app.MapGet("/Warehouse/Company/Get", async Task<IResult> (IScannerService service) =>
+{
+    var assetsL = await service.GetWarehouseAssetLocatorsAsync();
+    return Results.Ok(assetsL);
+
+}).WithTags("Warehouse");
+
+app.MapPost("/Warehouse/Company/AssetTrack", async Task<IResult> (IScannerService service, string itembarcode, string warehousebarcode) =>
+{
+    if (itembarcode.Length < 1)
+        return Results.BadRequest(@"item barcode is not correctly formatted");
+
+    if (warehousebarcode.Length < 1)
+        return Results.BadRequest(@"warehouse op barcode not correctly formatted");
+
+    try
+    {
+        var assetTrackerStatus = await service.UpdateWarehouseAssetsAsync(itembarcode, warehousebarcode);
+        return Results.Ok(assetTrackerStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Warehouse");
+
+#endregion
 
 #endregion
 

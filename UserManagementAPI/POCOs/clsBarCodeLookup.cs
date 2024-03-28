@@ -289,6 +289,40 @@ namespace UserManagementAPI.POCOs
             }
         }
 
+        public async Task<int> getID(string barcode)
+        {
+            //gets the id for an associated barcode
+
+            int result = 0;
+
+            try
+            {
+                swContext config = new swContext();
+                using (config)
+                {
+                    try
+                    {
+                        var obj = await config.TwhouseSections.Where(x => x.AssocBarcode == barcode).FirstOrDefaultAsync();
+
+                        if (obj != null)
+                        {
+                            result = obj.Id;
+                        }
+                    }
+                    catch(Exception x)
+                    {
+                        throw x;
+                    }
+                }
+
+                return result;
+            }
+            catch(Exception e)
+            {
+                return result;
+            }
+        }
+
     }
 
 }

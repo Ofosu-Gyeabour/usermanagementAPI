@@ -1,5 +1,6 @@
 ﻿#nullable disable
 
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System.ComponentModel;
 
 namespace UserManagementAPI.POCOs
@@ -209,6 +210,19 @@ namespace UserManagementAPI.POCOs
         public string? nomCode { get; set; } = string.Empty;
     }
 
+    public class PackageStockLookup
+    {
+        public int id { get; set; }
+        public PackageItemLookup oPackageItem { get; set; }
+        public int inStock { get; set; } = 0;
+        public int floor { get; set; } = 0;
+        public int ceiling { get; set; } = 0;
+        public CompanyLookup oCompany { get; set; }
+        public int idOfpackage { get; set; }
+        public int idOfcompany { get; set; }
+        public string nameOfpackage { get; set; }
+        public string nameOfcompany { get; set; }
+    }
     public class SealTypeLookup
     {
         public int id { get; set; } = 0;
