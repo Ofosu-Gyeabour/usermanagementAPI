@@ -5,6 +5,7 @@ using UserManagementAPI.Resources.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Diagnostics;
 using UserManagementAPI.Models;
+using UserManagementAPI.utils;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -55,6 +56,102 @@ namespace UserManagementAPI.Resources.Implementations
                 };
             }
         }
+        
+        public async Task<PaginationAPIResponse> ListShippingLineAsync(int page, int pageSize)
+        {
+            PaginationAPIResponse response = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var dta = await helper.ListShippingLineDataAsync();
+
+                int totalCount = dta.ToList().Count();
+                int totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
+
+                response = new PaginationAPIResponse() { 
+                    status = totalCount > 0 ? true: false,
+                    message = totalCount > 0? @"success": @"failed",
+                    total = totalCount,
+                    data =  dta.Skip((page - 1)* pageSize)
+                                .Take(pageSize)
+                                .ToList()
+                };
+
+                return response;
+            }
+            catch(Exception x)
+            {
+                return response = new PaginationAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<PaginationAPIResponse> ListShippingVesselDataAsync(int page, int pageSize)
+        {
+            PaginationAPIResponse rsp = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var vesselData = await helper.ListShippingVesselAsync();
+
+                int totalCount = vesselData.ToList().Count();
+                int totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
+
+                return rsp = new PaginationAPIResponse() { 
+                    status = totalCount > 0 ? true: false,
+                    message = totalCount > 0 ? @"success": @"failed",
+                    total = totalCount,
+                    data = vesselData.ToList()
+                               .Skip((page -1) * pageSize)
+                               .Take(pageSize)
+                               .ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new PaginationAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<PaginationAPIResponse> ListSailingScheduleDataAsync(int page, int pageSize)
+        {
+            //TODO: gets sailing schedule
+            PaginationAPIResponse rsp = null;
+
+            try
+            {
+                Helper helper = new Helper();
+                var sailing_schedule_list = await helper.ListSailingScheduleAsync();
+
+                int totalCount = sailing_schedule_list.ToList().Count();
+                int totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
+
+                return rsp = new PaginationAPIResponse() { 
+                    status = totalCount > 0 ? true: false,
+                    message = totalCount > 0 ? @"success": @"failed",
+                    total = totalCount,
+                    data = sailing_schedule_list.ToList()
+                                  .Skip((page -1) * pageSize)
+                                  .Take(pageSize)
+                                  .ToList()
+                };
+            }
+            catch(Exception x)
+            {
+                return rsp = new PaginationAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
         public async Task<DefaultAPIResponse> CreateShippingLineAsync(ShippingLineLookup payLoad)
         {
             //creates a new shipping line resource in the data store

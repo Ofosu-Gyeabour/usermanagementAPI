@@ -1303,6 +1303,25 @@ IResult GetSailingScheduleListAsync(IShippingService service)
         return Results.BadRequest(x);
     }
 }
+
+app.MapGet("/SailingSchedule/Paging/List", async Task<IResult> (IShippingService service, int pageNumber, int pageSize) =>
+{
+    if (pageNumber < 0)
+        return Results.BadRequest(@"Page number cannot be less than or equal to zero (0)");
+
+    if (pageSize < 0)
+        return Results.BadRequest(@"Page size cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var sailingDataPgd = await service.ListSailingScheduleDataAsync(pageNumber, pageSize);
+        return Results.Ok(sailingDataPgd);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Sailing Schedule");
 IResult GetInsuranceListAsync(IShippingService service)
 {
     try
@@ -1375,6 +1394,26 @@ async Task<IResult> GetShippingLineListAsync(IShippingService service)
         return Results.BadRequest(x);
     }
 }
+
+app.MapGet("/ShippingLine/Paging/List", async Task<IResult> (IShippingService service, int pageNumber, int pageSize) =>
+{
+    if (pageNumber < 0)
+        return Results.BadRequest(@"Page number cannot be less than or equal to zero (0)");
+
+    if (pageSize < 0)
+        return Results.BadRequest(@"Page size cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var pgdData = await service.ListShippingLineAsync(pageNumber, pageSize);
+        return Results.Ok(pgdData);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Shipping Line");
+
 IResult GetShippingVesselListAsync(IShippingService service)
 {
     try
@@ -1387,6 +1426,26 @@ IResult GetShippingVesselListAsync(IShippingService service)
         return Results.BadRequest(x);
     }
 }
+
+app.MapGet("/ShippingVessel/Paging/List", async Task<IResult> (IShippingService service, int pageNumber, int pageSize) =>
+{
+    if (pageNumber < 0)
+        return Results.BadRequest(@"Page number cannot be less than or equal to zero (0)");
+
+    if (pageSize < 0)
+        return Results.BadRequest(@"Page size cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var vesselPgdData = await service.ListShippingVesselDataAsync(pageNumber, pageSize);
+        return Results.Ok(vesselPgdData);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Shipping Vessel");
+
 async Task<IResult> GetShippingMethodListAsync(IShippingService service)
 {
     try

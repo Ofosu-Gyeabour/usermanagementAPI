@@ -8,6 +8,8 @@ namespace UserManagementAPI.Resources.Interfaces
     {
         #region Shipping-Lines
         Task<DefaultAPIResponse> GetShippingLineListAsync();
+
+        Task<PaginationAPIResponse> ListShippingLineAsync(int page, int pageSize);
         Task<DefaultAPIResponse> CreateShippingLineAsync(ShippingLineLookup payLoad);
 
         Task<UploadAPIResponse> UploadShippingLineAsync(IEnumerable<ShippingLineLookup> payLoad);
@@ -18,6 +20,8 @@ namespace UserManagementAPI.Resources.Interfaces
 
         #region Shipping-Vessel
         DefaultAPIResponse GetShippingVesselListAsync();
+
+        Task<PaginationAPIResponse> ListShippingVesselDataAsync(int page, int pageSize);
         Task<DefaultAPIResponse> CreateShippingVesselAsync(VesselLookup payLoad);
 
         Task<UploadAPIResponse> UploadShippingVesselAsync(IEnumerable<VesselLookup> payLoad);
@@ -73,6 +77,7 @@ namespace UserManagementAPI.Resources.Interfaces
 
         #region Sailing-Schedule
         DefaultAPIResponse GetSailingScheduleListAsync();
+        Task<PaginationAPIResponse> ListSailingScheduleDataAsync(int page, int pageSize);
         Task<DefaultAPIResponse> CreateSailingScheduleAsync(SailingScheduleLookup payLoad);
 
         Task<UploadAPIResponse> UploadSailingScheduleAsync(IEnumerable<SailingScheduleLookup> payLoad);

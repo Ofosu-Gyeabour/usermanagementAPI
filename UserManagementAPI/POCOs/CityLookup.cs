@@ -2,6 +2,7 @@
 
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System.ComponentModel;
+using System.Security.Policy;
 
 namespace UserManagementAPI.POCOs
 {
@@ -259,6 +260,8 @@ namespace UserManagementAPI.POCOs
         public string nameOfvessel { get; set; } = string.Empty;
         public string flagOfvessel { get; set; } = string.Empty;
         public ShippingLineLookup oShippingLine { get; set; }
+        public int shippingLineId { get; set; }
+        public string shippingLine { get; set; }
     }
 
     public class ShippingMethodLookup
@@ -321,6 +324,14 @@ namespace UserManagementAPI.POCOs
         public DateTime closingDate { get; set; }
         public DateTime dateOfdeparture { get; set; }
         public DateTime dateOfarrival { get; set; }
+
+        public string nameOfvessel { get; set; }
+        public string nameOfDeparturePort { get; set; }
+        public string nameOfArrivalPort { get; set; }
+        public string shippingLine { get; set; }
+        public int shippingLineId { get; set; }
+        public int countryId { get; set; }
+        public string nameOfcountry { get; set; }
     }
 
     public class PaymentTermLookup

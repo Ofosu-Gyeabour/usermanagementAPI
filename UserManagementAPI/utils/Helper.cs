@@ -2846,6 +2846,161 @@ namespace UserManagementAPI.utils
                 return ob;
             }
         }
-        
+
+        #region shipping lines
+
+        public async Task<IEnumerable<ShippingLineLookup>> ListShippingLineDataAsync()
+        {
+            //TODO: gets shipping line data
+            List<ShippingLineLookup> shippingLines = null;
+
+            try
+            {
+                var dta = await config.TShippingLines.ToListAsync();
+                if (dta != null)
+                {
+                    shippingLines = new List<ShippingLineLookup>();
+                    foreach (var d in dta)
+                    {
+                        var obj = new ShippingLineLookup() { id = d.Id, shippingLine = d.ShippingLine };
+                        shippingLines.Add(obj);
+                    }
+                }
+
+                return shippingLines;
+            }
+            catch(Exception xe)
+            {
+                return shippingLines;
+            }
+            
+        }
+
+        public async Task<IEnumerable<VesselLookup>> ListShippingVesselAsync()
+        {
+            List<VesselLookup> vessels = null;
+
+            try
+            {
+                var query = (from v in config.TVessels
+                             join spl in config.TShippingLines on v.ShippingLineId equals spl.Id
+
+                             select new
+                             {
+                                 id = v.Id,
+                                 nameOfshippingLine = spl.ShippingLine,
+                                 IdOfshippingLine = spl.Id,
+                                 vesselName = v.VesselName,
+                                 vesselFlag = v.VesselFlag
+                             });
+
+                var queryList = await query.ToListAsync().ConfigureAwait(false);
+
+                vessels = queryList
+                                .Select(q => new VesselLookup()
+                                {
+                                    id = q.id,
+                                    nameOfvessel = q.vesselName,
+                                    flagOfvessel = q.vesselFlag,
+                                    oShippingLine = new ShippingLineLookup()
+                                    {
+                                        id = q.IdOfshippingLine,
+                                        shippingLine = q.nameOfshippingLine
+                                    },
+                                    shippingLineId = (int) q.IdOfshippingLine,
+                                    shippingLine = q.nameOfshippingLine
+                                }).ToList();
+
+                return vessels;
+            }
+            catch(Exception x)
+            {
+                return vessels;
+            }
+        }
+
+        #endregion
+
+        #region sailing schedule
+
+        public async Task<IEnumerable<SailingScheduleLookup>> ListSailingScheduleAsync()
+        {
+            List<SailingScheduleLookup> results = null;
+
+            try
+            {
+                var query = (from tss in config.TSailingSchedules
+                             join v in config.TVessels on tss.VesselId equals v.Id
+                             join sl in config.TShippingLines on v.ShippingLineId equals sl.Id
+                             join p in config.Tshippingports on tss.PortOfDepartureId equals p.Id
+                             join pp in config.Tshippingports on tss.PortOfArrivalId equals pp.Id
+                             join cnt in config.TCountryLookups on pp.CountryId equals cnt.CountryId
+
+                             select new
+                             {
+                                 Id = tss.Id,
+                                 shippingLineId = sl.Id,
+                                 shippingLineName = sl.ShippingLine,
+                                 IdOfVessel = v.Id,
+                                 nameOfVessel = v.VesselName,
+                                 flagOfVessel = v.VesselFlag,
+                                 departurePortId = p.Id,
+                                 departurePort = p.NameOfport,
+                                 departurePortCode = p.Portcode,
+                                 arrivalPortId = pp.Id,
+                                 arrivalPort = pp.NameOfport,
+                                 arrivalPortCode = pp.Portcode,
+                                 arrivalCountryId = pp.CountryId,
+                                 arrivalCountry = cnt.CountryName,
+                                 closingDate = tss.ClosingDate,
+                                 departureDate = tss.DepartureDate,
+                                 arrivalDate = tss.ArrivalDate
+                             });
+
+                var queryList = await query.ToListAsync().ConfigureAwait(false);
+                results = queryList
+                              .Select(q => new SailingScheduleLookup()
+                              {
+                                  id = q.Id,
+                                  oVessel = new VesselLookup()
+                                  {
+                                      id = q.IdOfVessel,
+                                      nameOfvessel = q.nameOfVessel,
+                                      flagOfvessel = q.flagOfVessel
+                                  },
+                                  oDeparturePort = new ShippingPortLookup()
+                                  {
+                                      id = q.departurePortId,
+                                      nameOfport = q.departurePort,
+                                      codeOfport = q.departurePortCode
+                                  },
+                                  oArrivalPort = new ShippingPortLookup()
+                                  {
+                                      id = q.arrivalPortId,
+                                      nameOfport = q.arrivalPort,
+                                      codeOfport = q.arrivalPortCode
+                                  },
+                                  closingDate = (DateTime)q.closingDate,
+                                  dateOfdeparture = (DateTime)q.departureDate,
+                                  dateOfarrival = (DateTime)q.arrivalDate,
+                                  nameOfvessel = q.nameOfVessel,
+                                  nameOfArrivalPort = q.arrivalPort,
+                                  nameOfDeparturePort = q.departurePort,
+                                  shippingLine = q.shippingLineName,
+                                  shippingLineId = q.shippingLineId,
+                                  countryId = (int) q.arrivalCountryId,
+                                  nameOfcountry = q.arrivalCountry
+                              }).ToList();
+
+                return results;
+            }
+            catch(Exception e)
+            {
+                return results;
+            }
+        }
+
+        #endregion
+
     }
 }
