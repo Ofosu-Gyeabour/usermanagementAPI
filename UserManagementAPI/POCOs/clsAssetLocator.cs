@@ -5,10 +5,6 @@ namespace UserManagementAPI.POCOs
 {
     public class clsAssetLocator
     {
-        public clsAssetLocator()
-        {
-            
-        }
 
         public int Id { get; set; }
         public string itembcode { get; set; }
@@ -16,6 +12,13 @@ namespace UserManagementAPI.POCOs
         public int warehousesectionId { get; set; }
         public string warehousesectionName { get; set; }
         public DateTime lastLocationDate { get; set; }
+        
+        public string orderNo { get; set; }
+        public string packagingitem { get; set; }
+        public string pluralName { get; set; }
+        public int qty { get; set; }
+        public string itemstatusdescrib { get; set; }
+        public string mainDescrib { get; set; }
 
         public async Task<IEnumerable<clsAssetLocator>> getWarehouseAssetsAsync()
         {
@@ -129,4 +132,14 @@ namespace UserManagementAPI.POCOs
             }
         }
     }
+
+    public class clsAssetParticular
+    {
+        public string orderNo { get; set; }
+        public string packagingitem { get; set; }
+        public string pluralName { get; set; }
+        public int qty { get; set; }
+        public string itemstatusdescrib { get; set; }
+    }
+
 }

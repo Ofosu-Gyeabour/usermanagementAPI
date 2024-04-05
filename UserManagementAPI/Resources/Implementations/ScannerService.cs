@@ -302,6 +302,22 @@ namespace UserManagementAPI.Resources.Implementations
             {
                 var obj = new clsAssetLocator();
                 var assets = await obj.getWarehouseAssetsAsync();
+                dtStore dt = new dtStore();
+
+                foreach(var asset in assets.ToList())
+                {
+                    var aparticulars = await dt.GetAssetParticularsAsync(asset.itembcode);
+                    if (aparticulars != null)
+                    {
+                        asset.orderNo = aparticulars.orderNo;
+                        asset.packagingitem = aparticulars.packagingitem;
+                        asset.qty = aparticulars.qty;
+                        asset.itemstatusdescrib = aparticulars.itemstatusdescrib;
+                        asset.pluralName = aparticulars.pluralName;
+
+                        asset.mainDescrib = asset.qty < 2 ? $"{asset.qty} {asset.packagingitem}" : $"{asset.qty} {asset.pluralName}";
+                    }
+                }
 
                 return rsp = new DefaultAPIResponse() { 
                     status = true,

@@ -289,5 +289,33 @@ namespace UserManagementAPI.utils
 
         #endregion
 
+        #region order particulars
+
+        public async Task<clsAssetParticular> GetAssetParticularsAsync(string itemBcode)
+        {
+            //TODO: use the itembcode to identify the item
+            List<clsAssetParticular> results = null;
+
+            try
+            {
+                string[] arr = itemBcode.Split('b');
+                if (arr.Length > 1)
+                {
+                    results = await config.ClsAssetParticulars.FromSqlRaw("exec proc_package_assetmovement_status {0}", itemBcode).ToListAsync();
+                }
+                else
+                {
+                    results = await config.ClsAssetParticulars.FromSqlRaw("exec proc_shipping_assetmovement_status {0}", itemBcode).ToListAsync();
+                }
+
+                return results[0];
+            }
+            catch(Exception x)
+            {
+                throw x;
+            }
+        }
+
+        #endregion
     }
 }

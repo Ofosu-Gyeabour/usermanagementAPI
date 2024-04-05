@@ -35,6 +35,8 @@ namespace UserManagementAPI.Data
 
         public virtual DbSet<orderItem> OrderItemRecord { get; set; }
 
+        public virtual DbSet<clsAssetParticular> ClsAssetParticulars { get; set; }
+
         #endregion
 
         public virtual DbSet<SaleTypeLookup> SaleTypeLookups { get; set; } = null!;
@@ -166,6 +168,8 @@ namespace UserManagementAPI.Data
             modelBuilder.Entity<pPackageOrderItem>(entity => entity.HasNoKey());
 
             modelBuilder.Entity<orderItem>(entity => entity.HasNoKey());
+
+            modelBuilder.Entity<clsAssetParticular>(entity => entity.HasNoKey());
 
             #endregion
 
