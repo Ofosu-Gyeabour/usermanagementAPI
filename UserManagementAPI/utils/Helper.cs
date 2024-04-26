@@ -3002,5 +3002,106 @@ namespace UserManagementAPI.utils
 
         #endregion
 
+        #region ContainerStats
+
+        public async Task<IEnumerable<GenericLookup>> getContainerStatsLookupAsync()
+        {
+            //gets container statistics lookup
+            List<GenericLookup> cstats = null;
+
+            try
+            {
+                var dta = await config.TContainerStatisticsLookups.ToListAsync();
+
+                cstats = dta.Select(a => new GenericLookup()
+                {
+                    id = a.Id,
+                    idValue = a.IdKey
+                }).ToList();
+
+                return cstats;
+            }
+            catch(Exception x)
+            {
+                return cstats;
+            }
+        }
+
+        public async Task<ContainerBio> getContainerObject(string attributeOfContainer)
+        {
+            //gets the ID of the container in question
+            ContainerBio bio = new ContainerBio();
+
+            try
+            {
+                var obj = await config.TLoadContainers.Where(c => c.ContainerCode == attributeOfContainer).FirstOrDefaultAsync();
+                if (obj != null)
+                {
+                    bio.Id = obj.Id;
+                    bio.Name = obj.ContainerName;
+                    bio.Ref = obj.ContainerRef;
+                }
+
+                return bio;
+            }
+            catch(Exception x)
+            {
+                return bio;
+            }
+        }
+
+        public async Task<string> getAgentEmailAsync(int agentId)
+        {
+            string result = string.Empty;
+
+            try
+            {
+                var obj = await config.TClients.Where(c => c.Id == agentId).FirstOrDefaultAsync();
+                result = obj != null ? obj.ClientEmailAddr : string.Empty;
+
+                return result;
+            }
+            catch(Exception x)
+            {
+                return result;
+            }
+        }
+
+        public async Task<string> getVesselReferenceAsync(int containerID)
+        {
+            string result = string.Empty;
+            
+            try
+            {
+                var obj = await config.TLoadContainers.Where(c => c.Id == containerID).FirstOrDefaultAsync();
+                result = obj != null ? obj.ContainerRef : string.Empty;
+
+                return result;
+            }
+            catch(Exception x)
+            {
+                return result;
+            }
+        }
+
+        public async Task<string> getContainerSizeAsync(int containerTypeId)
+        {
+            string result = string.Empty;
+
+            try
+            {
+                var obj = await config.TcontainerTypes.Where(ct => ct.Id == containerTypeId).FirstOrDefaultAsync();
+                result = obj != null ? $"{obj.Ctype} - ({obj.Cvolume.ToString()})" : string.Empty;
+
+                return result;
+            }
+            catch(Exception x)
+            {
+                return result;
+            }
+        }
+
+        #endregion
+
     }
 }

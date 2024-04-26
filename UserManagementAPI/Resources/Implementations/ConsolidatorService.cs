@@ -24,11 +24,13 @@ namespace UserManagementAPI.Resources.Implementations
                 clsConsolidator conso = new clsConsolidator();
                 var conso_credentials = await conso.validateConsolidatorCredentialsAsync(payLoad);
 
-                return response = new DefaultAPIResponse() { 
+                response = new DefaultAPIResponse() { 
                     status = true,
                     message = $"consolidator {payLoad.username} validated",
                     data = conso_credentials
                 };
+
+                return response;
             }
             catch(Exception x)
             {

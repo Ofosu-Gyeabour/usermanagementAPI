@@ -5,6 +5,11 @@ namespace UserManagementAPI.Models
 {
     public partial class TcontainerType
     {
+        public TcontainerType()
+        {
+            TLoadContainers = new HashSet<TLoadContainer>();
+        }
+
         /// <summary>
         /// primary key
         /// </summary>
@@ -17,5 +22,7 @@ namespace UserManagementAPI.Models
         /// container volume
         /// </summary>
         public decimal? Cvolume { get; set; }
+
+        public virtual ICollection<TLoadContainer> TLoadContainers { get; set; }
     }
 }

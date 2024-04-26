@@ -5,6 +5,11 @@ namespace UserManagementAPI.Models
 {
     public partial class TSailingSchedule
     {
+        public TSailingSchedule()
+        {
+            TLoadContainers = new HashSet<TLoadContainer>();
+        }
+
         /// <summary>
         /// primary key
         /// </summary>
@@ -35,5 +40,6 @@ namespace UserManagementAPI.Models
         public DateTime? ArrivalDate { get; set; }
 
         public virtual TVessel? Vessel { get; set; }
+        public virtual ICollection<TLoadContainer> TLoadContainers { get; set; }
     }
 }

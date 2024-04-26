@@ -6,6 +6,6 @@ namespace UserManagementAPI.Enums
         ORDERED = 1,
         APPROVED,
         SCANNED_TO_WAREHOUSE,
-        SCANNED_FOR_SHIPPING
+        SCANNED_TO_CONTAINER
     }
 }

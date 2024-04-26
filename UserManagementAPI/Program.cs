@@ -4043,6 +4043,187 @@ app.MapPost("/Warehouse/Company/AssetTrack", async Task<IResult> (IScannerServic
 
 #endregion
 
+#region Container
+
+app.MapPost("/Container/Shipping/Add", async Task<IResult> (IContainerTypeService service, clsShippingContainer payLoad) =>
+{
+    if (payLoad.nameOfcontainer.Length < 1)
+        return Results.BadRequest(@"Name of container cannot be blank");
+
+    if (payLoad.quantity < 1)
+        return Results.BadRequest(@"Quantity of container cannot be less than or equal to zero (0)");
+
+    if (payLoad.consignorAgentId < 1)
+        return Results.BadRequest(@"UK Agent cannot have an internal ID less than or equal to zero (0)");
+
+    if (payLoad.receivingAgentId < 1)
+        return Results.BadRequest(@"Receiving Agent cannot have an internal ID less than or equal to zero (0)");
+
+    if (payLoad.containerCode.Length < 1)
+        return Results.BadRequest(@"Bar code for container was cannot be blank or empty");
+
+    try
+    {
+        var Op = await service.SaveContainerRecordAsync(payLoad);
+        return Results.Ok(Op);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("ShippingContainer");
+
+app.MapGet("/Container/Shipping/Status", async Task<IResult> (IContainerTypeService service) =>
+{
+    //todo:gets the statuses for loading containers
+    try
+    {
+        var dt = await service.GetContainerLoadingStatusAsync();
+        return Results.Ok(dt);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("ShippingContainer");
+
+app.MapGet("/Container/Shipping/List", async Task<IResult> (IContainerTypeService service,int pageNumber, int pageSize) =>
+{
+    try
+    {
+        var container_list_data = await service.GetContainersToLoadListAsync(pageNumber,pageSize);
+        return Results.Ok(container_list_data);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("ShippingContainer");
+
+app.MapGet("/Container/UnloadedItems/List", async Task<IResult> (IContainerTypeService service, int pageNumber, int pageSize) =>
+{
+    if (pageNumber < 1)
+        return Results.BadRequest(@"Page number cannot be less than or equal to zero (0)");
+
+    if (pageSize < 1)
+        return Results.BadRequest(@"Page size cannot be less than or equal to zero (0)");
+
+    try
+    {
+        var yet_to_load_items = await service.GetUnloadedContainerItemsListAsync(pageNumber, pageSize);
+        return Results.Ok(yet_to_load_items);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).WithTags("ShippingContainer");
+
+app.MapPost("/Container/Loading/Initiate", async Task<IResult> (IContainerTypeService service, GenericLookup payLoad) =>
+{
+    if (payLoad.idValue.Length < 1)
+        return Results.BadRequest(@"Name of container cannot be blank or empty");
+
+    try
+    {
+        var loadingOp = await service.InitiateContainerLoadingAsync(payLoad.idValue);
+        return Results.Ok(loadingOp);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("ShippingContainer");
+
+app.MapPost("/Container/LoadItem/Item", async Task<IResult> (IContainerTypeService service, LoadedItem payLoad) =>
+{
+    if (payLoad.itembcode.Length < 1)
+        return Results.BadRequest(@"selected item code cannot be blank");
+
+    try
+    {
+        var loadedStatus = await service.LoadContainerItemAsync(payLoad);
+        return Results.Ok(loadedStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("ShippingContainer");
+
+app.MapPost("/Container/LoadItem/Get", async Task<IResult> (IContainerTypeService service, GenericLookup payLoad) =>
+{
+    if (payLoad.idValue.Length < 1)
+        return Results.BadRequest(@"Container Identifier cannot be empty or blank");
+
+    try
+    {
+        var containerItems = await service.GetContainerItemsAsync(payLoad.idValue);
+        return Results.Ok(containerItems);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("ShippingContainer");
+
+app.MapPost("/Container/LoadItem/Remove", async Task<IResult> (IContainerTypeService service, GenericLookup payLoad) =>
+{
+    if (payLoad.id < 1)
+        return Results.BadRequest(@"Record Id cannot be less than or equal to zero (0)");
+
+    if (payLoad.idValue.Length < 1)
+        return Results.BadRequest(@"Bar code of item cannot be empty or blank");
+
+    try
+    {
+        var removeStat = await service.RemoveContainerItemAsync(payLoad);
+        return Results.Ok(removeStat);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("ShippingContainer");
+
+#endregion
+
+#region container - doc
+
+app.MapGet("/Container/ContainerDocs/Get", async Task<IResult> (IContainerTypeService service) =>
+{
+    try
+    {
+        var cDocs = await service.GetContainerDocLookup();
+        return Results.Ok(cDocs);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("ContainerDocs");
+
+app.MapPost("/Container/ContainerDocs/GetContainer", async Task<IResult> (IContainerTypeService service, GenericLookup payLoad) =>
+{
+    if (payLoad.id < 1)
+        return Results.BadRequest(@"ContainerID cannot be less than or equal to zero (0)");
+
+    if (payLoad.idValue.Length < 1)
+        return Results.BadRequest(@"Container Name cannot be blank or empty");
+
+    try
+    {
+        var cDocs = await service.GetContainerDocLookup(payLoad.id);
+        return Results.Ok(cDocs);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("ContainerDocs");
+
+#endregion
+
 #endregion
 
 app.Run();

@@ -9,6 +9,8 @@ namespace UserManagementAPI.Models
         {
             TClients = new HashSet<TClient>();
             TDepartments = new HashSet<TDepartment>();
+            TLoadContainerConsignorAgents = new HashSet<TLoadContainer>();
+            TLoadContainerReceivingAgents = new HashSet<TLoadContainer>();
             TPackagingPrices = new HashSet<TPackagingPrice>();
             TPackagingStocks = new HashSet<TPackagingStock>();
             TSealPrices = new HashSet<TSealPrice>();
@@ -46,6 +48,8 @@ namespace UserManagementAPI.Models
         public virtual TCountryLookup? CompanyCountry { get; set; }
         public virtual ICollection<TClient> TClients { get; set; }
         public virtual ICollection<TDepartment> TDepartments { get; set; }
+        public virtual ICollection<TLoadContainer> TLoadContainerConsignorAgents { get; set; }
+        public virtual ICollection<TLoadContainer> TLoadContainerReceivingAgents { get; set; }
         public virtual ICollection<TPackagingPrice> TPackagingPrices { get; set; }
         public virtual ICollection<TPackagingStock> TPackagingStocks { get; set; }
         public virtual ICollection<TSealPrice> TSealPrices { get; set; }

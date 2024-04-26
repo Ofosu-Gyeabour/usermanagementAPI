@@ -37,6 +37,12 @@ namespace UserManagementAPI.Data
 
         public virtual DbSet<clsAssetParticular> ClsAssetParticulars { get; set; }
 
+        public virtual DbSet<pContainerListData> PContainerLists { get; set; }
+        public virtual DbSet<pUnloadedItem> PUnloadedItems { get; set; }
+        public virtual DbSet<pContainerStat> PContainerStats { get; set; }
+
+        public virtual DbSet<clsContainerDocValue> ClsContainerDocValues { get; set; }
+
         #endregion
 
         public virtual DbSet<SaleTypeLookup> SaleTypeLookups { get; set; } = null!;
@@ -64,6 +70,8 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TConsolOrderItem> TConsolOrderItems { get; set; } = null!;
         public virtual DbSet<TConsolStatus> TConsolStatuses { get; set; } = null!;
         public virtual DbSet<TConsolUsr> TConsolUsrs { get; set; } = null!;
+        public virtual DbSet<TContainerItem> TContainerItems { get; set; } = null!;
+        public virtual DbSet<TContainerStatisticsLookup> TContainerStatisticsLookups { get; set; } = null!;
         public virtual DbSet<TCountryLookup> TCountryLookups { get; set; } = null!;
         public virtual DbSet<TCreditNote> TCreditNotes { get; set; } = null!;
         public virtual DbSet<TCurrencyLookup> TCurrencyLookups { get; set; } = null!;
@@ -80,6 +88,11 @@ namespace UserManagementAPI.Data
         public virtual DbSet<TFx> TFxes { get; set; } = null!;
         public virtual DbSet<TInsurance> TInsurances { get; set; } = null!;
         public virtual DbSet<TItemStatusLookup> TItemStatusLookups { get; set; } = null!;
+        public virtual DbSet<TLoadContainer> TLoadContainers { get; set; } = null!;
+        public virtual DbSet<TLoadContainerDocLookup> TLoadContainerDocLookups { get; set; } = null!;
+        public virtual DbSet<TLoadContainerDocValue> TLoadContainerDocValues { get; set; } = null!;
+        public virtual DbSet<TLoadContainerStatistic> TLoadContainerStatistics { get; set; } = null!;
+        public virtual DbSet<TLoadContainerStatus> TLoadContainerStatuses { get; set; } = null!;
         public virtual DbSet<TLogger> TLoggers { get; set; } = null!;
         public virtual DbSet<TModule> TModules { get; set; } = null!;
         public virtual DbSet<TMonth> TMonths { get; set; } = null!;
@@ -153,6 +166,7 @@ namespace UserManagementAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             #region stored procedure
 
             modelBuilder.Entity<pShippingOrder>(entity => entity.HasNoKey());
@@ -171,7 +185,13 @@ namespace UserManagementAPI.Data
 
             modelBuilder.Entity<clsAssetParticular>(entity => entity.HasNoKey());
 
+            modelBuilder.Entity<pContainerListData>(entity => entity.HasNoKey());
+            modelBuilder.Entity<pUnloadedItem>(entity => entity.HasNoKey());
+            modelBuilder.Entity<pContainerStat>(entity => entity.HasNoKey());
+            modelBuilder.Entity<clsContainerDocValue>(entity => entity.HasNoKey());
+
             #endregion
+
 
             modelBuilder.Entity<SaleTypeLookup>(entity =>
             {
@@ -1209,6 +1229,93 @@ namespace UserManagementAPI.Data
                     .HasConstraintName("FK_tConsolUsr_tusr");
             });
 
+            modelBuilder.Entity<TContainerItem>(entity =>
+            {
+                entity.ToTable("tContainerItem");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Consignee)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("consignee")
+                    .HasComment("name of consignee");
+
+                entity.Property(e => e.ContainerId)
+                    .HasColumnName("containerId")
+                    .HasComment("container Id");
+
+                entity.Property(e => e.Cube)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("cube")
+                    .HasComment("volume of item");
+
+                entity.Property(e => e.ItmDescrib)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("itmDescrib")
+                    .HasComment("description of item");
+
+                entity.Property(e => e.Mark)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasColumnName("mark")
+                    .HasComment("mark of item");
+
+                entity.Property(e => e.Method)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("method")
+                    .HasComment("delivery method for item");
+
+                entity.Property(e => e.OrderDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("orderDate")
+                    .HasComment("date of order");
+
+                entity.Property(e => e.OrderNo)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("orderNo")
+                    .HasComment("order number");
+
+                entity.Property(e => e.Qty)
+                    .HasColumnName("qty")
+                    .HasComment("quantity of item");
+
+                entity.Property(e => e.Shipper)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("shipper")
+                    .HasComment("the name of the shipper");
+
+                entity.Property(e => e.ShippingOrderId)
+                    .HasColumnName("shippingOrderId")
+                    .HasComment("shipping order id");
+
+                entity.Property(e => e.Weight)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("weight")
+                    .HasComment("weight of item");
+
+                entity.HasOne(d => d.Container)
+                    .WithMany(p => p.TContainerItems)
+                    .HasForeignKey(d => d.ContainerId)
+                    .HasConstraintName("FK_tContainerItem_tLoadContainer");
+            });
+
+            modelBuilder.Entity<TContainerStatisticsLookup>(entity =>
+            {
+                entity.ToTable("tContainerStatisticsLookup");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.IdKey)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasComment("statistics key");
+            });
+
             modelBuilder.Entity<TCountryLookup>(entity =>
             {
                 entity.HasKey(e => e.CountryId)
@@ -1702,6 +1809,250 @@ namespace UserManagementAPI.Data
                     .IsUnicode(false)
                     .HasColumnName("itemStatusDescrib")
                     .HasComment("status of item (ordered, approved, etc)");
+            });
+
+            modelBuilder.Entity<TLoadContainer>(entity =>
+            {
+                entity.ToTable("tLoadContainer");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.Agentcost)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("agentcost");
+
+                entity.Property(e => e.BookedwithShippingLineId)
+                    .HasColumnName("bookedwithShippingLineId")
+                    .HasComment("the shipping line used in booking the container");
+
+                entity.Property(e => e.BookingRef)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("bookingRef")
+                    .HasComment("booking reference");
+
+                entity.Property(e => e.ConsignorAgentId)
+                    .HasColumnName("consignorAgentId")
+                    .HasComment("the agent in the UK");
+
+                entity.Property(e => e.ContainerCode)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("containerCode")
+                    .HasComment("bar code representation (in 0s and 1s for container)");
+
+                entity.Property(e => e.ContainerName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("containerName")
+                    .HasComment("the name of the container");
+
+                entity.Property(e => e.ContainerRef)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("containerRef")
+                    .HasComment("system-generated container reference number");
+
+                entity.Property(e => e.ContainerStatusId)
+                    .HasColumnName("containerStatusId")
+                    .HasComment("the status of the container (i.e. NOT COMPLETED, COMPLETED)");
+
+                entity.Property(e => e.ContainerTypeId)
+                    .HasColumnName("containerTypeId")
+                    .HasComment("the type of container");
+
+                entity.Property(e => e.ContainerVolume)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("containerVolume")
+                    .HasComment("the volume of the container");
+
+                entity.Property(e => e.Dtdocssentagent)
+                    .HasColumnType("datetime")
+                    .HasColumnName("dtdocssentagent");
+
+                entity.Property(e => e.DteCreated)
+                    .HasColumnType("datetime")
+                    .HasColumnName("dteCreated")
+                    .HasComment("the date it was created");
+
+                entity.Property(e => e.Freight)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("freight")
+                    .HasComment("freight");
+
+                entity.Property(e => e.Gpvalueoncontbb)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("gpvalueoncontbb");
+
+                entity.Property(e => e.Haulage)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("haulage")
+                    .HasComment("haulage");
+
+                entity.Property(e => e.Linebillapprovaldte)
+                    .HasColumnType("date")
+                    .HasColumnName("linebillapprovaldte");
+
+                entity.Property(e => e.Notevessel)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("notevessel");
+
+                entity.Property(e => e.Othercost)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("othercost");
+
+                entity.Property(e => e.Othercostdescrib)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasColumnName("othercostdescrib");
+
+                entity.Property(e => e.Qty)
+                    .HasColumnName("qty")
+                    .HasComment("the quantity");
+
+                entity.Property(e => e.ReceivingAgentId)
+                    .HasColumnName("receivingAgentId")
+                    .HasComment("the agent receiving the shipping");
+
+                entity.Property(e => e.ScheduleId)
+                    .HasColumnName("scheduleID")
+                    .HasComment("Id for the sailing schedule");
+
+                entity.Property(e => e.SealNo)
+                    .HasColumnName("sealNo")
+                    .HasComment("the seal number (i.e. 34433)");
+
+                entity.Property(e => e.Sentby).HasColumnName("sentby");
+
+                entity.Property(e => e.Sentdocs).HasColumnName("sentdocs");
+
+                entity.Property(e => e.Sentdocsdte)
+                    .HasColumnType("datetime")
+                    .HasColumnName("sentdocsdte");
+
+                entity.Property(e => e.Shippinginvoicetotal)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("shippinginvoicetotal");
+
+                entity.Property(e => e.Shippinglineinvoiceno)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("shippinglineinvoiceno");
+
+                entity.Property(e => e.Transportinvoiceno)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("transportinvoiceno");
+
+                entity.Property(e => e.Transtoportcost)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("transtoportcost");
+
+                entity.HasOne(d => d.ConsignorAgent)
+                    .WithMany(p => p.TLoadContainerConsignorAgents)
+                    .HasForeignKey(d => d.ConsignorAgentId)
+                    .HasConstraintName("FK_tLoadContainer_tcompany1");
+
+                entity.HasOne(d => d.ContainerStatus)
+                    .WithMany(p => p.TLoadContainers)
+                    .HasForeignKey(d => d.ContainerStatusId)
+                    .HasConstraintName("FK_tLoadContainer_tLoadContainerStatus");
+
+                entity.HasOne(d => d.ContainerType)
+                    .WithMany(p => p.TLoadContainers)
+                    .HasForeignKey(d => d.ContainerTypeId)
+                    .HasConstraintName("FK_tLoadContainer_tcontainerType");
+
+                entity.HasOne(d => d.ReceivingAgent)
+                    .WithMany(p => p.TLoadContainerReceivingAgents)
+                    .HasForeignKey(d => d.ReceivingAgentId)
+                    .HasConstraintName("FK_tLoadContainer_tcompany");
+
+                entity.HasOne(d => d.Schedule)
+                    .WithMany(p => p.TLoadContainers)
+                    .HasForeignKey(d => d.ScheduleId)
+                    .HasConstraintName("FK_tLoadContainer_tSailingSchedule");
+            });
+
+            modelBuilder.Entity<TLoadContainerDocLookup>(entity =>
+            {
+                entity.ToTable("tLoadContainerDocLookup");
+
+                entity.Property(e => e.DocType)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("docType")
+                    .HasComment("AGENT, AGENT EMAIL, VESSEL REF, etc");
+            });
+
+            modelBuilder.Entity<TLoadContainerDocValue>(entity =>
+            {
+                entity.ToTable("tLoadContainerDocValue");
+
+                entity.Property(e => e.ContainerId)
+                    .HasColumnName("containerId")
+                    .HasComment("Id of the container");
+
+                entity.Property(e => e.TcontainerDocLookupId)
+                    .HasColumnName("tcontainerDocLookupId")
+                    .HasComment("lookup Id for the documentation on the container");
+
+                entity.Property(e => e.TcontainerDocValue)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("tcontainerDocValue")
+                    .HasComment("the value for the documentation value");
+
+                entity.HasOne(d => d.Container)
+                    .WithMany(p => p.TLoadContainerDocValues)
+                    .HasForeignKey(d => d.ContainerId)
+                    .HasConstraintName("FK_tLoadContainerDocValue_tLoadContainer");
+
+                entity.HasOne(d => d.TcontainerDocLookup)
+                    .WithMany(p => p.TLoadContainerDocValues)
+                    .HasForeignKey(d => d.TcontainerDocLookupId)
+                    .HasConstraintName("FK_tLoadContainerDocValue_tLoadContainerDocLookup");
+            });
+
+            modelBuilder.Entity<TLoadContainerStatistic>(entity =>
+            {
+                entity.ToTable("tLoadContainerStatistic");
+
+                entity.Property(e => e.Id).HasComment("primary key");
+
+                entity.Property(e => e.ContainerId)
+                    .HasColumnName("containerId")
+                    .HasComment("Id of the container");
+
+                entity.Property(e => e.StatId)
+                    .HasColumnName("statId")
+                    .HasComment("statistics Id from the dbo.tContainerStatisticsLookup table");
+
+                entity.Property(e => e.StatValue)
+                    .HasColumnType("numeric(9, 2)")
+                    .HasColumnName("statValue")
+                    .HasComment("value of the statistic for the container in question");
+
+                entity.HasOne(d => d.Container)
+                    .WithMany(p => p.TLoadContainerStatistics)
+                    .HasForeignKey(d => d.ContainerId)
+                    .HasConstraintName("FK_tLoadContainerStatistic_tLoadContainer");
+
+                entity.HasOne(d => d.Stat)
+                    .WithMany(p => p.TLoadContainerStatistics)
+                    .HasForeignKey(d => d.StatId)
+                    .HasConstraintName("FK_tLoadContainerStatistic_tContainerStatisticsLookup");
+            });
+
+            modelBuilder.Entity<TLoadContainerStatus>(entity =>
+            {
+                entity.ToTable("tLoadContainerStatus");
+
+                entity.Property(e => e.ContainerLoadingStatus)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("containerLoadingStatus");
             });
 
             modelBuilder.Entity<TLogger>(entity =>

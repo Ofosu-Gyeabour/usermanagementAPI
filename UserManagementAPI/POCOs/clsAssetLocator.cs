@@ -1,4 +1,5 @@
 ﻿#nullable disable
+using UserManagementAPI.Data;
 using UserManagementAPI.Models;
 
 namespace UserManagementAPI.POCOs

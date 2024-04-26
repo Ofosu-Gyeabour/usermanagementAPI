@@ -1,5 +1,6 @@
 ﻿#nullable disable
 
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Runtime.InteropServices;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Procs;
@@ -313,6 +314,84 @@ namespace UserManagementAPI.utils
             catch(Exception x)
             {
                 throw x;
+            }
+        }
+
+        #endregion
+
+        #region containerList
+
+        public async Task<IEnumerable<pContainerListData>> getContainerListAsync(string param)
+        {
+            //TODO: gets the list of containers to be loaded
+            List<pContainerListData> results = null;
+
+            try
+            {
+                results = await config.PContainerLists.FromSqlRaw("exec proc_getContainerList {0}", param).ToListAsync();
+
+                return results;
+            }
+            catch(Exception x)
+            {
+                return results;
+            }
+        }
+
+        #endregion
+
+        #region Unloaded Container Items
+
+        public async Task<IEnumerable<pUnloadedItem>> getUnloadedContainerItemsAsync()
+        {
+            //TODO: runs the stored procedure and fetches all unloaded container items from the data store
+            List<pUnloadedItem> unloadedItems = null;
+
+            try
+            {
+                unloadedItems = await config.PUnloadedItems.FromSqlRaw("exec proc_displayUnloadedItems").ToListAsync();
+
+                return unloadedItems;
+            }
+            catch(Exception x)
+            {
+                return unloadedItems;
+            }
+        }
+
+        #endregion
+
+        #region container statistics
+
+        public async Task<IEnumerable<pContainerStat>> fetchContainerStatisticsAsync(int containerId)
+        {
+            //TODO: gets the statistics for a container being loaded
+            List<pContainerStat> containerStats = null;
+
+            try
+            {
+                containerStats = await config.PContainerStats.FromSqlRaw("exec proc_getContainerStats {0}", containerId).ToListAsync();
+                return containerStats;
+            }
+            catch(Exception x)
+            {
+                return containerStats;
+            }
+        }
+
+        public async Task<IEnumerable<clsContainerDocValue>> fetchContainerDocumentationAsync(int containerID)
+        {
+            //TODO: gets the container documentation for a container being loaded
+            List<clsContainerDocValue> containerDocuments = null;
+
+            try
+            {
+                containerDocuments = await config.ClsContainerDocValues.FromSqlRaw("exec proc_containerDocValues_get {0}", containerID).ToListAsync();
+                return containerDocuments;
+            }
+            catch(Exception x)
+            {
+                return containerDocuments;
             }
         }
 
