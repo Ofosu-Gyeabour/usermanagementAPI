@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Transactions;
 using UserManagementAPI.utils;
 using UserManagementAPI.Models;
+using UserManagementAPI.website;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -1075,6 +1076,143 @@ namespace UserManagementAPI.Resources.Implementations
             catch(Exception x)
             {
                 return response = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> SaveOnlineCustomerAsync(clsCustomer payLoad)
+        {
+            DefaultAPIResponse rsp = null;
+            clsCustomer cc = null;
+            bool bln = false;
+
+            try
+            {
+                Helper helper = new Helper();
+
+                //email validation
+                if (await helper.doesEmailExistAsync(@"main", payLoad.clientEmail))
+                {
+                    return rsp = new DefaultAPIResponse() { 
+                        status = false,
+                        message = $"Customer's emailaddress {payLoad.clientEmail} is already on file and cannot be used for registration",
+                        data = payLoad 
+                    };
+                }
+
+                if (await helper.doesEmailExistAsync(@"alternate", payLoad.clientEmail2))
+                {
+                    return rsp = new DefaultAPIResponse()
+                    {
+                        status = false,
+                        message = $"Customer's alternate emailaddress {payLoad.clientEmail2} is already on file and cannot be used for registration",
+                        data = payLoad
+                    };
+                }
+
+                //phone validation
+                //mobile
+                if (await helper.doesPhoneExistAsync(@"mobile", payLoad.mobileNo))
+                {
+                    return rsp = new DefaultAPIResponse()
+                    {
+                        status = false,
+                        message = $"Customer's mobile number {payLoad.mobileNo} is already on file and cannot be used for registration",
+                        data = payLoad
+                    };
+                }
+
+                //whatsapp
+                if (await helper.doesPhoneExistAsync(@"whatsapp", payLoad.whatsappNo))
+                {
+                    return rsp = new DefaultAPIResponse()
+                    {
+                        status = false,
+                        message = $"Customer's whatsapp number {payLoad.whatsappNo} is already on file and cannot be used for registration",
+                        data = payLoad
+                    };
+                }
+
+                //worktelephone
+                if (await helper.doesPhoneExistAsync(@"workTelephone", payLoad.workTelephone))
+                {
+                    return rsp = new DefaultAPIResponse()
+                    {
+                        status = false,
+                        message = $"Customer's work telephone number {payLoad.workTelephone} is already on file and cannot be used for registration",
+                        data = payLoad
+                    };
+                }
+
+                var r = await helper.createOnlineCustomerAsync(payLoad);
+                if (r != null)
+                {
+                    cc = (clsCustomer)r;
+                    return rsp = new DefaultAPIResponse()
+                    {
+                        status = r != null ? true : false,
+                        message = r != null ? $"Dear {cc.surname} {cc.firstname} {cc.clientBusiness} <br> Thank you for registering on swiftship. Your temporary password is <b>{cc.pwd}</b> <br> Please go to the <a href={cc.verificationLink}>Verification Page</a> to verify your login <br><br> Thank you. <br>SWIFT-Ship" : @"failed",
+                        data = r
+                    };
+                }
+                else
+                {
+                    return rsp = new DefaultAPIResponse() { 
+                        status = false,
+                        message = $"A user account could not be created for {payLoad.surname} {payLoad.firstname} {payLoad.clientBusiness} <br> Please contact the Administrator"
+                    };
+                }
+
+                //return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error message: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> VerifyOnlineCustomerAsync(string user, string verificationCode)
+        {
+            //verifying online customer
+            DefaultAPIResponse rsp = null;
+            bool bln = false;
+
+            try
+            {
+                Helper helper = new Helper();
+
+                if (await helper.VerifyOnlineCustomerAsync(user, verificationCode))
+                {
+                    bln = true;
+                    rsp = new DefaultAPIResponse()
+                    {
+                        status = bln,
+                        message = bln ? @"Customer verified. It is advised to change password immediately on logging in" : @"failed",
+                        data = new SearchParam() { searchCriteria = user, stringValue = verificationCode }
+                    };
+                }
+                else
+                {
+                    rsp = new DefaultAPIResponse()
+                    {
+                        status = bln,
+                        message = @"Customer record does not exist. Please see the Administrator",
+                        data = new SearchParam() { searchCriteria = user, stringValue = verificationCode }
+                    };
+                }
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse()
                 {
                     status = false,
                     message = $"error: {x.Message}"

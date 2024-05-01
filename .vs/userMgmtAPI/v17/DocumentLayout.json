@@ -3,24 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|c:\\users\\nana\\projects\\usrmgmtapi\\usermanagementapi\\resources\\implementations\\clientservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|solutionrelative:usermanagementapi\\resources\\implementations\\clientservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|c:\\users\\nana\\projects\\usrmgmtapi\\usermanagementapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|solutionrelative:usermanagementapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|c:\\users\\nana\\projects\\usrmgmtapi\\usermanagementapi\\resources\\implementations\\containertypeservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|solutionrelative:usermanagementapi\\resources\\implementations\\containertypeservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|c:\\users\\nana\\projects\\usrmgmtapi\\usermanagementapi\\pocos\\clscontaineritem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|solutionrelative:usermanagementapi\\pocos\\clscontaineritem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|c:\\users\\nana\\projects\\usrmgmtapi\\usermanagementapi\\resources\\interfaces\\icontainertypeservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|solutionrelative:usermanagementapi\\resources\\interfaces\\icontainertypeservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|c:\\users\\nana\\projects\\usrmgmtapi\\usermanagementapi\\data\\swcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|solutionrelative:usermanagementapi\\data\\swcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|c:\\users\\nana\\projects\\usrmgmtapi\\usermanagementapi\\utils\\helper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|solutionrelative:usermanagementapi\\utils\\helper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -39,63 +31,41 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "ContainerTypeService.cs",
-              "DocumentMoniker": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Resources\\Implementations\\ContainerTypeService.cs",
-              "RelativeDocumentMoniker": "UserManagementAPI\\Resources\\Implementations\\ContainerTypeService.cs",
-              "ToolTip": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Resources\\Implementations\\ContainerTypeService.cs",
-              "RelativeToolTip": "UserManagementAPI\\Resources\\Implementations\\ContainerTypeService.cs",
-              "ViewState": "AQIAANYBAAAAAAAAAAAqwOUBAAA9AAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-04-25T21:53:08.232Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "IContainerTypeService.cs",
-              "DocumentMoniker": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Resources\\Interfaces\\IContainerTypeService.cs",
-              "RelativeDocumentMoniker": "UserManagementAPI\\Resources\\Interfaces\\IContainerTypeService.cs",
-              "ToolTip": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Resources\\Interfaces\\IContainerTypeService.cs",
-              "RelativeToolTip": "UserManagementAPI\\Resources\\Interfaces\\IContainerTypeService.cs",
-              "ViewState": "AQIAAAoAAAAAAAAAAAA9wBYAAAA3AAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-04-25T21:51:35.069Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "clsContainerItem.cs",
-              "DocumentMoniker": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\POCOs\\clsContainerItem.cs",
-              "RelativeDocumentMoniker": "UserManagementAPI\\POCOs\\clsContainerItem.cs",
-              "ToolTip": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\POCOs\\clsContainerItem.cs",
-              "RelativeToolTip": "UserManagementAPI\\POCOs\\clsContainerItem.cs",
-              "ViewState": "AQIAAJcAAAAAAAAAAAAqwK0AAAAYAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-04-25T21:36:51.067Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Program.cs",
               "RelativeDocumentMoniker": "UserManagementAPI\\Program.cs",
               "ToolTip": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Program.cs",
               "RelativeToolTip": "UserManagementAPI\\Program.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAEsQAAAEAAAA",
+              "ViewState": "AQIAAIEDAAAAAAAAAAAswJQDAAAEAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-04-25T21:36:28.432Z",
+              "WhenOpened": "2024-04-30T19:40:52.263Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "swContext.cs",
-              "DocumentMoniker": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Data\\swContext.cs",
-              "RelativeDocumentMoniker": "UserManagementAPI\\Data\\swContext.cs",
-              "ToolTip": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Data\\swContext.cs",
-              "RelativeToolTip": "UserManagementAPI\\Data\\swContext.cs",
-              "ViewState": "AQIAACAAAAAAAAAAAAA0wCgAAAAqAAAA",
+              "DocumentIndex": 2,
+              "Title": "Helper.cs",
+              "DocumentMoniker": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\utils\\Helper.cs",
+              "RelativeDocumentMoniker": "UserManagementAPI\\utils\\Helper.cs",
+              "ToolTip": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\utils\\Helper.cs",
+              "RelativeToolTip": "UserManagementAPI\\utils\\Helper.cs",
+              "ViewState": "AQIAAGwCAAAAAAAAAAAswLMCAAAUAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-04-25T21:36:07.212Z"
+              "WhenOpened": "2024-04-30T19:40:52.295Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ClientService.cs",
+              "DocumentMoniker": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Resources\\Implementations\\ClientService.cs",
+              "RelativeDocumentMoniker": "UserManagementAPI\\Resources\\Implementations\\ClientService.cs",
+              "ToolTip": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Resources\\Implementations\\ClientService.cs",
+              "RelativeToolTip": "UserManagementAPI\\Resources\\Implementations\\ClientService.cs",
+              "ViewState": "AQIAAJsEAAAAAAAAAAAiwKYEAAAQAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-30T19:35:23.707Z",
+              "EditorCaption": ""
             }
           ]
         }

@@ -12,6 +12,7 @@
         public string zipped { get; set; } = string.Empty;
         public string fxKey { get; set; } = string.Empty;
         public string fxLive { get; set; } = string.Empty;
+        public string chars { get; set; } = string.Empty;
 
     }
 }

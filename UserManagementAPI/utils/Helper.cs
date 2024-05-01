@@ -27,6 +27,7 @@ using Newtonsoft.Json.Linq;
 using UserManagementAPI.Models;
 
 using UserManagementAPI.Enums;
+using UserManagementAPI.website;
 
 namespace UserManagementAPI.utils
 {
@@ -595,6 +596,134 @@ namespace UserManagementAPI.utils
                 return false;
             }
         }
+
+        public async Task<bool> doesEmailExistAsync(string emailtype, string emailValue)
+        {
+            //todo: check if email exist in the data store
+            bool bln = false;
+            TClient obj = null;
+
+            try
+            {
+                using (var config = new swContext())
+                {
+                    try
+                    {
+                        if (emailtype == @"main")
+                        {
+                            obj = await config.TClients.Where(c => c.ClientEmailAddr == emailValue).FirstOrDefaultAsync();
+                            return obj == null ? bln = false : bln = true;
+                        }
+                        else if (emailtype == @"alternate")
+                        {
+                            obj = await config.TClients.Where(c => c.ClientEmailAddr2 == emailValue).FirstOrDefaultAsync();
+                            return obj == null ? bln = false : bln = true;
+                        }
+
+                        return bln;
+                    }
+                    catch(Exception configErr)
+                    {
+                        throw configErr;
+                    }
+                }                   
+            }
+            catch(Exception x)
+            {
+                return bln;
+            }
+        }
+
+        public async Task<bool> doesPhoneExistAsync(string phonetype, string phoneValue)
+        {
+            //todo: check if phone exists in the data store
+            bool bln = false;
+            TClient obj = null;
+
+            try
+            {
+                using (var config = new swContext())
+                {
+                    try
+                    {
+                        if (phonetype == @"mobile")
+                        {
+                            obj = await config.TClients.Where(c => c.MobileNo == phoneValue).FirstOrDefaultAsync();
+                            return obj == null ? bln = false : bln = true;
+                        }
+                        else if (phonetype == @"whatsapp")
+                        {
+                            obj = await config.TClients.Where(c => c.WhatsappNo == phoneValue).FirstOrDefaultAsync();
+                            return obj == null ? bln = false : bln = true;
+                        }
+                        else if (phonetype == @"workTelephone")
+                        {
+                            obj = await config.TClients.Where(c => c.WorkTelephone == phoneValue).FirstOrDefaultAsync();
+                            return obj == null ? bln = false : bln = true;
+                        }
+
+                        return bln;
+                    }
+                    catch(Exception configErr)
+                    {
+                        throw configErr;
+                    }
+                }
+            }
+            catch(Exception x)
+            {
+                return bln;
+            }
+        }
+
+        public async Task<bool> VerifyOnlineCustomerAsync(string usr, string vcode)
+        {
+            //todo: verifying customer user and code
+            bool bln = false;
+            TClient obj = null;
+
+            try
+            {
+                using (var config = new swContext())
+                {
+                    var transaction = await config.Database.BeginTransactionAsync();
+
+                    try
+                    {
+                        obj = await config.TClients.Where(c => c.ClientEmailAddr == usr).Where(z => z.ClientPassword == vcode).FirstOrDefaultAsync();
+
+                        if (obj != null)
+                        {
+                            obj.CanLogin = true;
+                            if (obj.ClientTypeId == 1)
+                            {
+                                obj.ClientAccNo = $"{obj.Firstname.Substring(0,1)}{obj.Surname.Substring(0,1)}{obj.Id.ToString()}";
+                            }
+                            else if (obj.ClientTypeId == 2)
+                            {
+                                obj.ClientAccNo = $"{obj.ClientBusinessName.Substring(0,3)}{obj.Id.ToString()}";
+                            }
+
+                            await config.SaveChangesAsync();
+                            await transaction.CommitAsync();
+
+                            bln = true;
+                        }
+                    }
+                    catch(Exception configErr)
+                    {
+                        throw configErr;
+                    }
+                }
+
+                return bln;
+            }
+            catch(Exception x)
+            {
+                return bln;
+            }
+        }
+
         public async Task<IEnumerable<OrderSummaryDetails>> getOrderSummaryKeys(OrderTypeLookup ordertypelookup)
         {
             //TODO: use order lookup to fetch accounting keys for order computation
@@ -795,6 +924,89 @@ namespace UserManagementAPI.utils
                 return list;
             }
         }
+        
+        public async Task<object> createOnlineCustomerAsync(object data)
+        {
+            const int DEFAULTED_USER = 10000;
+            object returnedData = null;
+
+            try
+            {
+                using (config)
+                {
+                    var transaction = await config.Database.BeginTransactionAsync();
+
+                    try
+                    {
+                        var record = (clsCustomer)data;
+                        TClient client = new TClient()
+                        {
+                            Surname = record.clienttypeId == 1 ? record.surname : string.Empty,
+                            Firstname = record.clienttypeId == 1 ? record.firstname : string.Empty,
+                            Middlenames = record.clienttypeId == 1 ? record.middlenames : string.Empty,
+                            ClientTypeId = record.clienttypeId,
+                            ClientAccNo = string.Empty,
+                            ClientCityId = record.cityId,
+                            ClientCountryId = record.countryId,
+                            ChannelTypeId = record.channeltypeId,
+                            AssociatedCompanyId = record.associatedCompany,
+                            ReferralId = record.referralId,
+                            ClientBusinessName = record.clienttypeId == 2 ? record.clientBusiness : string.Empty,
+                            ClientPostCode = record.postCode,
+                            MobileNo = record.mobileNo,
+                            WhatsappNo = record.whatsappNo,
+                            HomeTelephone = record.homeTelephone,
+                            WorkTelephone = record.workTelephone,
+                            ClientEmailAddr = record.clientEmail,
+                            ClientEmailAddr2 = record.clientEmail2,
+
+                            CollectionInstruction = @"Registered via website",
+                            CreatedBy = DEFAULTED_USER,
+                            LastModifiedBy = DEFAULTED_USER,
+                            IsShipper = false,
+                            ConsolidatorId = 0,
+                            CanLogin = false,
+                            ClientPassword = await record.generateClientPassword()
+                        };
+
+                        await config.TClients.AddAsync(client);
+                        await config.SaveChangesAsync();
+
+                        record.id = client.Id;
+                        record.pwd = client.ClientPassword;
+
+                        //client address
+                        TClientAddress caddr = new TClientAddress()
+                        {
+                            ClientId = client.Id,
+                            ClientAddr1 = record.oAddress.address1,
+                            ClientAddr2 = record.oAddress.address2,
+                            ClientAddr3 = record.oAddress.address3,
+                            ClientAddr4 = record.oAddress.address4,
+                            IsUk = record.oAddress.isUK
+                        };
+
+                        await config.TClientAddresses.AddAsync(caddr);
+                        await config.SaveChangesAsync();
+
+                        await transaction.CommitAsync();
+
+                        returnedData = (object)record;
+                    }
+                    catch(Exception configErr)
+                    {
+                        throw configErr;
+                    }
+                }
+
+                return returnedData;
+            }
+            catch(Exception x)
+            {
+                return returnedData;
+            }
+        }
+
         public async Task<clientCreatedRecord> createIndividualClientRecordAsync(IndividualCustomerLookup record)
         {
             //TODO: creates an individual client record in the data store
@@ -3100,6 +3312,8 @@ namespace UserManagementAPI.utils
                 return result;
             }
         }
+
+
 
         #endregion
 

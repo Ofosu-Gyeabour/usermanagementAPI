@@ -12,5 +12,6 @@
         public static string IMG_FOLDER_PATH { get; set; }
         public static string FX_KEY { get; set; }
         public static string FX_LIVE_ENDPOINT { get; set; }
+        public static string CHARS { get; set; }
     }
 }

@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using UserManagementAPI.Procs;
 using Xero.NetStandard.OAuth2.Model.Accounting;
 using System.Drawing.Printing;
+using UserManagementAPI.website;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -121,6 +122,7 @@ ConfigObject.IMG_FOLDER_PATH = settings.imgPath;
 ConfigObject.ZIPPED_FOLDER = settings.zipped;
 ConfigObject.FX_KEY = settings.fxKey;
 ConfigObject.FX_LIVE_ENDPOINT = settings.fxLive;
+ConfigObject.CHARS = settings.chars;
 
 
 var eventSettings = builder.Configuration.GetSection("Events").Get<Events>();
@@ -847,6 +849,81 @@ app.MapPost("/Client/SaveIndividual", async Task<IResult> (IClientService servic
 
         var insertStatus = await service.SaveIndividualClientRecordAsync(individual);
         return Results.Ok(insertStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Client");
+
+app.MapPost("/Online/CreateCustomer", async Task<IResult> (IClientService service, clsCustomer payLoad) =>
+{
+    if (payLoad.mobileNo.Length < 1)
+        return Results.BadRequest(@"Invalid mobile number provided by system user");
+
+    if (payLoad.whatsappNo.Length < 1)
+        return Results.BadRequest(@"Invalid whatsapp number provided by system user");
+
+    if (payLoad.workTelephone.Length < 1)
+        return Results.BadRequest(@"Invalid working Telephone provided by system user");
+
+    if ((payLoad.clienttypeId < 1) && (payLoad.clienttypeId > 2))
+        return Results.BadRequest(@"Invalid client type code entered by system user. 1 = Individual, 2=Company");
+
+    if (payLoad.clienttypeId == 1)
+    {
+        if (payLoad.surname.Length < 1)
+            return Results.BadRequest(@"Surname of customer cannot be empty or blank");
+
+        if (payLoad.firstname.Length < 1)
+            return Results.BadRequest(@"First name of customer cannot be empty or blank");
+    }
+
+    if (payLoad.clienttypeId == 2)
+    {
+        if (payLoad.clientBusiness.Length < 1)
+            return Results.BadRequest(@"Name of customer's business cannot be empty or blank");
+    }
+
+    if (payLoad.postCode.Length < 1)
+        return Results.BadRequest(@"Post code cannot be empty or blank");
+
+    if (payLoad.verificationLink.Length < 1)
+        return Results.BadRequest(@"Customer verification link cannot be empty or blank");
+
+    try
+    {
+        var opStatus = await service.SaveOnlineCustomerAsync(payLoad);
+        if (opStatus.status)
+        {
+            //send a mail to the email address of the customer
+            clsEmail em = new clsEmail();
+            em.oCompany = new CompanyLookup() { id = 1 };
+
+            var emObj = await em.getEmailConfigurationAsync();
+            var stat = await emObj.SendMailAsync(@"Swiftship System: User Verification",opStatus.message, $"{payLoad.clientEmail}", $"{payLoad.clientEmail2}",string.Empty);
+        }
+
+        return Results.Ok(opStatus);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Client");
+
+app.MapPost("/Online/VerifyCustomer", async Task<IResult> (IClientService service, SearchParam payLoad) =>
+{
+    if (payLoad.searchCriteria.Length < 1)
+        return Results.BadRequest(@"Customer user name or email address cannot be blank or empty");
+
+    if (payLoad.stringValue.Length < 1)
+        return Results.BadRequest(@"Verification code cannot be blank or empty");
+
+    try
+    {
+        var verifStatus = await service.VerifyOnlineCustomerAsync(payLoad.searchCriteria, payLoad.stringValue);
+        return Results.Ok(verifStatus);
     }
     catch(Exception x)
     {

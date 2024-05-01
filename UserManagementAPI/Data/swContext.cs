@@ -166,7 +166,6 @@ namespace UserManagementAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
             #region stored procedure
 
             modelBuilder.Entity<pShippingOrder>(entity => entity.HasNoKey());
