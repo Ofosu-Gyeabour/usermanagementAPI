@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Runtime.InteropServices;
+using UserManagementAPI.Enums;
 using UserManagementAPI.POCOs;
 using UserManagementAPI.Procs;
 
@@ -392,6 +393,42 @@ namespace UserManagementAPI.utils
             catch(Exception x)
             {
                 return containerDocuments;
+            }
+        }
+
+        #endregion
+
+        #region consolidator order items
+
+        public async Task<IEnumerable<clsConsolidatorOrderItem>> getConsolidatorOrderItemsAsync(int consolOrderID)
+        {
+            //gets the list of items attached to a consolidated order
+            List<clsConsolidatorOrderItem> consolItems = null;
+
+            try
+            {
+                consolItems = await config.ClsConsolidatorOrderItems.FromSqlRaw("exec proc_fetch_consolidatorOrder_items {0}", consolOrderID).ToListAsync();
+                return consolItems;
+            }
+            catch(Exception x)
+            {
+                return consolItems;
+            }
+        }
+
+        public async Task<IEnumerable<clsPostedConsolidator>> getPostedConsolidatedItemsAsync()
+        {
+            //gets the list of items attached to a consolidated order
+            List<clsPostedConsolidator> postedconsolOrders = null;
+
+            try
+            {
+                postedconsolOrders = await config.ClsPostedConsolidators.FromSqlRaw("exec proc_fetch_postedConsolidators {0}", (int)ConsolOrderStatusEnum.PROCESSED).ToListAsync();
+                return postedconsolOrders;
+            }
+            catch (Exception x)
+            {
+                return postedconsolOrders;
             }
         }
 

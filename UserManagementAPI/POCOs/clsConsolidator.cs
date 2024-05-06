@@ -1,8 +1,10 @@
 ﻿#nullable disable
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using UserManagementAPI.Enums;
 using UserManagementAPI.Models;
 using UserManagementAPI.Resources.Implementations;
+using UserManagementAPI.utils;
 
 namespace UserManagementAPI.POCOs
 {
@@ -402,8 +404,12 @@ namespace UserManagementAPI.POCOs
 
             try
             {
-                var ob = await config.TShippingItems.Where(x => x.ItemName == itemName).Where(x => x.CountryId == country).FirstOrDefaultAsync();
-                return returnedID = ob != null ? ob.Id : 10000;
+                var cfg = new swContext();
+                using (cfg)
+                {
+                    var ob = await cfg.TShippingItems.Where(x => x.ItemName == itemName).Where(x => x.CountryId == country).FirstOrDefaultAsync();
+                    return returnedID = ob != null ? ob.Id : 10000;
+                }                   
             }
             catch(Exception ex)
             {
@@ -453,6 +459,89 @@ namespace UserManagementAPI.POCOs
             }
         }
 
+        public async Task<bool> DeleteConsolidatedOrderAsync(clsConsolidatorOrder record)
+        {
+            bool result = false;
+
+            try
+            {
+                using (config)
+                {
+                    var trans = await config.Database.BeginTransactionAsync();
+
+                    try
+                    {
+                        //delete tconsolorderitem
+                        //delete tconsolorder
+                        if (record.items.Length > 0)
+                        {
+                            try
+                            {
+                                foreach (var item in record.items)
+                                {
+                                    if (item.id != 0)
+                                    {
+                                        var obj = await config.TConsolOrderItems.Where(o => o.ConsolOrderId == item.id).FirstOrDefaultAsync();
+                                        if (obj != null)
+                                        {
+                                            config.TConsolOrderItems.Remove(obj);
+                                            await config.SaveChangesAsync();
+                                        }
+                                    }
+                                }
+
+                                if (record.consolID != 0)
+                                {
+                                    var obj = await config.TConsolOrders.Where(c => c.ConsolId == record.consolID).Where(x => x.StatusId == (int)OrderStatusEnum.INPUTTED).FirstOrDefaultAsync();
+                                    if (obj != null)
+                                    {
+                                        config.TConsolOrders.Remove(obj);
+                                        await config.SaveChangesAsync();
+
+                                        await trans.CommitAsync();
+                                        result = true;
+                                    }
+                                }
+                            }
+                            catch(Exception transExc)
+                            {
+                                await trans.RollbackAsync();
+                                throw transExc;
+                            }
+                            
+                        }
+                    }
+                    catch(Exception configExc)
+                    {
+                        throw configExc;
+                    }
+                }
+
+                return result;
+            }
+            catch(Exception x)
+            {
+                return result;
+            }
+        }
+
+        private async Task<int> getNewConsolOrderID()
+        {
+            int _Id = 0;
+
+            try
+            {
+                using (var cfg = new swContext())
+                {
+                    _Id = cfg.TConsolOrders.Max(u => (int)u.Id);
+                }
+                return _Id;
+            }
+            catch(Exception x)
+            {
+                return _Id = 1;
+            }
+        }
         public async Task<bool> CreateOrderAsync(clsConsolidatorOrder record)
         {
             bool bln = false;
@@ -461,67 +550,217 @@ namespace UserManagementAPI.POCOs
 
             try
             {
-                using (var cfg = new swContext())
+                //_Id = await getNewConsolOrderID();
+
+                var config = new swContext();
+                using (config)
                 {
-                    _Id = config.TConsolOrders.Max(u => (int)u.Id);
-                }
-                
-                using var transaction = config.Database.BeginTransaction();
+                    using var transaction = config.Database.BeginTransaction();
 
-                try
-                {
-                    TConsolOrder objOrder = new TConsolOrder()
+                    try
                     {
-                        ConsolId = record.consolID,
-                        ArrivalcountryId = record.arrivalcountryId,
-                        ArrivalPortId = record.arrivalPortId,
-                        RecipientId = record.recipientId,
-                        OrderInputBy = record.recordInputter,
-                        OrderInputDate = DateTime.Now,
-                        OrderNote = record.orderNote,
-                        StatusId = 1,  //PENDING
-                        OrderconvertedBy = null,
-                        OrderconvertedDate = null,
-                        ConsolOrderNo = await formatConsolOrderNumber(_Id + 1)
-                    };
-
-                    await config.AddAsync(objOrder);
-                    await config.SaveChangesAsync();
-
-                    consolOrderID = objOrder.Id;
-                    record.orderNo = objOrder.ConsolOrderNo;
-
-                    foreach (var item in record.items)
-                    {
-                        TConsolOrderItem objItem = new TConsolOrderItem()
+                        var tobj = await config.TConsolOrders.Where(t => t.ConsolId == record.consolID).Where(x => x.StatusId == (int)ConsolOrderStatusEnum.PENDING).FirstOrDefaultAsync();
+                        if (tobj == null)
                         {
-                            ConsolOrderId = consolOrderID,
-                            Qty = item.quantity,
-                            ItemId = await getItemIDAsync(item.item,(int)record.arrivalcountryId),
-                            Describ = item.description,
-                            ItemWgt = item.itemWeight,
-                            ItemVol = item.itemVolume,
-                            Marks = item.marks,
-                            Hscode = item.hsCode == null ? string.Empty : item.hsCode
-                        };
+                            TConsolOrder objOrder = new TConsolOrder()
+                            {
+                                ConsolId = record.consolID,
+                                ArrivalcountryId = record.arrivalcountryId,
+                                ArrivalPortId = record.arrivalPortId,
+                                RecipientId = record.recipientId,
+                                OrderInputBy = record.recordInputter,
+                                OrderInputDate = DateTime.Now,
+                                OrderNote = record.orderNote,
+                                StatusId = (int)ConsolOrderStatusEnum.PENDING,   //PENDING =1
+                                OrderconvertedBy = null,
+                                OrderconvertedDate = null,
+                                ConsolOrderNo = null // await formatConsolOrderNumber(_Id + 1)
+                            };
 
-                        await config.AddAsync(objItem);
-                        await config.SaveChangesAsync();
+                            await config.AddAsync(objOrder);
+                            await config.SaveChangesAsync();
+
+                            consolOrderID = objOrder.Id;
+                        }
+                        else
+                        {
+                            consolOrderID = tobj.Id;
+
+                            tobj.ArrivalcountryId = record.arrivalcountryId;
+                            tobj.ArrivalPortId = record.arrivalPortId;
+                            tobj.RecipientId = record.recipientId;
+                            tobj.OrderInputBy = record.recordInputter;
+                            tobj.OrderInputDate = DateTime.Now;
+                            tobj.OrderNote = record.orderNote;
+                            tobj.StatusId = (int)OrderStatusEnum.INPUTTED;
+                            tobj.OrderconvertedBy = null;
+                            tobj.OrderconvertedDate = null;
+                            tobj.ConsolOrderNo = null;
+
+                            await config.SaveChangesAsync();
+                        }
+                        
+                        //record.orderNo = objOrder.ConsolOrderNo;
+
+                        foreach (var item in record.items)
+                        {
+                            TConsolOrderItem objItem = new TConsolOrderItem()
+                            {
+                                ConsolOrderId = consolOrderID,
+                                Qty = item.quantity,
+                                ItemId = await getItemIDAsync(item.item, (int)record.arrivalcountryId),
+                                Describ = item.description,
+                                ItemWgt = item.itemWeight,
+                                ItemVol = item.itemVolume,
+                                Marks = item.marks,
+                                Hscode = item.hsCode == null ? string.Empty : item.hsCode,
+                                ItemPicPath = item.picturePath == null? string.Empty: item.picturePath
+                            };
+
+                            await config.AddAsync(objItem);
+                            await config.SaveChangesAsync();
+                        }
+
+                        await transaction.CommitAsync();
+                        return bln = true;
                     }
-
-                    await transaction.CommitAsync();
-                    return bln = true;
-                }
-                catch(Exception x)
-                {
-                    await transaction.RollbackAsync();
-                    return bln;
+                    catch (Exception x)
+                    {
+                        await transaction.RollbackAsync();
+                        return bln;
+                    }
                 }    
-                
             }
             catch(Exception ex)
             {
                 throw ex;
+            }
+        }
+
+        public async Task<bool> PostConsolidatedOrderAsync(clsConsolidatorOrder record)
+        {
+            //todo: post an order full of consolidated items
+            //get the id
+            //get the consolidator id
+            //get the total quantity of items being consolidated
+            bool results = false;
+
+            try
+            {
+                var cfg = new swContext();
+                using (cfg)
+                {
+                    var t = await cfg.Database.BeginTransactionAsync();
+
+                    try
+                    {
+                        
+
+                        var tobj = await cfg.TConsolOrders.Where(t => t.ConsolId == record.consolID).Where(x => x.StatusId == (int)ConsolOrderStatusEnum.PENDING).FirstOrDefaultAsync();
+                        if (tobj != null)
+                        {
+                            var sumQty = await cfg.TConsolOrderItems.Where(x => x.ConsolOrderId == tobj.Id).Select(x => x.Qty).SumAsync();
+
+                            tobj.StatusId = (int)ConsolOrderStatusEnum.PROCESSED;
+                            tobj.ConsolOrderNo = $"{record.consolID}|{tobj.Id}|{sumQty}";
+
+                            record.orderNo = tobj.ConsolOrderNo;
+                            await cfg.SaveChangesAsync();
+                            await t.CommitAsync();
+                            results = true;
+                        }
+                    }
+                    catch(Exception cfgEx)
+                    {
+                        await t.RollbackAsync();
+                        throw cfgEx;
+                    }
+                }
+
+                return results;
+            }
+            catch(Exception x)
+            {
+                return results;
+            }
+        }
+
+        public async Task<clsConsolidatorOrder> getPendingConsolidatorOrder(int consolID)
+        {
+            //TODO: gets pending consolidator order and its associated items
+            clsConsolidatorOrder result = null;
+
+            try
+            {
+                using (config)
+                {
+                    try
+                    {
+                        var obj = await config.TConsolOrders.Where(c => c.ConsolId == consolID).Where(x=>x.StatusId == (int)OrderStatusEnum.INPUTTED).FirstOrDefaultAsync();
+                        if (obj != null)
+                        {
+                            dtStore dstore = new dtStore();
+
+                            result = new clsConsolidatorOrder()
+                            {
+                                id = obj.Id,
+                                consolID = obj.ConsolId,
+                                arrivalcountryId = obj.ArrivalcountryId,
+                                arrivalPortId = obj.ArrivalPortId,
+                                recipientId = obj.RecipientId,
+                                recordInputter = obj.OrderInputBy,
+                                orderNote = obj.OrderNote
+                            };
+
+                            var c_items = await dstore.getConsolidatorOrderItemsAsync(result.id);
+                            result.items = c_items.ToArray();
+                        }
+                    }
+                    catch(Exception configEx)
+                    {
+                        throw configEx;
+                    }
+                }
+
+                return result;
+            }
+            catch(Exception x)
+            {
+                return result;
+            }
+        }
+
+        public async Task<bool> deletePendingConsolidatedItemAsync(int itemID)
+        {
+            //TODO: deletes an pending item from the consolidatororder
+            bool result = false;
+
+            try
+            {
+                using (config)
+                {
+                    try
+                    {
+                        var item = await config.TConsolOrderItems.Where(x => x.Id == itemID).FirstOrDefaultAsync();
+                        if (item != null)
+                        {
+                            config.TConsolOrderItems.Remove(item);
+                            await config.SaveChangesAsync();
+
+                            result = true;
+                        }
+                    }
+                    catch(Exception configEx)
+                    {
+                        throw configEx;
+                    }
+                }
+
+                return result;
+            }
+            catch(Exception x)
+            {
+                return result;
             }
         }
 
@@ -557,8 +796,18 @@ namespace UserManagementAPI.POCOs
         public string? marks { get; set; } = string.Empty;
         public string? hsCode { get; set; } = string.Empty;
 
-        
+        public string? picturePath { get; set; } = string.Empty;
 
+    }
+
+    public class clsPostedConsolidator
+    {
+        public int id { get; set; }
+        public int consolid { get; set; }
+        public string consolName { get; set; }
+        public string orderNo { get; set; }
+
+        
     }
 
 }

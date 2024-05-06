@@ -21,6 +21,9 @@ namespace UserManagementAPI.Resources.Interfaces
         Task<DefaultAPIResponse> CreateCorporateCustomerAsync(CorporateConsolidatorClient payLoad);
 
         Task<DefaultAPIResponse> CreateConsolidatorOrderAsync(clsConsolidatorOrder payLoad);
-
+        Task<DefaultAPIResponse> PostConsolidatedOrderAsync(clsConsolidatorOrder payLoad);
+        Task<DefaultAPIResponse> GetPendingConsolidatorOrderAsync(int ConsolidatorID);
+        Task<DefaultAPIResponse> DeletePendingConsolidatedItemAsync(int ID, string itemName);
+        Task<DefaultAPIResponse> GetPostedConsolidatedOrdersAsync();
     }
 }

@@ -3,6 +3,7 @@ using UserManagementAPI.Response;
 using UserManagementAPI.Resources.Interfaces;
 using UserManagementAPI.POCOs;
 using System.Diagnostics;
+using UserManagementAPI.utils;
 
 namespace UserManagementAPI.Resources.Implementations
 {
@@ -207,18 +208,131 @@ namespace UserManagementAPI.Resources.Implementations
             try
             {
                 clsConsolidator obj = new clsConsolidator();
+
+                //delete any existing pending order first
+                var deletePendingfeedBack = await obj.DeleteConsolidatedOrderAsync(payLoad);
                 var feedBack = await obj.CreateOrderAsync(payLoad);
 
                 return response = new DefaultAPIResponse()
                 {
                     status = feedBack,
-                    message = feedBack == true ? $"Order created successfully with order No {payLoad.orderNo}" : @"An error occured. Please contact Administrator",
+                    message = feedBack == true ? $"Items successfully added" : @"An error occured. Please contact Administrator",
                     data = payLoad
                 };
             }
             catch(Exception x)
             {
                 return response = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+
+        public async Task<DefaultAPIResponse> PostConsolidatedOrderAsync(clsConsolidatorOrder payLoad)
+        {
+            //TODO: post a finished consolidated order
+            DefaultAPIResponse rsp = null;
+
+            try
+            {
+                clsConsolidator obj = new clsConsolidator();
+                var postOrderStatus = await obj.PostConsolidatedOrderAsync(payLoad);
+
+                rsp = new DefaultAPIResponse() { 
+                    status = postOrderStatus ? true: false,
+                    message = postOrderStatus? $"Consolidated items posted to WIF with intermediary order number: <b>{payLoad.orderNo}</b>": @"Operation failed. Please contact your Administrator",
+                    data = payLoad
+                };
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+        public async Task<DefaultAPIResponse> GetPendingConsolidatorOrderAsync(int ConsolidatorID)
+        {
+            //TODO: return a pending consolidator order and its order items
+            DefaultAPIResponse rsp = null;
+
+            try
+            {
+                clsConsolidator obj = new clsConsolidator();
+                var pendingConsolOrder = await obj.getPendingConsolidatorOrder(ConsolidatorID);
+
+                rsp = new DefaultAPIResponse() { 
+                    status = pendingConsolOrder != null ? true: false,
+                    message = pendingConsolOrder != null ? $"{pendingConsolOrder.items.Length} items in the pending order": @"failed",
+                    data = pendingConsolOrder
+                };
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse() { 
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+        public async Task<DefaultAPIResponse> DeletePendingConsolidatedItemAsync(int ID, string itemName)
+        {
+            DefaultAPIResponse rsp = null;
+
+            try
+            {
+                clsConsolidator obj = new clsConsolidator();
+                var bln = await obj.deletePendingConsolidatedItemAsync(ID);
+
+                rsp = new DefaultAPIResponse()
+                {
+                    status = bln ? true : false,
+                    message = bln ? $"Item {itemName} deleted from consolidated items list": @"failed. Contact Administrator",
+                    data = new GenericLookup() { id = ID, idValue = itemName }
+                };
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse()
+                {
+                    status = false,
+                    message = $"error: {x.Message}"
+                };
+            }
+        }
+    
+        public async Task<DefaultAPIResponse> GetPostedConsolidatedOrdersAsync()
+        {
+            //todo: gets posted consolidated orders
+            DefaultAPIResponse rsp = null;
+
+            try
+            {
+                dtStore dstore = new dtStore();
+                var consolOrders = await dstore.getPostedConsolidatedItemsAsync();
+
+                rsp = new DefaultAPIResponse()
+                {
+                    status = consolOrders != null ? true: false,
+                    message = consolOrders != null ? $"{consolOrders.Count()} items": "An error occured.Please see Administrator",
+                    data = consolOrders
+                };
+
+                return rsp;
+            }
+            catch(Exception x)
+            {
+                return rsp = new DefaultAPIResponse()
+                {
                     status = false,
                     message = $"error: {x.Message}"
                 };

@@ -42,7 +42,8 @@ namespace UserManagementAPI.Data
         public virtual DbSet<pContainerStat> PContainerStats { get; set; }
 
         public virtual DbSet<clsContainerDocValue> ClsContainerDocValues { get; set; }
-
+        public virtual DbSet<clsConsolidatorOrderItem> ClsConsolidatorOrderItems { get; set; }
+        public virtual DbSet<clsPostedConsolidator> ClsPostedConsolidators { get; set; }
         #endregion
 
         public virtual DbSet<SaleTypeLookup> SaleTypeLookups { get; set; } = null!;
@@ -188,6 +189,8 @@ namespace UserManagementAPI.Data
             modelBuilder.Entity<pUnloadedItem>(entity => entity.HasNoKey());
             modelBuilder.Entity<pContainerStat>(entity => entity.HasNoKey());
             modelBuilder.Entity<clsContainerDocValue>(entity => entity.HasNoKey());
+            modelBuilder.Entity<clsConsolidatorOrderItem>(entity => entity.HasNoKey());
+            modelBuilder.Entity<clsPostedConsolidator>(entity => entity.HasNoKey());
 
             #endregion
 

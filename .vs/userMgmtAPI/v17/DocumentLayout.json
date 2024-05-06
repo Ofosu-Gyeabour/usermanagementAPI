@@ -3,16 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|c:\\users\\nana\\projects\\usrmgmtapi\\usermanagementapi\\resources\\implementations\\clientservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|solutionrelative:usermanagementapi\\resources\\implementations\\clientservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|c:\\users\\nana\\projects\\usrmgmtapi\\usermanagementapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|solutionrelative:usermanagementapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|c:\\users\\nana\\projects\\usrmgmtapi\\usermanagementapi\\utils\\helper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{FF0D2EE7-FE8F-4EAE-9D03-849372CAECCE}|UserManagementAPI\\UserManagementAPI.csproj|solutionrelative:usermanagementapi\\utils\\helper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,7 +14,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Bookmark",
@@ -30,41 +22,15 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Program.cs",
               "RelativeDocumentMoniker": "UserManagementAPI\\Program.cs",
               "ToolTip": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Program.cs",
               "RelativeToolTip": "UserManagementAPI\\Program.cs",
-              "ViewState": "AQIAAIEDAAAAAAAAAAAswJQDAAAEAAAA",
+              "ViewState": "AQIAAL4NAAAAAAAAAAAAAOQNAAAEAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-04-30T19:40:52.263Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Helper.cs",
-              "DocumentMoniker": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\utils\\Helper.cs",
-              "RelativeDocumentMoniker": "UserManagementAPI\\utils\\Helper.cs",
-              "ToolTip": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\utils\\Helper.cs",
-              "RelativeToolTip": "UserManagementAPI\\utils\\Helper.cs",
-              "ViewState": "AQIAAGwCAAAAAAAAAAAswLMCAAAUAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-04-30T19:40:52.295Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "ClientService.cs",
-              "DocumentMoniker": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Resources\\Implementations\\ClientService.cs",
-              "RelativeDocumentMoniker": "UserManagementAPI\\Resources\\Implementations\\ClientService.cs",
-              "ToolTip": "C:\\Users\\Nana\\Projects\\usrMgmtAPI\\UserManagementAPI\\Resources\\Implementations\\ClientService.cs",
-              "RelativeToolTip": "UserManagementAPI\\Resources\\Implementations\\ClientService.cs",
-              "ViewState": "AQIAAJsEAAAAAAAAAAAiwKYEAAAQAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-04-30T19:35:23.707Z",
+              "WhenOpened": "2024-05-02T10:30:05.527Z",
               "EditorCaption": ""
             }
           ]

@@ -9,6 +9,13 @@ namespace UserManagementAPI.Enums
         COLLECTED_FROM_CUSTOMER,
         ADDED_TO_INVENTORY,
         ORDER_SHIPPED,
-        ORDER_CANCELLED
+        ORDER_CANCELLED,
+        CONSOLIDATOR_POSTED
+    }
+
+    public enum ConsolOrderStatusEnum
+    {
+        PENDING = 1,
+        PROCESSED
     }
 }

@@ -16,6 +16,7 @@ using UserManagementAPI.Procs;
 using Xero.NetStandard.OAuth2.Model.Accounting;
 using System.Drawing.Printing;
 using UserManagementAPI.website;
+using System.Net.NetworkInformation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -123,7 +124,10 @@ ConfigObject.ZIPPED_FOLDER = settings.zipped;
 ConfigObject.FX_KEY = settings.fxKey;
 ConfigObject.FX_LIVE_ENDPOINT = settings.fxLive;
 ConfigObject.CHARS = settings.chars;
-
+ConfigObject.PRINCIPAL = settings.principal;
+ConfigObject.DEPUTY = settings.deputy;
+ConfigObject.IT_ONE = settings.itOne;
+ConfigObject.IT_TWO = settings.itTwo;
 
 var eventSettings = builder.Configuration.GetSection("Events").Get<Events>();
 EventConfig.AUTH_OPERATION = eventSettings.auth;
@@ -901,7 +905,7 @@ app.MapPost("/Online/CreateCustomer", async Task<IResult> (IClientService servic
             em.oCompany = new CompanyLookup() { id = 1 };
 
             var emObj = await em.getEmailConfigurationAsync();
-            var stat = await emObj.SendMailAsync(@"Swiftship System: User Verification",opStatus.message, $"{payLoad.clientEmail}", $"{payLoad.clientEmail2}",string.Empty);
+            var stat = await emObj.SendMailAsync(@"Swiftship System: User Verification",opStatus.message, $"{payLoad.clientEmail}", $"{payLoad.clientEmail2}","nanaofosuappiah@gmail.com");
         }
 
         return Results.Ok(opStatus);
@@ -3500,6 +3504,83 @@ app.MapPost("/Consolidator/SaveOrder", async Task<IResult> (IConsolidatorService
     catch(Exception ex)
     {
         return Results.BadRequest(ex.Message);
+    }
+}).WithTags("Consolidator");
+
+app.MapPost("/Consolidator/PostOrder", async Task<IResult> (IConsolidatorService service, clsConsolidatorOrder payLoad) =>
+{
+    if (payLoad.consolID == 0)
+        return Results.BadRequest(@"ID of consolidator cannot be less or equal to zero (0)");
+
+    try
+    {
+        var serviceOp = await service.PostConsolidatedOrderAsync(payLoad);
+        if (serviceOp.status)
+        {
+            //send a mail to the email address of the customer
+            clsEmail em = new clsEmail();
+            em.oCompany = new CompanyLookup() { id = 1 };
+
+            var emObj = await em.getEmailConfigurationAsync();
+            var stat = await emObj.SendMailAsync(@"Swiftship System: Consolidated Order Posted", serviceOp.message, $"{ConfigObject.PRINCIPAL}", $"{ConfigObject.DEPUTY}",$"{ConfigObject.IT_TWO},{ConfigObject.IT_ONE}");
+
+        }
+        return Results.Ok(serviceOp);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+
+}).WithTags("Consolidator");
+
+
+app.MapPost("/Consolidator/OrderItems/Pending", async Task<IResult> (IConsolidatorService service, GenericLookup payLoad) =>
+{
+    if (payLoad.id < 1)
+        return Results.BadRequest(@"ID of consolidator cannot be less or equal to zero (0)");
+
+    try
+    {
+        var pendingOrderData = await service.GetPendingConsolidatorOrderAsync(payLoad.id);
+        return Results.Ok(pendingOrderData);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Consolidator");
+
+app.MapGet("/Consolidator/Order/Processed", async Task<IResult> (IConsolidatorService service) =>
+{
+    try
+    {
+        var postedConsolidatedOrder = await service.GetPostedConsolidatedOrdersAsync();
+        return Results.Ok(postedConsolidatedOrder);
+    }
+    catch (Exception x)
+    {
+        return Results.BadRequest(x.Message);
+    }
+}).WithTags("Consolidator");
+
+
+app.MapPost("/Consolidator/OrderItem/Delete", async Task<IResult> (IConsolidatorService service, GenericLookup param) =>
+{
+    if (param.id < 1)
+        return Results.BadRequest(@"ID of item cannot be less than or equal to zero (0)");
+
+    if (param.idValue.Length < 1)
+        return Results.BadRequest(@"Item Name cannot be blank or empty");
+
+    try
+    {
+        var status = await service.DeletePendingConsolidatedItemAsync(param.id, param.idValue);
+        return Results.Ok(status);
+    }
+    catch(Exception x)
+    {
+        return Results.BadRequest(x.Message);
     }
 }).WithTags("Consolidator");
 

@@ -14,5 +14,9 @@
         public string fxLive { get; set; } = string.Empty;
         public string chars { get; set; } = string.Empty;
 
+        public string principal { get; set; } = string.Empty;
+        public string deputy { get; set; } = string.Empty;
+        public string itOne { get; set; } = string.Empty;
+        public string itTwo { get; set; } = string.Empty;
     }
 }

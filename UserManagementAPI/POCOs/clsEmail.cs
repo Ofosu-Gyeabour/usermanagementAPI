@@ -169,6 +169,7 @@ namespace UserManagementAPI.POCOs
 
             try
             {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 var smtpClient = new SmtpClient(host)
                 {
                     Port = (int)port,

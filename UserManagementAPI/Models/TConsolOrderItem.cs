@@ -42,6 +42,7 @@ namespace UserManagementAPI.Models
         /// </summary>
         public string? Hscode { get; set; }
 
+        public string? ItemPicPath { get; set; }
         public virtual TConsolOrder? ConsolOrder { get; set; }
     }
 }

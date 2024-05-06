@@ -13,5 +13,10 @@
         public static string FX_KEY { get; set; }
         public static string FX_LIVE_ENDPOINT { get; set; }
         public static string CHARS { get; set; }
+
+        public static string PRINCIPAL { get; set; }
+        public static string DEPUTY { get; set; }
+        public static string IT_ONE { get; set; }
+        public static string IT_TWO { get; set; }
     }
 }
